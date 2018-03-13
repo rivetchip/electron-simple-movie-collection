@@ -6,8 +6,7 @@ const {app, BrowserWindow, ipcMain} = electron;
 const path = require('path');
 const url = require('url');
 
-const debug = false
-
+const debug = process.argv.indexOf('--debug')
 
 let win = null
 
