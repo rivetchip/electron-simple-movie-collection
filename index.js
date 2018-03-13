@@ -1,7 +1,8 @@
 var package = require('./package.json');
 
 const electron = require('electron');  
-const {app, BrowserWindow, ipcMain} = electron; 
+const {app, BrowserWindow, ipcMain, dialog} = electron;
+
 
 const path = require('path');
 const url = require('url');
@@ -93,11 +94,25 @@ function makeSingleInstance() {
 
 
 
+function eventClientSend( channel, args ) {
+    ipcMain.send(channel, args)
+}
 
-ipcMain.on('asynchronous-message', (event, arg) => {
-    console.log(arg)  // affiche "ping"
-    event.sender.send('asynchronous-reply', 'pong')
-})
-  
+function eventClientReceive( channel, listener ) {
+    ipcMain.on(channel, listener)
+}
+
+
+eventClientReceive('open-file-dialog', (event) => {
+    dialog.showOpenDialog({
+        properties: ['openFile']
+    },
+    (files) => {
+        if (files) {
+            event.sender.send('open-file-dialog', files)
+        } 
+    })
+  })
+
 
 

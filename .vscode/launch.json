@@ -10,7 +10,7 @@
             "name": "Electron Main (legacy)",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/index.js",
-            //"protocol": "inspector",
+            "protocol": "inspector",
             "runtimeArgs": [
                 ".",
                 // "--enable-logging"

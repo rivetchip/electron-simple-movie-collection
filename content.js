@@ -6,6 +6,18 @@ const {remote, ipcRenderer} = electron;
 const win = remote.getCurrentWindow();
 
 
+function eventServerSend( channel, args ) {
+    ipcRenderer.send(channel, args)
+}
+
+function eventServerReceive( channel, listener ) {
+    ipcRenderer.on(channel, listener)
+}
+
+
+
+
+
 addEventListener('load', () => {
 
     (function _titlebar(){
@@ -39,6 +51,21 @@ addEventListener('load', () => {
 
     })();
 
+    (function _toolbar(){
+
+        let toolbar = document.querySelector('app-toolbar')
+
+        let openButton = toolbar.querySelector('.open')
+        openButton.addEventListener('click', (event) => {
+            eventServerSend('open-file-dialog')
+        })
+
+        eventServerReceive('open-file-dialog', (event, filenames) => {
+            const [filename] = filenames
+        
+            
+        })
+    })();
 
 
 
