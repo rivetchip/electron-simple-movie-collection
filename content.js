@@ -1,33 +1,49 @@
 'use strict';
 
+const electron = require('electron');  
+const {remote, ipcRenderer} = electron;
+
+const win = remote.getCurrentWindow();
+
+
 addEventListener('load', () => {
 
-    const electron = require('electron');  
-    const {remote, ipcRenderer} = electron;
-
-    const win = remote.getCurrentWindow();
-
-
     (function _titlebar(){
+        let state = 'idle'
 
         let titlebar = document.querySelector('app-titlebar')
 
-        let minimizeButton =  titlebar.querySelector('.minimize')
+        let minimizeButton = titlebar.querySelector('.minimize')
         minimizeButton.addEventListener('click', (event) => {
             win.minimize()
+            state = 'minimize'
         })
 
-        let maximizeButton =  titlebar.querySelector('.maximize')
+        let maximizeButton = titlebar.querySelector('.maximize')
         maximizeButton.addEventListener('click', (event) => {
-            win.isMaximized() ? win.unmaximize() : win.maximize()
+            if( state == 'maximize' ) {
+                win.unmaximize()
+                state = 'idle'
+            }
+            else if( state == 'idle' ) {
+                win.maximize()
+                state = 'maximize'
+            }
         })
 
-        let closeButton =  titlebar.querySelector('.close')
+        let closeButton = titlebar.querySelector('.close')
         closeButton.addEventListener('click', (event) => {
             win.close()
+            state = 'close'
         })
 
     })();
+
+
+
+
+
+
 
 
 
