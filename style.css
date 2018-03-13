@@ -129,6 +129,9 @@ app-titlebar button.close {
 
 
 app-toolbar { /* toolbar with main icons */
+    user-select: none;
+    -webkit-user-select: none;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -171,6 +174,9 @@ app-panel { /* main content with colmun and product info */
 
 
 column-items { /*left column*/
+    user-select: none;
+    -webkit-user-select: none;
+
     width: 300px;
     background-color: #2c3e50;
 
