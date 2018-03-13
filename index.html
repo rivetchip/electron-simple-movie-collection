@@ -18,9 +18,9 @@
 
 
 <app-titlebar>
-    <placeholder>
+    <div>
         DRAGGABLE
-    </placeholder>
+    </div>
     <app-controls>
         <button class="minimize"></button>
         <button class="maximize"></button>
@@ -30,9 +30,13 @@
 
 
 <app-toolbar>
-    <button class="open"></button>
-    <button class="save"></button>
-    <button class="new-product"></button>
+    <div>
+        <button class="open"></button>
+        <button class="save"></button>
+    </div>
+    <div>
+        <button class="new-product"></button>
+    </div>
 </app-toolbar>
 
 
@@ -40,7 +44,8 @@
 
     <column-items>
         <product-item>
-            movie1
+            <div class="title">movie1</div>
+            <div class="favorite"></div>
         </product-item>
         <product-item>
             movie1
