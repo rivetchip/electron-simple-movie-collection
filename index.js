@@ -27,6 +27,8 @@ if( process.mas ) {
         win = new BrowserWindow({
             width: 800,
             height: 600,
+            minWidth: 800,
+            minHeight: 600,
             show: false, // wait ready ; prevents white flickering
             // backgroundColor: '#fff',
 
@@ -45,7 +47,6 @@ if( process.mas ) {
         // Launch fullscreen with DevTools open, usage: npm run debug
         if( debug ) {
             win.webContents.openDevTools()
-            //win.maximize()
         }
 
         // Show window when page is ready
