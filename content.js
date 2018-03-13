@@ -13,21 +13,24 @@ addEventListener('load', () => {
         let titlebar = document.querySelector('app-titlebar')
 
         let minimizeButton =  titlebar.querySelector('.minimize')
-        minimizeButton.onclick = ( event ) => {
+        minimizeButton.addEventListener('click', (event) => {
             win.minimize()
-        }
+        })
 
         let maximizeButton =  titlebar.querySelector('.maximize')
-        maximizeButton.onclick = ( event ) => {
+        maximizeButton.addEventListener('click', (event) => {
             win.isMaximized() ? win.unmaximize() : win.maximize()
-        }
+        })
 
         let closeButton =  titlebar.querySelector('.close')
-        closeButton.onclick = ( event ) => {
+        closeButton.addEventListener('click', (event) => {
             win.close()
-        }
+        })
 
     })();
+
+
+
 
 
 
