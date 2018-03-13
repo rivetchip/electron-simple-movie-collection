@@ -23,16 +23,6 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Electron start",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": [
-                "start"
-            ],
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "type": "node",
-            "request": "launch",
             "name": "Launch Program",
             "program": "${workspaceRoot}\\index.js",
             "cwd": "${workspaceRoot}"
