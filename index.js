@@ -3,11 +3,15 @@ var package = require('./package.json');
 const electron = require('electron');  
 const {app, BrowserWindow, ipcMain, dialog} = electron;
 
-
 const path = require('path');
 const url = require('url');
 
-const debug = process.argv.indexOf('--debug')
+const platform = process.platform
+
+const debug = process.argv.indexOf('--debug') >= 0
+
+// app.disableHardwareAcceleration()
+
 
 let win = null
 
@@ -60,7 +64,9 @@ if( process.mas ) {
         })
     }
 
-    app.on('ready', createWindow)
+    app.on('ready', () => {
+        setTimeout(createWindow, 100) // Workaround for linux transparency
+    })
 
     app.on('window-all-closed', () => {
         if( process.platform !== 'darwin' ) { // macos stay in dock
