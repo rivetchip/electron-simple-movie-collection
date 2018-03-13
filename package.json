@@ -1,0 +1,23 @@
+{
+  "name": "electron-test",
+  "productName": "Electron tutorial app",
+  "description": "Application for electron tutorials",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron .",
+    "dev": "electron . --debug",
+
+    "package-mac": "electron-packager . app --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true",
+    "package-win": "electron-packager . app --out=release-builds --overwrite --asar --platform=win32 --arch=ia32 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
+    "package-linux" : "electron-packager . app --out=release-builds --overwrite --asar --platform=linux --arch=x64 --icon=app-icon.png --prune=true"
+},
+  "author": "rivetchip",
+  "license": "MIT",
+  "devDependencies": {
+    "asar": "^0.14.3",
+    "electron": "^1.8.3",
+    "electron-packager": "^11.1.0"
+  }
+}
