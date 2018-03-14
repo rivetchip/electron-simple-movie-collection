@@ -17,6 +17,8 @@ function eventServerReceive( channel, listener ) {
 
 
 
+let collection
+
 
 
 addEventListener('load', () => {
@@ -69,14 +71,25 @@ addEventListener('load', () => {
         const itemsList = panel.querySelector('column-items')
         const panelContent = panel.querySelector('display-product')
 
+
+        // delegate events
+        delegate(itemsList, 'product-item', 'click', eventOpenProductDisplay)
+
+
+
         // get the full collection from server
         eventServerReceive('get-collection', (event, products) => {
             // parse the content & and show the list to the column
             appendProductItemsList(itemsList, products)
         })
 
+        // get a single, full product
+        eventServerReceive('get-product', (event, productIndex, product) => {
+            // parse and show the view panel
+            openProductDisplay(panelContent, productIndex, product)
+        })
+
   
-        
     })();
 
 
@@ -87,18 +100,39 @@ addEventListener('load', () => {
 
     function appendProductItemsList( itemsList, products ) {
         products.forEach((product, index) => {
-            let item = createProductItem(product)
+            let item = createProductItem(index, product)
             itemsList.appendChild(item)
         })
     }
 
-    function createProductItem( product ) {
+    function eventOpenProductDisplay( event ) {
+        event.preventDefault()
+
+        const target = event.target
+        const productIndex = target.getAttribute('data-index')
+
+        eventServerSend('get-product', productIndex)
+    }
+
+    function openProductDisplay( panelContent, productIndex, product ) {
+        const findField = (field) => panelContent.querySelector('[data-field="'+field+'"]')
+
+        // set the product index :
+        panelContent.setAttribute('data-index', productIndex)
+
+        // set the descriptions to the fields :
+
+
+
+
+        // TODO
+
+    }
+
+    function createProductItem( index, product ) {
         let item = h('product-item', {
-            'data-id': product.id,
-            'data-favorite': product.favorite,
-            'on:click': (event) => {
-                console.log(event)
-            }
+            'data-index': index,
+            'data-favorite': product.favorite
         })
 
         let title = h('div', {
@@ -122,6 +156,7 @@ addEventListener('load', () => {
 
 
 
+    // create element
 
     function h( tagName, props, children = [] ) {
         // document.createDocumentFragment()
@@ -129,31 +164,31 @@ addEventListener('load', () => {
         const isEvent = (attr) => attr.startsWith('on:')
         const getEventName = (attr) => attr.substring(3) // remove "on:"
 
-        let el = document.createElement(tagName)
+        let element = document.createElement(tagName)
 
         if( typeof props === 'string' ) {
-            el.appendChild(document.createTextNode(props))
+            element.appendChild(document.createTextNode(props))
         }
         else {
             Object.entries(props).forEach(([name, value]) => {
 
                 switch( name ) {
                     case 'className':
-                        return el.className = value
+                        return element.className = value
 
                     case 'html':
-                        return el.innerHTML = value
+                        return element.innerHTML = value
 
                     case 'text':
-                        return el.appendChild(document.createTextNode(value))
+                        return element.appendChild(document.createTextNode(value))
                 }
 
                 if( !isEvent(name) ) {
-                    return el.setAttribute(name, value)
+                    return element.setAttribute(name, value)
                 }
 
                 const eventName = getEventName(name)
-                el.addEventListener(eventName, value)
+                element.addEventListener(eventName, value)
             })
         }
 
@@ -162,14 +197,35 @@ addEventListener('load', () => {
                 child = document.createTextNode(child)
             }
 
-            el.appendChild(child)
+            element.appendChild(child)
         })
 
-        children.forEach((child) => el.appendChild(child))
+        children.forEach((child) => element.appendChild(child))
   
-        return el
+        return element
     }
 
+    // delegate events
+
+    function delegate( parent, target, eventType, callback ) {
+
+        parent.addEventListener(eventType, function( event ) {
+            var element = event.target;
+            var matchesCallback = element.matches || element.matchesSelector;
+
+            if( (matchesCallback).call(element, target) ) {
+                callback.call(element, event);
+            }
+        });
+    }
+
+    function toggleState( element, one, two ) {
+        element.setAttribute('data-state', element.getAttribute('data-state') === one ? two : one);
+    }
+    
+    function getState( element ) {
+        return element.getAttribute('data-state');
+    }
 
 
 

@@ -8,14 +8,15 @@
             "title":"aaa",
             "original":"aaa-xxx",
             "duration":120,
+            "dateReleased":"2017",
             "director":"director",
             "poster":"./app-icon.png",
             "description":"description sdfsdfsdffsdfsdfdfsd",
             "comment": "comment sdfdfsdfsdfsdfdsfsdffsdsdfdsfdsf",
-            "country" : [
+            "countries" : [
                 "france","english"
             ],
-            "genre": [
+            "genres": [
                 "aventure"
             ],
             "actors": [

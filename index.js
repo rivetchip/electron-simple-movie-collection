@@ -12,8 +12,9 @@ const debug = process.argv.indexOf('--debug') >= 0
 
 // app.disableHardwareAcceleration()
 
-
 let win = null
+
+
 
 if( process.mas ) {
     app.setName(package.productName);
@@ -100,6 +101,18 @@ function makeSingleInstance() {
 
 
 
+
+
+
+
+
+
+let filename // current opened file
+let collection // current full collection
+let options // user options of the collection
+
+
+
 function eventClientReceive( channel, listener ) {
     ipcMain.on(channel, listener)
 }
@@ -118,24 +131,62 @@ eventClientReceive('open-collection-dialog', (event) => {
     },
     (filenames) => {
         if (filenames) {
-            const [filename] = filenames
+            [filename] = filenames
 
             let products = []
 
             try {
                 const content = require(filename)
 
-                const options = content.options || {}
-                const collection = content.collection || []
+                options = content.options || {}
+                collection = content.collection || []
 
-                sender.send('get-collection', collection)
+                // return a simple collection of products
+                collection.forEach((product) => {
+                    products.push({
+                        id: product.id,
+                        title: product.title,
+                        favorite: product.favorite,
+                        // poster: product.poster
+                    })
+                })
+
+                sender.send('get-collection', products)
             }
             catch( e ) {
-                dialog.showErrorBox('Cannot open file', e.message)
+                //reinit
+                filename = null
+                collection = null
+                options = null
+
+                return dialog.showErrorBox('Cannot open file', e.message)
             }
         } 
     })
 })
 
 
+eventClientReceive('get-product', (event, productIndex) => {
+    const sender = event.sender
 
+    // return a single product from the collection
+    let product = collection[productIndex]
+
+    if( product ) {
+        return sender.send('get-product', productIndex, product)
+    }
+
+    return dialog.showErrorBox('Cannot get product', '')
+})
+
+
+
+
+
+
+
+
+
+
+
+console.log('Running...')
