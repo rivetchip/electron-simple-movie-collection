@@ -44,24 +44,75 @@
 
     <column-items>
         <product-item>
-            <div class="title">movie1</div>
+            <div class="title">test movie1</div>
             <div class="favorite"></div>
         </product-item>
-        <product-item>
-            movie1
-        </product-item>
-        <product-item>
-            movie1
-        </product-item>
-        <product-item>
-            movie1
-        </product-item>
+
+        
+
 
 
     </column-items>
 
-    <display-product>
-        display-product
+
+        <!-- <input data-field="dateReleased" placeholder="Date de sortie" class="field" type="text"> -->
+
+
+
+
+
+    <display-product data-index="" data-state="">
+
+        <table-row>
+            <div class="panel">
+                <poster></poster>
+            </div>
+            <div class="panel">
+                <block>
+                    <div class="title">Date de sortie</div>
+                    <div data-field="dateReleased"></div>
+                </block>
+                <block>
+                    <div class="title">Réalisateur</div>
+                    <div data-field="director"></div>
+                </block>
+                <block>
+                    <div class="title">Durée</div>
+                    <div data-field="duration"></div>
+                </block>
+                <block>
+                    <div class="title">Nationalité</div>
+                    <div data-field="countries"></div>
+                </block>
+            </div>
+            <div class="panel">
+                <block>
+                    <div class="title">Genres</div>
+                    <div data-field="genres"></div>
+                </block>
+                <block>
+                    <div class="title">Note press</div>
+                    <div data-field="ratingPress"></div>
+                </block>
+                <block>
+                    <div class="title">Note</div>
+                    <div data-field="rating"></div>
+                </block>
+            </div>
+        </table-row>
+
+        <div class="panel">
+            <div class="title">Acteurs</div>
+            <div data-field="actors"></div>
+        </div>
+        <div class="panel">
+            <div class="title">Synopsis</div>
+            <div data-field="description"></div>
+        </div>
+        <!-- <block class="panel">
+            <div>Commentaires</div>
+            <div data-field="comment"></div>
+        </block> -->
 
     </display-product>
 

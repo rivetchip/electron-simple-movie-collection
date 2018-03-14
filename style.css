@@ -25,17 +25,7 @@
     url('fonts/lato-v14-latin-700.woff2') format('woff2'),
     url('fonts/lato-v14-latin-700.woff') format('woff');
 }
-  
-  
 
-body {
-    font-family: 'Lato', sans-serif;
-    font-size: 16px;
-    line-height: 16px;
-    font-weight: 300;
-
-    /* text-shadow: 0 0 1px rgba(0,0,0, .3); fake-smoothing */
-}
 html, body, .viewport {
     padding: 0;
     margin: 0;
@@ -46,7 +36,16 @@ html, body, .viewport {
     float: left; /*fix vertical margin collapse*/
     display: flex;
     flex-direction: column;
-    background-color: #fff;
+
+    font-family: 'Lato', sans-serif;
+    font-size: 16px;
+    line-height: 16px;
+    font-weight: 300;
+
+    color: #fff;
+    background-color: #000;
+
+    /* text-shadow: 0 0 1px rgba(0,0,0, .3); fake-smoothing */
 
     border-radius: 6px;
     overflow: hidden;
@@ -90,7 +89,6 @@ app-titlebar {
 
     font-size: 15px;
     font-weight: 400;
-    color: #fff;
 
     background-color: #34495e;
     padding: 5px;
@@ -193,7 +191,6 @@ product-item { /* single title item */
     text-overflow: ellipsis;
 
     cursor: pointer;
-    color: #fff;
     margin-top: 2px;
     background-color: #34495e;
 }
@@ -206,10 +203,15 @@ product-item:hover {
 }
 
 product-item .favorite {
+    display: none;
+
     background: url(imgs/icon-star.svg) transparent no-repeat center;
     background-size: 20px;
 
     padding: 10px;
+}
+product-item[data-favorite="true"] .favorite {
+    display: block;
 }
 
 
@@ -219,7 +221,55 @@ product-item .favorite {
 
 display-product { /* right panel with all stuffs */
     flex: 1;
+
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+
+    background-color: #1f253d;
 }
+display-product .panel {/*simple panel block*/
+    padding: 10px;
+    border-radius: 6px;
+    overflow: hidden;
+    background-color: #394264;
+}
+
+
+display-product table-row {
+    display: flex;
+
+}
+display-product block {
+    display: flex;
+    color: #9099b7;
+}
+display-product block .title {
+    color: #fff;
+
+    
+}
+
+
+
+display-product poster {
+    display: block;
+
+    background: transparent no-repeat center;
+    background-size: contain;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 app-statusbar { /* bottom bow with quick infos */
     display: flex;
@@ -228,7 +278,6 @@ app-statusbar { /* bottom bow with quick infos */
     height: 30px;
     min-height: 30px;
 
-    color: #fff;
     font-size: 14px;
     line-height: 14px;
 
