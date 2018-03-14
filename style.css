@@ -110,7 +110,7 @@ app-titlebar button {
     color: transparent;
 
     background: transparent no-repeat center;
-    background-size: 12px;
+    background-size: 16px;
 }
 app-titlebar button:hover {
     background-color: #2c3e50;

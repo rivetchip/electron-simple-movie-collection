@@ -9,3 +9,5 @@ http://www.latofonts.com/lato-free-fonts/
 
 https://github.com/google/material-design-icons/
 
+https://github.com/GNOME/adwaita-icon-theme
+
