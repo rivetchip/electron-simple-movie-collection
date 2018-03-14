@@ -7,7 +7,19 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Electron Main (legacy)",
+            "name": "Electron",
+            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
+            "program": "${workspaceFolder}/index.js",
+            "protocol": "inspector",
+            "runtimeArgs": [
+                ".",
+            ],
+            "console": "internalConsole"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Electron Debug",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/index.js",
             "protocol": "inspector",
@@ -16,7 +28,7 @@
                 // "--enable-logging"
             ],
             "args" : [
-                // "--debug",
+                "--debug",
             ],
             "console": "internalConsole"
         },

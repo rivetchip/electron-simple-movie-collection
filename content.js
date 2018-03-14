@@ -18,12 +18,14 @@ function eventServerReceive( channel, listener ) {
 
 
 
+
 addEventListener('load', () => {
 
     (function _titlebar(){
-        let state = 'idle'
 
-        let titlebar = document.querySelector('app-titlebar')
+        const titlebar = document.querySelector('app-titlebar')
+
+        let state = 'idle'
 
         let minimizeButton = titlebar.querySelector('.minimize')
         minimizeButton.addEventListener('click', (event) => {
@@ -53,18 +55,28 @@ addEventListener('load', () => {
 
     (function _toolbar(){
 
-        let toolbar = document.querySelector('app-toolbar')
+        const toolbar = document.querySelector('app-toolbar')
 
         let openButton = toolbar.querySelector('.open')
         openButton.addEventListener('click', (event) => {
-            eventServerSend('open-file-dialog')
+            eventServerSend('open-collection-dialog')
+        })
+    })();
+
+    (function _panel(){
+
+        const panel = document.querySelector('app-panel')
+        const itemsList = panel.querySelector('column-items')
+        const panelContent = panel.querySelector('display-product')
+
+        // get the full collection from server
+        eventServerReceive('get-collection', (event, products) => {
+            // parse the content & and show the list to the column
+            appendProductItemsList(itemsList, products)
         })
 
-        eventServerReceive('open-file-dialog', (event, filenames) => {
-            const [filename] = filenames
+  
         
-            
-        })
     })();
 
 
@@ -73,7 +85,90 @@ addEventListener('load', () => {
 
 
 
+    function appendProductItemsList( itemsList, products ) {
+        products.forEach((product, index) => {
+            let item = createProductItem(product)
+            itemsList.appendChild(item)
+        })
+    }
 
+    function createProductItem( product ) {
+        let item = h('product-item', {
+            'data-id': product.id,
+            'data-favorite': product.favorite,
+            'on:click': (event) => {
+                console.log(event)
+            }
+        })
+
+        let title = h('div', {
+            className: 'title',
+            text: product.title
+        })
+
+        item.appendChild(title)
+
+        let favorite = h('div', {
+            className: 'favorite'
+        })
+
+        item.appendChild(favorite)
+
+        return item
+    }
+
+
+
+
+
+
+
+    function h( tagName, props, children = [] ) {
+        // document.createDocumentFragment()
+
+        const isEvent = (attr) => attr.startsWith('on:')
+        const getEventName = (attr) => attr.substring(3) // remove "on:"
+
+        let el = document.createElement(tagName)
+
+        if( typeof props === 'string' ) {
+            el.appendChild(document.createTextNode(props))
+        }
+        else {
+            Object.entries(props).forEach(([name, value]) => {
+
+                switch( name ) {
+                    case 'className':
+                        return el.className = value
+
+                    case 'html':
+                        return el.innerHTML = value
+
+                    case 'text':
+                        return el.appendChild(document.createTextNode(value))
+                }
+
+                if( !isEvent(name) ) {
+                    return el.setAttribute(name, value)
+                }
+
+                const eventName = getEventName(name)
+                el.addEventListener(eventName, value)
+            })
+        }
+
+        children.forEach((child) => {
+            if( typeof child === 'string' ) {
+                child = document.createTextNode(child)
+            }
+
+            el.appendChild(child)
+        })
+
+        children.forEach((child) => el.appendChild(child))
+  
+        return el
+    }
 
 
 

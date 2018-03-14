@@ -100,25 +100,42 @@ function makeSingleInstance() {
 
 
 
-function eventClientSend( channel, args ) {
-    ipcMain.send(channel, args)
-}
-
 function eventClientReceive( channel, listener ) {
     ipcMain.on(channel, listener)
 }
 
 
-eventClientReceive('open-file-dialog', (event) => {
+// client api
+
+eventClientReceive('open-collection-dialog', (event) => {
+    const sender = event.sender
+    
     dialog.showOpenDialog({
-        properties: ['openFile']
+        properties: ['openFile'],
+        filters: [
+            {name: 'Movie Collection', extensions: ['json']}
+        ]
     },
-    (files) => {
-        if (files) {
-            event.sender.send('open-file-dialog', files)
+    (filenames) => {
+        if (filenames) {
+            const [filename] = filenames
+
+            let products = []
+
+            try {
+                const content = require(filename)
+
+                const options = content.options || {}
+                const collection = content.collection || []
+
+                sender.send('get-collection', collection)
+            }
+            catch( e ) {
+                dialog.showErrorBox('Cannot open file', e.message)
+            }
         } 
     })
-  })
+})
 
 
 

@@ -147,7 +147,7 @@ app-toolbar button {
     color: transparent;
 
     background: transparent no-repeat center;
-    background-size: 25px;
+    background-size: 24px;
 }
 app-toolbar button.open {
     background-image: url(imgs/icon-open.svg);
