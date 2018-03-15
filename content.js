@@ -73,7 +73,9 @@ addEventListener('load', () => {
 
 
         // delegate events
-        delegate(itemsList, 'product-item', 'click', eventOpenProductDisplay)
+        delegate(itemsList, 'product-item', 'click', (event) => {
+            eventOpenProductDisplay(panelContent, event)
+        })
 
 
 
@@ -86,7 +88,9 @@ addEventListener('load', () => {
         // get a single, full product
         eventServerReceive('get-product', (event, productIndex, product) => {
             // parse and show the view panel
-            openProductDisplay(panelContent, productIndex, product)
+            if( product ) {
+                openProductDisplay(panelContent, productIndex, product)
+            }
         })
 
   
@@ -105,19 +109,40 @@ addEventListener('load', () => {
         })
     }
 
-    function eventOpenProductDisplay( event ) {
+
+    let previousSelectedProduct
+
+    function eventOpenProductDisplay( panelContent, event ) {
         event.preventDefault()
 
         const target = event.target
         const productIndex = target.getAttribute('data-index')
 
+        // first, we hide the panel content ( to open it later, if the product if found )
+        panelContent.classList.remove('is-visible')
+
+        // remove old selected element, if any
+        if( previousSelectedProduct ) {
+            previousSelectedProduct.classList.remove('is-selected')
+        }
+
+        // set the selected now element
+        target.classList.add('is-selected')
+
+        // set the now selected
+        previousSelectedProduct = target
+
+        // get infos from server
         eventServerSend('get-product', productIndex)
     }
 
     function openProductDisplay( panelContent, productIndex, product ) {
         const findField = (field) => panelContent.querySelector('[data-field="'+field+'"]')
 
-        // set the product index :
+        // set the panel open :
+        panelContent.classList.add('is-visible')
+
+        // set the product index to the view :
         panelContent.setAttribute('data-index', productIndex)
 
         // set the descriptions to the fields :
@@ -226,6 +251,18 @@ addEventListener('load', () => {
     function getState( element ) {
         return element.getAttribute('data-state');
     }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

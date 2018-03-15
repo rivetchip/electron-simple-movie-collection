@@ -59,9 +59,13 @@ html, body, .viewport {
 .is-hidden {
     display: none;
 }
+.is-visible {
+    display: block;
+}
 .is-selected {
 
 }
+
 
 /* reset */
 * {
@@ -114,6 +118,10 @@ app-titlebar button {
 
     background: transparent no-repeat center;
     background-size: 16px;
+    margin-right: 5px;
+}
+app-titlebar button:last-child {
+    margin-right: 0;
 }
 app-titlebar button:hover {
     background-color: #2c3e50;
@@ -127,6 +135,9 @@ app-titlebar button.maximize {
 }
 app-titlebar button.close {
     background-image: url(imgs/window-close.svg);
+}
+app-titlebar button.menu {
+    background-image: url(imgs/window-menu.svg);
 }
 
 
@@ -198,11 +209,13 @@ product-item { /* single title item */
     cursor: pointer;
     margin-top: 2px;
     background-color: #34495e;
-
-    border-left: 5px transparent;
 }
 product-item.is-selected {
-    border-left-color: red;
+    color: #fff;
+    background-color: #1abc9c;
+}
+product-item.is-selected:hover {
+    background-color: #16a085;
 }
 
 product-item:first-child {
@@ -233,29 +246,33 @@ product-item[data-favorite="true"] .favorite {
 display-product { /* right panel with all stuffs */
     flex: 1;
 
-    display: flex;
+    display: none;
     flex-direction: column;
     padding: 25px;
+    overflow-y: auto;
 
+    color: #9099b7;
     background-color: #1f253d;
 }
+display-product.is-visible {
+    display: flex;
+}
 display-product .panel {/*simple panel block*/
+    display: flex;
+    flex-direction: column;
+
     padding: 10px;
     border-radius: 6px;
-    overflow: hidden;
     background-color: #394264;
 }
 
-
-display-product table-row {
+display-product .group {
     display: flex;
+    align-items: stretch;
+
 
 }
-display-product block {
-    display: flex;
-    color: #9099b7;
-}
-display-product block .title {
+display-product .title {
     color: #fff;
 
     

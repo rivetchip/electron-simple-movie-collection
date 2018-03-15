@@ -66,56 +66,66 @@
 
     <display-product data-index="" data-state="">
 
-        <table-row>
+        <div class="group">
+
             <div class="panel">
                 <poster></poster>
             </div>
+
             <div class="panel">
-                <block>
+                <div class="group">
                     <div class="title">Date de sortie</div>
-                    <div data-field="dateReleased"></div>
-                </block>
-                <block>
+                    <placeholder data-field="dateReleased"></placeholder>
+                </div>
+                <div class="group">
                     <div class="title">Réalisateur</div>
-                    <div data-field="director"></div>
-                </block>
-                <block>
+                    <placeholder data-field="director"></placeholder>
+                </div>
+                <div class="group">
                     <div class="title">Durée</div>
-                    <div data-field="duration"></div>
-                </block>
-                <block>
+                    <placeholder data-field="duration"></placeholder>
+                </div>
+                <div class="group">
                     <div class="title">Nationalité</div>
-                    <div data-field="countries"></div>
-                </block>
+                    <placeholder data-field="countries"></placeholder>
+                </div>
             </div>
+
             <div class="panel">
-                <block>
+                <div class="group">
                     <div class="title">Genres</div>
-                    <div data-field="genres"></div>
-                </block>
-                <block>
+                    <placeholder data-field="genres"></placeholder>
+                </div>
+                <div class="group">
                     <div class="title">Note press</div>
-                    <div data-field="ratingPress"></div>
-                </block>
-                <block>
+                    <placeholder data-field="ratingPress"></placeholder>
+                </div>
+                <div class="group">
                     <div class="title">Note</div>
-                    <div data-field="rating"></div>
-                </block>
+                    <placeholder data-field="rating"></placeholder>
+                </div>
             </div>
-        </table-row>
+
+        </div>
 
         <div class="panel">
-            <div class="title">Acteurs</div>
-            <div data-field="actors"></div>
+            <div class="group">
+                <div class="title">Acteurs</div>
+                <placeholder data-field="actors"></placeholder>
+            </div>
         </div>
+
         <div class="panel">
-            <div class="title">Synopsis</div>
-            <div data-field="description"></div>
+            <div class="group">
+                <div class="title">Synopsis</div>
+                <placeholder data-field="description"></placeholder>
+            </div>
         </div>
-        <!-- <block class="panel">
+
+        <!-- <div class="panel">
             <div>Commentaires</div>
-            <div data-field="comment"></div>
-        </block> -->
+            <placeholder data-field="comment"></placeholder>
+        </div> -->
 
     </display-product>
 

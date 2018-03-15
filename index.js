@@ -1,10 +1,11 @@
-var package = require('./package.json');
+var package = require('./package.json')
 
-const electron = require('electron');  
-const {app, BrowserWindow, ipcMain, dialog} = electron;
+const electron = require('electron'); 
+const {app, BrowserWindow, ipcMain, dialog} = electron
 
-const path = require('path');
-const url = require('url');
+const path = require('path')
+const fs = require('fs')
+const url = require('url')
 
 const platform = process.platform
 
@@ -117,6 +118,22 @@ function eventClientReceive( channel, listener ) {
     ipcMain.on(channel, listener)
 }
 
+const fileExist = (filename) => {
+    return new Promise((resolve, reject) => {
+        fs.access(filename, fs.F_OK, (error) => {
+            return error ? reject(error) : resolve(data)
+        })
+    })
+}
+
+const readFile = (filename) => {
+    return new Promise((resolve, reject) => {
+        fs.readFile(filename, 'utf8', (error, data) => {
+            return error ? reject(error) : resolve(data)
+        })
+    })
+}
+
 
 // client api
 
@@ -135,8 +152,19 @@ eventClientReceive('open-collection-dialog', (event) => {
 
             let products = []
 
-            try {
-                const content = require(filename)
+            const displayError = (error) => {
+                //reinit collections
+                filename = null
+                collection = null
+                options = null
+
+                return dialog.showErrorBox('Cannot open file', error)
+            }
+
+            readFile(filename)
+            .then((content) => JSON.parse(content))
+            .then((content) => {
+                // parse content of file
 
                 options = content.options || {}
                 collection = content.collection || []
@@ -151,16 +179,9 @@ eventClientReceive('open-collection-dialog', (event) => {
                     })
                 })
 
-                sender.send('get-collection', products)
-            }
-            catch( e ) {
-                //reinit
-                filename = null
-                collection = null
-                options = null
-
-                return dialog.showErrorBox('Cannot open file', e.message)
-            }
+                return sender.send('get-collection', products)
+            })
+            .catch((error) => displayError)
         } 
     })
 })
@@ -176,7 +197,7 @@ eventClientReceive('get-product', (event, productIndex) => {
         return sender.send('get-product', productIndex, product)
     }
 
-    return dialog.showErrorBox('Cannot get product', '')
+    dialog.showErrorBox('Cannot get product', '')
 })
 
 
