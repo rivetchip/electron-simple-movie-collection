@@ -10,11 +10,11 @@
     "dev": "electron . --debug",
     "clean": "rm -rf ./release-builds",
     "pack": "npm run clean && npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
-    "pack-linux32": "electron-packager . app --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
-    "pack-linux64": "electron-packager . app --out=release-builds --overwrite --asar --platform=linux --arch=x64 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
-    "pack-win32": "electron-packager . app --out=release-builds --overwrite --asar --platform=win32 --arch=ia32 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
-    "pack-win64": "electron-packager . app --out=release-builds --overwrite --asar --platform=win32 --arch=x64 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
-    "pack-mac": "electron-packager . app --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true"
+    "pack-linux32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
+    "pack-linux64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=x64 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
+    "pack-win32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=ia32 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
+    "pack-win64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=x64 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
+    "pack-mac": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true"
   },
   "author": "rivetchip",
   "license": "MIT",
