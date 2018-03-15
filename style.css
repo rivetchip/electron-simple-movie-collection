@@ -56,8 +56,11 @@ html, body, .viewport {
     margin: 5px;
 }
 
-img {
-    border: 0;
+.is-hidden {
+    display: none;
+}
+.is-selected {
+
 }
 
 /* reset */
@@ -65,18 +68,19 @@ img {
     margin: 0;
     padding: 0;
     outline: none;
+    border: 0;
     box-sizing: border-box;
     transition: all 0.5s ease;
 }
 a {
+    color: #fff;
     text-decoration: none;
-    color: #2d2d2d;
 }
 
 /* window frame */
 
 app-titlebar {
-    -webkit-app-region: drag;
+    -webkit-app-region: drag; /* electron frame */
     user-select: none;
     -webkit-user-select: none;
 
@@ -92,16 +96,17 @@ app-titlebar {
 
     background-color: #34495e;
     padding: 5px;
-    padding-left: 20px;
 }
 app-controls { /* main app buttons controls*/
     display: flex;
+    justify-content: space-between;
 
 }
 app-titlebar button {
     -webkit-app-region: no-drag;
     cursor: pointer;
 
+    display: block;
     border: 0;
     border-radius: 4px;
     padding: 15px;
@@ -193,7 +198,13 @@ product-item { /* single title item */
     cursor: pointer;
     margin-top: 2px;
     background-color: #34495e;
+
+    border-left: 5px transparent;
 }
+product-item.is-selected {
+    border-left-color: red;
+}
+
 product-item:first-child {
     margin-top: 0;
 }
