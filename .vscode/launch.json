@@ -14,7 +14,10 @@
             "runtimeArgs": [
                 ".",
             ],
-            "console": "internalConsole"
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
+                "console": "integratedTerminal"
+            }
         },
         {
             "type": "node",
@@ -30,7 +33,10 @@
             "args" : [
                 "--debug",
             ],
-            "console": "internalConsole"
+            "windows": {
+                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
+                "console": "integratedTerminal"
+            }
         },
         {
             "type": "node",
