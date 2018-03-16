@@ -1,6 +1,6 @@
-var package = require('./package.json')
+const package = require('./package.json')
 
-const electron = require('electron'); 
+const electron = require('electron')
 const {app, BrowserWindow, ipcMain, dialog} = electron
 
 const path = require('path')
@@ -8,20 +8,22 @@ const fs = require('fs')
 const url = require('url')
 
 const platform = process.platform
+const appData = app.getPath('appData')
 
 const debug = process.argv.indexOf('--debug') >= 0
 
 // app.disableHardwareAcceleration()
 
-let win = null
+let win
+let onlineStatusWindow
 
 
 
 if( process.mas ) {
-    app.setName(package.productName);
+    app.setName(package.productName)
 }
 
-(function initialize() {
+;(function initialize() {
 
     const shouldQuit = makeSingleInstance()
 
@@ -58,11 +60,12 @@ if( process.mas ) {
 
         // Show window when page is ready
         win.on('ready-to-show', () => {
-            win.show();
+            win.show()
+            win.focus()
         })
 
         win.on('closed', () => {
-            win = null;
+            win = null
         })
     }
 
@@ -82,17 +85,17 @@ if( process.mas ) {
         }
     })
 
-})();
+})()
 
 function makeSingleInstance() {
     if( process.mas ) {
-        return false; // Mac app store
+        return false // Mac app store
     }
 
     return app.makeSingleInstance(() => {
         if( win ) {
             if( win.isMinimized() ) {
-                win.restore();
+                win.restore()
             }
             win.focus()
         }
@@ -134,56 +137,148 @@ const readFile = (filename) => {
     })
 }
 
+const writeFile = (filename, content) => {
+    return new Promise((resolve, reject) => {
+        fs.writeFile(filename, content, 'utf8', (error) => {
+            return error ? reject(error) : resolve()
+        })
+    })
+}
+
+// cosntruct the collection from the content of a file
+const constructCollectionFrom = (content) => {
+    // parse content of file
+    options = content.options
+    collection = content.collection
+
+    return collection
+}
+
+// construct file from the collection datas
+const constructCollectionFileFrom = (collection, options) => {
+    let content = {
+        options,
+        collection
+    }
+
+    return JSON.stringify(content)
+}
+
+// return a simple collection of products
+const getProductsSimpleFrom = (collection) => {
+
+    let products = []
+
+    collection.forEach((product) => {
+        products.push({
+            id: product.id,
+            title: product.title,
+            favorite: product.favorite,
+            // poster: product.poster
+        })
+    })
+
+    return products
+}
+
+
+const showOpenDialog = (options) => {
+    return new Promise((resolve, reject) => {
+        dialog.showOpenDialog(options, (filenames) => {
+            return filenames ? resolve(filenames) : reject() // no file
+        })
+    })
+}
+
+const showSaveDialog = (options) => {
+    return new Promise((resolve, reject) => {
+        dialog.showSaveDialog(options, (filename) => {
+            return filename ? resolve(filename) : reject() // no file
+        })
+    })
+}
+
+
+
+
+
+
+
 
 // client api
 
 eventClientReceive('open-collection-dialog', (event) => {
     const sender = event.sender
     
-    dialog.showOpenDialog({
+    showOpenDialog({
         properties: ['openFile'],
         filters: [
             {name: 'Movie Collection', extensions: ['json']}
         ]
-    },
-    (filenames) => {
-        if (filenames) {
-            [filename] = filenames
-
-            let products = []
-
-            const displayError = (error) => {
-                //reinit collections
-                filename = null
-                collection = null
-                options = null
-
-                return dialog.showErrorBox('Cannot open file', error)
-            }
-
-            readFile(filename)
-            .then((content) => JSON.parse(content))
-            .then((content) => {
-                // parse content of file
-
-                options = content.options || {}
-                collection = content.collection || []
-
-                // return a simple collection of products
-                collection.forEach((product) => {
-                    products.push({
-                        id: product.id,
-                        title: product.title,
-                        favorite: product.favorite,
-                        // poster: product.poster
-                    })
-                })
-
-                return sender.send('get-collection', products)
-            })
-            .catch((error) => displayError)
-        } 
     })
+    .then((filePaths) => {
+        filename = filePaths[0] // get the single first
+
+        const onOpenError = (error) => {
+            //reinit collections
+            filename = null
+            collection = null
+            options = null
+
+            return dialog.showErrorBox('Cannot open file', error)
+        }
+
+        readFile(filename)
+        .then((content) => JSON.parse(content))
+        .then((content) => constructCollectionFrom(content))
+        .then((collection) => getProductsSimpleFrom(collection))
+        .then((products) => {
+            return sender.send('get-collection', products)
+        })
+        .catch((error) => {
+            onOpenError('error') // TODO
+        })
+    })
+})
+
+eventClientReceive('save-collection-dialog', (event) => {
+    const sender = event.sender
+
+    const onSaveError = (error) => {
+        //reinit files
+        filename = null
+
+        return dialog.showErrorBox('Cannot save file', error)
+    }
+
+    const onSaveCollection = (filename) => {
+        // when validate save file
+
+        let content = constructCollectionFileFrom(collection, options)
+
+        writeFile(filename, content)
+        .catch((error) => {
+            onSaveError('error') // TODO
+        })
+    }
+
+    if( filename ) {
+        onSaveCollection(filename)
+    }
+    else {
+        // the file doesn't exist yet, we show the prompt
+
+        showSaveDialog({
+            properties: ['openFile'],
+            filters: [
+                {name: 'Movie Collection', extensions: ['json']}
+            ]
+        })
+        .then((filePath) => {
+            filename = filePath
+            return onSaveCollection(filePath)
+        })
+    }
 })
 
 
@@ -203,6 +298,9 @@ eventClientReceive('get-product', (event, productIndex) => {
 
 
 
+eventClientReceive('online-status-changed', (event, status) => {
+    console.log('online-status-changed: '+status)
+})
 
 
 

@@ -223,7 +223,7 @@ product-item:first-child {
 }
 product-item:hover {
     background-color: transparent;
-    color: #1abc9c;
+    /* color: #1abc9c; */
 }
 
 product-item .favorite {
