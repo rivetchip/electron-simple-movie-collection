@@ -45,26 +45,31 @@
 
 <app-panel>
 
-    <column-items>
-        <product-item>
-            <div class="title">test movie1</div>
-            <div class="favorite"></div>
-        </product-item>
+    <column-panel>
 
-        
+        <column-items>
+            <product-item>
+                <div class="title">test movie1</div>
+                <div class="favorite"></div>
+            </product-item>
+            <product-item>
+                <div class="title">test movie2</div>
+                <div class="favorite"></div>
+            </product-item>
 
+        </column-items>
 
-
-    </column-items>
+        <search-toolbar>
+            <input class="search-input" type="search" placeholder="Search">
+        </search-toolbar>
+    
+    </column-panel>
 
 
         <!-- <input data-field="dateReleased" placeholder="Date de sortie" class="field" type="text"> -->
 
 
-
-
-
-    <display-product data-index="" data-state="">
+    <display-product data-index="" data-state="" style="display:block">
 
         <div class="group">
 

@@ -21,7 +21,7 @@ function eventServerReceive( channel, listener ) {
 ;addEventListener('load', () => {
 
     const viewport = document.querySelector('.viewport')
-    createSnackbar(viewport, 'adqsd')
+
 
     ;(function _titlebar(){
 
@@ -76,10 +76,49 @@ function eventServerReceive( channel, listener ) {
         const itemsList = panel.querySelector('column-items')
         const panelContent = panel.querySelector('display-product')
 
+        const searchPanel = document.querySelector('search-toolbar')
+        const searchInput = searchPanel.querySelector('.search-input')
 
-        // delegate events
+
+        // delegate events ; on item click
         delegate(itemsList, 'product-item', 'click', (event) => {
             eventOpenProductDisplay(panelContent, event)
+        })
+
+        // event ; on search key up
+        searchInput.addEventListener('keyup', (event) => {
+            event.preventDefault()
+
+            const target = event.target
+            const keyword = target.value.toLowerCase()
+            const keyCode = event.code
+
+            // if( searchTimeout ) {
+            //     clearTimeout(searchTimeout)
+            // }
+
+            // Loop through all rows, and hide those who don't match the search query
+            let productItems = itemsList.querySelectorAll('product-item')
+
+            let hiddenClass = 'is-hidden'
+
+            productItems.forEach((product, index) => {
+                if( keyCode == 'Escape' ) {
+                    // show all items
+                    return product.classList.remove(hiddenClass)
+                }
+
+                // normal keys
+                
+                let title = product.querySelector('.title')
+                title = title.innerText.toLowerCase()
+
+                if( title.indexOf(keyword) >= 0 ) { // match
+                    product.classList.remove(hiddenClass)
+                } else {
+                    product.classList.add(hiddenClass)
+                }
+            })
         })
 
 
