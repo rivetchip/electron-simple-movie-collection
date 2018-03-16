@@ -23,7 +23,7 @@ let collection
 
 addEventListener('load', () => {
 
-    (function _titlebar(){
+    ;(function _titlebar(){
 
         const titlebar = document.querySelector('app-titlebar')
 
@@ -53,9 +53,9 @@ addEventListener('load', () => {
             state = 'close'
         })
 
-    })();
+    })()
 
-    (function _toolbar(){
+    ;(function _toolbar(){
 
         const toolbar = document.querySelector('app-toolbar')
 
@@ -63,9 +63,14 @@ addEventListener('load', () => {
         openButton.addEventListener('click', (event) => {
             eventServerSend('open-collection-dialog')
         })
-    })();
 
-    (function _panel(){
+        let saveButton = toolbar.querySelector('.save')
+        saveButton.addEventListener('click', (event) => {
+            eventServerSend('save-collection-dialog')
+        })
+    })()
+
+    ;(function _panel(){
 
         const panel = document.querySelector('app-panel')
         const itemsList = panel.querySelector('column-items')
@@ -94,9 +99,14 @@ addEventListener('load', () => {
         })
 
   
-    })();
+    })()
 
 
+    // general
+
+    eventServerReceive('notification', (event, message) => {
+
+    })
 
 
 
@@ -258,31 +268,12 @@ addEventListener('load', () => {
 
 
 
+})
 
 
+const updateOnlineStatus = (event) => {
+    eventServerSend('online-status-changed', navigator.onLine ? 'online' : 'offline')
+}
 
-
-
-
-
-
-    const updateOnlineStatus = () => {
-        ipcRenderer.send('online-status-changed', navigator.onLine ? 'online' : 'offline')
-      }
-    
-      window.addEventListener('online',  updateOnlineStatus)
-      window.addEventListener('offline',  updateOnlineStatus)
-
-
-
-      ipcRenderer.on('asynchronous-reply', (event, arg) => {
-        console.log(arg) // affiche "pong"
-      })
-      ipcRenderer.send('asynchronous-message', 'ping')
-
-
-
-});
-
-
-
+addEventListener('online',  updateOnlineStatus)
+addEventListener('offline', updateOnlineStatus)
