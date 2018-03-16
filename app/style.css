@@ -33,7 +33,9 @@ html, body, .viewport {
     height: 100%;
 }
 .viewport {
-    float: left; /*fix vertical margin collapse*/
+    /* float: left; fix vertical margin collapse */
+    position: absolute;
+
     display: flex;
     flex-direction: column;
 
@@ -315,3 +317,41 @@ app-statusbar { /* bottom bow with quick infos */
 }
 
 
+
+
+
+
+snackbar {
+    display: none;
+    position: fixed;
+    z-index: 9;
+    left: 50%;
+    bottom: 30px;
+
+    min-width: 250px;
+    width: 40%;
+    margin-left: -20%;
+
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 4px;
+    padding: 15px;
+
+    font-size: 17px;
+    line-height: 17px;
+    font-weight: 300;
+    box-shadow: 0 2px 5px 0 rgba(0,0,0, 0.3);
+}
+snackbar.is-visible {
+    animation: snackbar-fadein 0.5s, snackbar-fadeout 0.5s 2.5s;
+}
+
+@keyframes snackbar-fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+}
+@keyframes snackbar-fadeout {
+    from { bottom: 30px; opacity: 1; }
+    to { bottom: 0; opacity: 0; }
+}

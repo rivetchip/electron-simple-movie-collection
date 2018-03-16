@@ -34,6 +34,7 @@ if( process.mas ) {
     function createWindow() {
 
         win = new BrowserWindow({
+            icon: path.join(__dirname, 'app-icon.png'),
             width: 800,
             height: 600,
             minWidth: 800,
@@ -48,7 +49,7 @@ if( process.mas ) {
         })
 
         win.loadURL(url.format({
-            pathname: path.join(__dirname, 'index.html'),
+            pathname: path.join(__dirname, 'app/index.html'),
             protocol: 'file:',
             slashes: true
         }))
@@ -116,9 +117,14 @@ let collection // current full collection
 let options // user options of the collection
 
 
-
+// get an event fron the renderer
 function eventClientReceive( channel, listener ) {
     ipcMain.on(channel, listener)
+}
+
+// send a message to the renderer
+function eventClientSend( channel, args ) {
+    win.webContents.send(channel, args)
 }
 
 const fileExist = (filename) => {
@@ -257,6 +263,10 @@ eventClientReceive('save-collection-dialog', (event) => {
         let content = constructCollectionFileFrom(collection, options)
 
         writeFile(filename, content)
+        .then(() => {
+            // send notification
+            eventClientSend('notification', 'Save ok')
+        })
         .catch((error) => {
             onSaveError('error') // TODO
         })

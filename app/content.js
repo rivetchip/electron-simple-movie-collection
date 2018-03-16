@@ -1,9 +1,11 @@
 'use strict';
 
-const electron = require('electron');  
-const {remote, ipcRenderer} = electron;
+const electron = require('electron')
+const {remote, ipcRenderer} = electron
 
-const win = remote.getCurrentWindow();
+const {createSnackbar} = require('./dashboard')
+
+const win = remote.getCurrentWindow()
 
 
 function eventServerSend( channel, args ) {
@@ -16,12 +18,10 @@ function eventServerReceive( channel, listener ) {
 
 
 
+;addEventListener('load', () => {
 
-let collection
-
-
-
-addEventListener('load', () => {
+    const viewport = document.querySelector('.viewport')
+    createSnackbar(viewport, 'adqsd')
 
     ;(function _titlebar(){
 
@@ -83,7 +83,6 @@ addEventListener('load', () => {
         })
 
 
-
         // get the full collection from server
         eventServerReceive('get-collection', (event, products) => {
             // parse the content & and show the list to the column
@@ -105,7 +104,7 @@ addEventListener('load', () => {
     // general
 
     eventServerReceive('notification', (event, message) => {
-
+        createSnackbar(viewport, message)
     })
 
 
