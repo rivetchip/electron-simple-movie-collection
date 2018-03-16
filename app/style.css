@@ -273,7 +273,7 @@ product-item.is-selected:hover {
     background-color: #16a085;
 }
 
-product-item:first-child {
+product-item:last-child {
     margin-bottom: 0;
 }
 product-item:hover {

@@ -33,12 +33,15 @@ if( process.mas ) {
 
     function createWindow() {
 
+        let width = 1000
+        let height = 800
+
         win = new BrowserWindow({
             icon: path.join(__dirname, 'app-icon.png'),
-            width: 800,
-            height: 600,
-            minWidth: 800,
-            minHeight: 600,
+            width,
+            height,
+            minWidth: width,
+            minHeight: height,
             show: false, // wait ready ; prevents white flickering
             // backgroundColor: '#fff',
 
