@@ -167,7 +167,7 @@ const constructCollectionFileFrom = (collection, options) => {
         collection
     }
 
-    return JSON.stringify(content)
+    return content
 }
 
 // return a simple collection of products
@@ -206,6 +206,27 @@ const showSaveDialog = (options) => {
 
 
 
+// read a file collection
+const onReadFileCollection = (filename, successHandler, errorhandler) => {
+    return readFile(filename)
+    .then((content) => JSON.parse(content))
+    .then((content) => constructCollectionFrom(content))
+    .then((collection) => getProductsSimpleFrom(collection))
+    .then((products) => successHandler(products))
+    .catch((error) => errorhandler(error))
+}
+
+// save the collection
+
+const onSaveFileCollection = (filename, successHandler, errorhandler) => {
+    let content = constructCollectionFileFrom(collection, options)
+    content = JSON.stringify(content)
+
+    return writeFile(filename, content)
+    .then(() => successHandler())
+    .catch((error) => errorhandler(error))
+}
+
 
 
 
@@ -234,14 +255,10 @@ eventClientReceive('open-collection-dialog', (event) => {
             return dialog.showErrorBox('Cannot open file', error)
         }
 
-        readFile(filename)
-        .then((content) => JSON.parse(content))
-        .then((content) => constructCollectionFrom(content))
-        .then((collection) => getProductsSimpleFrom(collection))
-        .then((products) => {
+        let promise = onReadFileCollection(filename, (products) => {
             return sender.send('get-collection', products)
-        })
-        .catch((error) => {
+        },
+        (error) => {
             onOpenError('error') // TODO
         })
     })
@@ -260,14 +277,11 @@ eventClientReceive('save-collection-dialog', (event) => {
     const onSaveCollection = (filename) => {
         // when validate save file
 
-        let content = constructCollectionFileFrom(collection, options)
-
-        writeFile(filename, content)
-        .then(() => {
+        let promise = onSaveFileCollection(filename, () => {
             // send notification
             eventClientSend('notification', 'Save ok')
-        })
-        .catch((error) => {
+        },
+        (error) => {
             onSaveError('error') // TODO
         })
     }
