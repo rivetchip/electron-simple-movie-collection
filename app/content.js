@@ -124,6 +124,9 @@ function eventServerReceive( channel, listener ) {
 
         // get the full collection from server
         eventServerReceive('get-collection', (event, products) => {
+            // empty the current collection
+            emptyProductItemsList(itemsList)
+
             // parse the content & and show the list to the column
             appendProductItemsList(itemsList, products)
         })
@@ -148,7 +151,9 @@ function eventServerReceive( channel, listener ) {
 
 
 
-
+    function emptyProductItemsList(itemsList){
+        itemsList.innerHTML = '' // fatest way ; find a better one ?
+    }
 
     function appendProductItemsList( itemsList, products ) {
         products.forEach((product, index) => {
