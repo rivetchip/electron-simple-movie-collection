@@ -348,9 +348,6 @@ display-product { /* right panel with all stuffs */
 
     background-color: #232729;
 }
-display-product.is-visible {
-    display: flex;
-}
 display-product .group {
     display: flex;
     align-items: stretch;
