@@ -14,6 +14,9 @@
 <app class="viewport">
 
 
+
+
+
 <app-titlebar>
     <app-controls>
         <button class="close"></button>
@@ -44,6 +47,10 @@
 
     <column-panel>
 
+        <search-toolbar>
+            <input class="search-input" type="search" placeholder="Search">
+        </search-toolbar>
+
         <column-items>
             <product-item>
                 <div class="title">test movie1</div>
@@ -54,11 +61,9 @@
                 <div class="favorite"></div>
             </product-item>
 
+
         </column-items>
 
-        <search-toolbar>
-            <input class="search-input" type="search" placeholder="Search">
-        </search-toolbar>
     
     </column-panel>
 
@@ -66,7 +71,7 @@
         <!-- <input data-field="dateReleased" placeholder="Date de sortie" class="field" type="text"> -->
 
 
-    <display-product data-index="" data-state="" style="display: block">
+    <display-product data-index="" data-state="">
 
         <div class="group video-panel">
 
