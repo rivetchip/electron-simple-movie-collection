@@ -130,7 +130,6 @@ app-titlebar button {
     border: 0;
     border-radius: 4px;
     padding: 15px;
-    color: transparent;
 
     background: transparent no-repeat center;
     background-size: 16px;
@@ -177,7 +176,6 @@ app-toolbar button {
     border: 0;
     border-radius: 4px;
     padding: 20px;
-    color: transparent;
 
     background: transparent no-repeat center;
     background-size: 24px;
@@ -228,7 +226,7 @@ search-toolbar .search-input {
     height: 35px;
     padding: 5px 10px;
 
-    border-radius: 5px;
+    border-radius: 4px;
     border: 2px solid #1abc9c;
     border-color: transparent;
 
@@ -245,10 +243,11 @@ column-items { /*left column*/
     user-select: none;
     -webkit-user-select: none;
 
+    font-weight: 400;
+
     height: 100%;
     width: 300px;
     background-color: #2c3e50;
-
     overflow-y: auto;
 }
 product-item { /* single title item */
@@ -256,6 +255,7 @@ product-item { /* single title item */
     align-items: center;
     justify-content: space-between;
     flex: 0 0 auto;
+
     height: 50px;
     padding: 5px 15px;;
     overflow: hidden;
@@ -284,7 +284,7 @@ product-item:hover {
 product-item .favorite {
     display: none;
 
-    background: url(imgs/icon-star.svg) transparent no-repeat center;
+    background: url(imgs/icon-favorite.svg) transparent no-repeat center;
     background-size: 20px;
 
     padding: 10px;
@@ -306,42 +306,65 @@ display-product { /* right panel with all stuffs */
     padding: 25px;
     overflow-y: auto;
 
-    color: #9099b7;
+    /* color: #9099b7; */
     background-color: #1f253d;
 }
 display-product.is-visible {
     display: flex;
 }
-display-product .panel {/*simple panel block*/
-    display: flex;
-    flex-direction: column;
-
-    padding: 10px;
-    border-radius: 6px;
-    background-color: #394264;
-}
-
 display-product .group {
     display: flex;
     align-items: stretch;
-
-
-}
-display-product .title {
-    color: #fff;
-
-    
 }
 
-
-
-display-product poster {
+.video-panel {
+    margin-bottom: 40px;
+}
+.video-poster {
     display: block;
+    overflow: hidden;
+    border-radius: 4px;
 
-    background: transparent no-repeat center;
-    background-size: contain;
+    height: 300px;
+    margin-right: 30px;
 }
 
+.video-title {
+    font-size: 32px;
+    line-height: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+.video-release-date {
+    font-size: 16px;
+}
+.ratings-wrap {
+    margin: 25px 0;
+}
+.video-attributes {
+    font-weight: 400;
+}
+.video-attributes attribute {
+    display: flex;
+    margin-bottom: 10px;
+}
+.video-attributes label {
+    font-weight: 700;
+    margin-right: 10px;
+    width: 100px;
+}
+
+.video-entry-title {
+    font-size: 28px;
+    line-height: 28px;
+    font-weight: 700;
+
+    margin-bottom: 20px;
+}
+.video-entry-content {
+    font-size: 17px;
+    line-height: 1.5;
+}
 
 
 

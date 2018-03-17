@@ -66,68 +66,67 @@
         <!-- <input data-field="dateReleased" placeholder="Date de sortie" class="field" type="text"> -->
 
 
-    <display-product data-index="" data-state="">
+    <display-product data-index="" data-state="" style="display: block">
 
-        <div class="group">
+        <div class="group video-panel">
 
-            <div class="panel">
-                <poster></poster>
-            </div>
+            <img class="video-poster" src="imgs/placeholder-poster.png" />
 
-            <div class="panel">
-                <div class="group">
-                    <div class="title">Date de sortie</div>
-                    <placeholder data-field="dateReleased"></placeholder>
-                </div>
-                <div class="group">
-                    <div class="title">Réalisateur</div>
-                    <placeholder data-field="director"></placeholder>
-                </div>
-                <div class="group">
-                    <div class="title">Durée</div>
-                    <placeholder data-field="duration"></placeholder>
-                </div>
-                <div class="group">
-                    <div class="title">Nationalité</div>
-                    <placeholder data-field="countries"></placeholder>
-                </div>
-            </div>
+            <div>
+                <div class="video-title">{{video-title}}</div>
+                <div class="video-release-date">{{video-release-date}}</div>
 
-            <div class="panel">
-                <div class="group">
-                    <div class="title">Genres</div>
-                    <placeholder data-field="genres"></placeholder>
+                <div class="ratings-wrap">
+                    <span class="rating">5</span>
+                    <div class="expanded-rating">
+                        <div class="star-rating">
+                            <span class="star on"></span>
+                            <span class="star on"></span>
+                            <span class="star on"></span>
+                            <span class="star on"></span>
+                            <span class="star on"></span>
+                            <span class="star "></span>
+                            <span class="star "></span>
+                            <span class="star "></span>
+                            <span class="star "></span>
+                            <span class="star "></span>
+                        </div>
+                    </div>
                 </div>
-                <div class="group">
-                    <div class="title">Note press</div>
-                    <placeholder data-field="ratingPress"></placeholder>
+
+                <div class="video-attributes">
+                    <attribute class="video-attributes-director">
+                        <label>Réalisateur:</label>
+                        <placeholder>{{video-director}}</placeholder>
+                    </attribute>
+                    <attribute class="video-attributes-duration">
+                        <label>Durée:</label>
+                        <placeholder>{{video-duration}}</placeholder>
+                    </attribute>
+                    <attribute class="video-attributes-countries">
+                        <label>Nationalité:</label>
+                        <placeholder>{{video-countries}}</placeholder>
+                    </attribute>
+                    <attribute class="video-attributes-genres">
+                        <label>Genres:</label>
+                        <placeholder>{{video-duration}}</placeholder>
+                    </attribute>
+                    <attribute class="video-attributes-actors">
+                        <label>Actors :</label>
+                        <placeholder>{{video-actors}}</placeholder>
+                    </attribute>
                 </div>
-                <div class="group">
-                    <div class="title">Note</div>
-                    <placeholder data-field="rating"></placeholder>
-                </div>
+
             </div>
 
         </div>
 
-        <div class="panel">
-            <div class="group">
-                <div class="title">Acteurs</div>
-                <placeholder data-field="actors"></placeholder>
+        <div class="video-panel video-entry">
+            <h3 class="video-entry-title">Synopsis</h3>
+            <div class="video-entry-content">
+                <p>Lorem Ipsum&nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
             </div>
         </div>
-
-        <div class="panel">
-            <div class="group">
-                <div class="title">Synopsis</div>
-                <placeholder data-field="description"></placeholder>
-            </div>
-        </div>
-
-        <!-- <div class="panel">
-            <div>Commentaires</div>
-            <placeholder data-field="comment"></placeholder>
-        </div> -->
 
     </display-product>
 

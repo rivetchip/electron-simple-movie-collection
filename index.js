@@ -33,7 +33,7 @@ if( process.mas ) {
 
     function createWindow() {
 
-        let width = 1000
+        let width = 1100
         let height = 800
 
         win = new BrowserWindow({
