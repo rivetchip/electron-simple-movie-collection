@@ -18,6 +18,11 @@ let win
 let onlineStatusWindow
 
 
+// event logger for simple messages
+const logger = (message) => {
+    console.log('\x1b[36m%s\x1b[0m', '[logger]')
+    console.log(message)
+}
 
 if( process.mas ) {
     app.setName(package.productName)
@@ -106,6 +111,10 @@ function makeSingleInstance() {
     })
 }
 
+process.on('uncaughtException', (error) => logger(error))
+
+process.on('unhandledRejection', (error) => logger(error))
+
 
 
 
@@ -116,8 +125,7 @@ function makeSingleInstance() {
 
 
 let filename // current opened file
-let collection // current full collection
-let options // user options of the collection
+let catalogStorage = {} // content of the colelction & others stuffs
 
 
 // get an event fron the renderer
@@ -154,21 +162,42 @@ const writeFile = (filename, content) => {
     })
 }
 
-// cosntruct the collection from the content of a file
-const constructCollectionFrom = (content) => {
-    // parse content of file
-    options = content.options
-    collection = content.collection
 
-    return collection
+
+// empty the catalog storage
+const emptyCatalogStorage = () => {
+    catalogStorage = {}
 }
 
-// construct file from the collection datas
-const constructCollectionFileFrom = (collection, options) => {
-    let content = {
-        options,
-        collection
+// cosntruct the collection from the content of a file or anything
+const setCatalogStorageFrom = (content) => {
+    // parse content of file, & assigns defaults values
+    let defaults = {
+        version: 1,
+        options: {},
+        collection: []
     }
+
+    catalogStorage = Object.assign({}, defaults, content) // shallow merge
+
+    return catalogStorage.collection
+}
+
+// return the collection of all products
+const getCatalogStorageCollection = () => {
+    return catalogStorage.collection
+}
+
+// get a single product
+const getCatalogStorageProduct = (productIndex) => {
+    let product = catalogStorage.collection[productIndex]
+    
+    return product 
+}
+
+// construct file for when we want to save it to a file or other
+const getCatalogStorageForSaving = () => {
+    let content = catalogStorage
 
     return content
 }
@@ -209,24 +238,24 @@ const showSaveDialog = (options) => {
 
 
 
-// read a file collection
-const onReadFileCollection = (filename, successHandler, errorhandler) => {
+// read a file collection ; and return a simple collection of products
+const onReadFileCatalogStorage = (filename, successHandler, errorhandler) => {
     return readFile(filename)
     .then((content) => JSON.parse(content))
-    .then((content) => constructCollectionFrom(content))
+    .then((content) => setCatalogStorageFrom(content))
+    .then((response) => getCatalogStorageCollection())
     .then((collection) => getProductsSimpleFrom(collection))
     .then((products) => successHandler(products))
     .catch((error) => errorhandler(error))
 }
 
 // save the collection
-
-const onSaveFileCollection = (filename, successHandler, errorhandler) => {
-    let content = constructCollectionFileFrom(collection, options)
+const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
+    let content = getCatalogStorageForSaving()
     content = JSON.stringify(content)
 
     return writeFile(filename, content)
-    .then(() => successHandler())
+    .then((response) => successHandler())
     .catch((error) => errorhandler(error))
 }
 
@@ -236,6 +265,13 @@ const onSaveFileCollection = (filename, successHandler, errorhandler) => {
 
 
 // client api
+
+eventClientReceive('online-status-changed', (event, status) => {
+    logger('event:online-status-changed: '+status)
+
+    onlineStatusWindow = status
+})
+
 
 eventClientReceive('open-collection-dialog', (event) => {
     const sender = event.sender
@@ -249,22 +285,23 @@ eventClientReceive('open-collection-dialog', (event) => {
     .then((filePaths) => {
         filename = filePaths[0] // get the single first
 
-        const onOpenError = (error) => {
-            //reinit collections
-            filename = null
-            collection = null
-            options = null
+        const onOpenError = (message) => {
 
-            return dialog.showErrorBox('Cannot open file', error)
+            //reinit only the filename! in case a collection is already opened
+            filename = null
+
+            return dialog.showErrorBox('Cannot open file', message)
         }
 
-        let promise = onReadFileCollection(filename, (products) => {
+        let promise = onReadFileCatalogStorage(filename, (products) => {
             return sender.send('get-collection', products)
         },
         (error) => {
-            onOpenError('error') // TODO
+            logger(error)
+            onOpenError(error.message ? error.message : error)
         })
     })
+    .catch((error) => logger('showOpenDialog: no file set'))
 })
 
 eventClientReceive('save-collection-dialog', (event) => {
@@ -280,12 +317,13 @@ eventClientReceive('save-collection-dialog', (event) => {
     const onSaveCollection = (filename) => {
         // when validate save file
 
-        let promise = onSaveFileCollection(filename, () => {
+        let promise = onSaveFileCatalogStorage(filename, () => {
             // send notification
-            eventClientSend('notification', 'Save ok')
+            eventClientSend('notification', 'Fichier sauvegardé!')
         },
         (error) => {
-            onSaveError('error') // TODO
+            logger(error)
+            onOpenError(error.message ? error.message : error)
         })
     }
 
@@ -305,6 +343,7 @@ eventClientReceive('save-collection-dialog', (event) => {
             filename = filePath
             return onSaveCollection(filePath)
         })
+        .catch((error) => logger('showSaveDialog: no file set'))
     }
 })
 
@@ -313,7 +352,7 @@ eventClientReceive('get-product', (event, productIndex) => {
     const sender = event.sender
 
     // return a single product from the collection
-    let product = collection[productIndex]
+    let product = getCatalogStorageProduct(productIndex)
 
     if( product ) {
         return sender.send('get-product', productIndex, product)
@@ -325,9 +364,7 @@ eventClientReceive('get-product', (event, productIndex) => {
 
 
 
-eventClientReceive('online-status-changed', (event, status) => {
-    console.log('online-status-changed: '+status)
-})
+
 
 
 
