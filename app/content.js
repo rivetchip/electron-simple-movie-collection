@@ -3,9 +3,12 @@
 const electron = require('electron')
 const {remote, ipcRenderer} = electron
 
+const win = remote.getCurrentWindow()
+
 const {createSnackbar} = require('./dashboard')
 
-const win = remote.getCurrentWindow()
+
+let winState = 'preview' // view or edit product
 
 
 function eventServerSend( channel, args ) {
@@ -74,15 +77,17 @@ function eventServerReceive( channel, listener ) {
 
         const panel = document.querySelector('app-panel')
         const itemsList = panel.querySelector('column-items')
-        const panelContent = panel.querySelector('display-product')
 
         const searchPanel = document.querySelector('search-toolbar')
         const searchInput = searchPanel.querySelector('.search-input')
 
+        const previewPanel = panel.querySelector('product-preview')
+        const publicationPanel = panel.querySelector('product-publication')
+
 
         // delegate events ; on item click
         delegate(itemsList, 'product-item', 'click', (event) => {
-            eventOpenProductDisplay(panelContent, event)
+            eventOpenProductDisplay(previewPanel, event)
         })
 
         // event ; on search key up
@@ -108,8 +113,7 @@ function eventServerReceive( channel, listener ) {
                     return product.classList.remove(hiddenClass)
                 }
 
-                // normal keys
-                
+                // normal key press
                 let title = product.querySelector('.title')
                 title = title.innerText.toLowerCase()
 
@@ -135,7 +139,9 @@ function eventServerReceive( channel, listener ) {
         eventServerReceive('get-product', (event, productIndex, product) => {
             // parse and show the view panel
             if( product ) {
-                openProductDisplay(panelContent, productIndex, product)
+                winState = 'preview'
+
+                openProductDisplay(previewPanel, productIndex, product)
             }
         })
 
@@ -165,14 +171,14 @@ function eventServerReceive( channel, listener ) {
 
     let previousSelectedProduct
 
-    function eventOpenProductDisplay( panelContent, event ) {
+    function eventOpenProductDisplay( previewPanel, event ) {
         event.preventDefault()
 
         const target = event.target
         const productIndex = target.getAttribute('data-index')
 
         // first, we hide the panel content ( to open it later, if the product if found )
-        panelContent.classList.remove('is-visible')
+        previewPanel.classList.remove('is-visible')
 
         // remove old selected element, if any
         if( previousSelectedProduct ) {
@@ -189,14 +195,14 @@ function eventServerReceive( channel, listener ) {
         eventServerSend('get-product', productIndex)
     }
 
-    function openProductDisplay( panelContent, productIndex, product ) {
-        const findField = (field) => panelContent.querySelector('[data-field="'+field+'"]')
+    function openProductDisplay( previewPanel, productIndex, product ) {
+        const findField = (field) => previewPanel.querySelector('[data-field="'+field+'"]')
 
         // set the panel open :
-        panelContent.classList.add('is-visible')
+        previewPanel.classList.add('is-visible')
 
         // set the product index to the view :
-        panelContent.setAttribute('data-index', productIndex)
+        previewPanel.setAttribute('data-index', productIndex)
 
         // set the descriptions to the fields :
 
@@ -284,25 +290,23 @@ function eventServerReceive( channel, listener ) {
     }
 
     // delegate events
+    function delegate( parent, selector, eventType, callback ) {
 
-    function delegate( parent, target, eventType, callback ) {
+        parent.addEventListener(eventType, (event) => {
+            let target = event.target;
 
-        parent.addEventListener(eventType, function( event ) {
-            var element = event.target;
-            var matchesCallback = element.matches || element.matchesSelector;
-
-            if( (matchesCallback).call(element, target) ) {
-                callback.call(element, event);
+            if( target.matches(selector) ) {
+                callback(event)
             }
-        });
+        })
     }
 
     function toggleState( element, one, two ) {
-        element.setAttribute('data-state', element.getAttribute('data-state') === one ? two : one);
+        element.setAttribute('data-state', element.getAttribute('data-state') === one ? two : one)
     }
     
     function getState( element ) {
-        return element.getAttribute('data-state');
+        return element.getAttribute('data-state')
     }
 
 
