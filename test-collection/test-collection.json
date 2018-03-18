@@ -1,0 +1,99 @@
+{
+    "options": {
+
+    },
+    "collection": [
+        {
+            "title":"Kiki la petite sorcière",
+            "original":"Majo no takkyûbin / 魔女の宅急便",
+            "duration":102,
+            "dateReleased":"2003-11-10",
+            "director":"Hayao Miyazaki",
+            "poster":"majo_no_takkyubin.jpg",
+            "description":"À l'âge de treize ans, une future sorcière doit partir faire son apprentissage dans une ville inconnue durant un an. Une expérience que va vivre la jeune et espiègle Kiki aux côtés de Osono, une gentille boulangère qui lui propose un emploi de livreuse.",
+            "comment": "",
+            "countries" : [
+                "Japan"
+            ],
+            "genres": [
+                "Drame","Animation","Aventure"
+            ],
+            "actors": [
+                ["Minami Takayama","Kiki / Ursula"],
+                ["Rei Sakuma","Jiji"],
+                ["Keiko Toda","Osono"]
+            ],
+            "rating":0,
+            "ratingPress":7,
+            "dateCreated":"2014-11-02",
+            "dateModified":"2014-11-02",
+            "favorite": true,
+            "serie":"",
+
+            "source":"tmdb",
+            "sourceId":16859,
+            "webPage":"http://www.themoviedb.org/movie/16859"
+        },
+        {
+            "title":"La tortue rouge",
+            "original":"La tortue rouge",
+            "duration":80,
+            "dateReleased":"2016-05-18",
+            "director":"Michael Dudok de Wit",
+            "poster":"the_red_turtle.jpg",
+            "description":"À travers l’histoire d’un naufragé sur une île déserte tropicale peuplée de tortues, de crabes et d’oiseaux, La Tortue rouge raconte les grandes étapes de la vie d’un être humain.",
+            "comment": "",
+            "countries" : [
+                "Japan","France"
+            ],
+            "genres": [
+                "Drame","Animation"
+            ],
+            "actors": [
+                ["Michael Dudok de Wit"]
+            ],
+            "rating":0,
+            "ratingPress":7,
+            "dateCreated":"2016-12-27",
+            "dateModified":"2016-12-27",
+            "favorite": false,
+            "serie":"",
+
+            "source":"tmdb",
+            "sourceId":337703,
+            "webPage":"http://www.themoviedb.org/movie/337703"
+        },
+        {
+            "title":"Beetlejuice",
+            "original":"Beetlejuice",
+            "duration":92,
+            "dateReleased":"1988-12-13",
+            "director":"Tim Burton",
+            "poster":"beetlejuice.jpg",
+            "description":"Pour avoir voulu sauver un chien, Adam et Barbara Maitland passent tout de go dans l'autre monde. Peu après, occupants invisibles de leur antique demeure ils la voient envahie par une riche et bruyante famille new-yorkaise. Rien à redire jusqu'au jour où cette honorable famille entreprend de donner un cachet plus urbain à la vieille demeure. Adam et Barbara, scandalisés, décident de déloger les intrus. Mais leurs classiques fantômes et autres sortilèges ne font aucun effet. C'est alors qu'ils font appel à un bio-exorciste freelance connu sous le sobriquet de Beetlejuice.",
+            "comment": "",
+            "countries" : [
+                "United States of America"
+            ],
+            "genres": [
+                "Fantastique","Comédie"
+            ],
+            "actors": [
+                ["Michael Keaton","Beetlejuice"],
+                ["Alec Baldwin","Adam Maitland"],
+                ["Geena Davis","Barbara Maitland"],
+                ["Winona Ryder","Lydia Deetz"]
+            ],
+            "rating":0,
+            "ratingPress":7,
+            "dateCreated":"2014-11-02",
+            "dateModified":"2014-11-02",
+            "favorite": true,
+            "serie":"Beetlejuice Collection",
+
+            "source":"tmdb",
+            "sourceId":4011,
+            "webPage":"http://www.themoviedb.org/movie/4011"
+        }
+    ]
+}
