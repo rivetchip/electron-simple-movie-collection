@@ -34,11 +34,11 @@
 
 <app-toolbar>
     <div>
-        <button class="open"></button>
-        <button class="save"></button>
+        <button class="open" title="Ouvrir un fichier"></button>
+        <button class="save" title="Enregistrer la liste courante"></button>
     </div>
     <div>
-        <button class="new-product"></button>
+        <button class="new-product" title="Ajouter un film"></button>
     </div>
 </app-toolbar>
 
@@ -48,7 +48,7 @@
     <column-panel>
 
         <search-toolbar>
-            <input class="search-input" type="search" placeholder="Search">
+            <input class="search-input" type="search" placeholder="Recherche">
         </search-toolbar>
 
         <column-items>
@@ -68,72 +68,149 @@
     </column-panel>
 
 
-        <!-- <input data-field="dateReleased" placeholder="Date de sortie" class="field" type="text"> -->
+    <column-product>
 
+        <!-- ★ -->
 
-    <display-product data-index="" data-state="">
+        <product-publication data-index="" style="display: block">
 
-        <div class="group video-panel">
+            <div class="publication-header">
+                <input data-field="title" class="publication-header-search video-field" type="text" placeholder="Titre principal" />
+            
+                <button class="download">Télécharger</button>
+            </div>
 
-            <img class="video-poster" src="imgs/placeholder-poster.png" />
+            <div class="publication-innercontent">
 
-            <div>
-                <div class="video-title">{{video-title}}</div>
-                <div class="video-release-date">{{video-release-date}}</div>
+                <div class="video-panels">
 
-                <div class="ratings-wrap">
-                    <span class="rating">5</span>
-                    <div class="expanded-rating">
-                        <div class="star-rating">
-                            <span class="star on"></span>
-                            <span class="star on"></span>
-                            <span class="star on"></span>
-                            <span class="star on"></span>
-                            <span class="star on"></span>
-                            <span class="star "></span>
-                            <span class="star "></span>
-                            <span class="star "></span>
-                            <span class="star "></span>
-                            <span class="star "></span>
+                    <div class="video-poster-panel">
+                        <img class="video-poster" src="imgs/placeholder-poster.png" />
+                    </div>
+
+                    <div class="video-details">
+                        <div class="video-attribute">
+                            <label>Titre original:</label>
+                            <input data-field="originalTitle" class="video-field" type="text" placeholder="" />
+                        </div>
+
+                        <div class="video-attribute">
+                            <label>Date de sortie:</label>
+                            <input data-field="dateReleased" class="video-field" type="text" placeholder="" />
+                        </div>
+                        <div class="video-attribute">
+                            <label>Réalisateur:</label>
+                            <input data-field="director" class="video-field" type="text" placeholder="" />
+                        </div>
+                        <div class="video-attribute">
+                            <label>Durée:</label>
+                            <input data-field="duration" class="video-field" type="text" placeholder="" />
                         </div>
                     </div>
+
                 </div>
 
-                <div class="video-attributes">
-                    <attribute class="video-attributes-director">
-                        <label>Réalisateur:</label>
-                        <placeholder>{{video-director}}</placeholder>
-                    </attribute>
-                    <attribute class="video-attributes-duration">
-                        <label>Durée:</label>
-                        <placeholder>{{video-duration}}</placeholder>
-                    </attribute>
-                    <attribute class="video-attributes-countries">
+                <div class="video-overview">
+
+                    <div class="video-attribute">
                         <label>Nationalité:</label>
-                        <placeholder>{{video-countries}}</placeholder>
-                    </attribute>
-                    <attribute class="video-attributes-genres">
+                        <input data-field="countries" class="video-field video-field-multiple" type="text" placeholder="" />
+                    </div>
+
+                    <div class="video-attribute">
                         <label>Genres:</label>
-                        <placeholder>{{video-duration}}</placeholder>
-                    </attribute>
-                    <attribute class="video-attributes-actors">
-                        <label>Actors :</label>
-                        <placeholder>{{video-actors}}</placeholder>
-                    </attribute>
+                        <input data-field="genres" class="video-field video-field-multiple" type="text" placeholder="" />
+                    </div>
+
+                    <div class="video-attribute">
+                        <label>Acteurs:</label>
+                        <input data-field="actors" class="video-field video-field-multiple" type="text" placeholder="" />
+                    </div>
+
+                    <div class="video-attribute">
+                        <label>Synopsis:</label>
+                        <div data-field="description" class="video-field video-field-contenteditable" contenteditable="true">
+
+                        </div>
+                        <textarea></textarea>
+                    </div>
+                
                 </div>
 
             </div>
 
-        </div>
 
-        <div class="video-panel video-entry">
-            <h3 class="video-entry-title">Synopsis</h3>
-            <div class="video-entry-content">
-                <p>Lorem Ipsum&nbsp;is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry’s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+
+
+        </product-publication>
+
+
+        <product-preview data-index="" style="display: none">
+
+            <div class="video-panels">
+
+                <img data-field="poster" class="video-poster" src="imgs/placeholder-poster.png" />
+
+                <div class="video-details">
+                    <div data-field="title" class="video-placeholder video-title">{{video-title}}</div>
+                    <div data-field="dateReleased" class="video-panel-subtitle video-placeholder">{{video-date-released}}</div>
+
+                    <div class="ratings-wrap">
+                        <span class="rating">5</span>
+                        <div class="expanded-rating">
+                            <div class="star-rating">
+                                <span class="star on"></span>
+                                <span class="star on"></span>
+                                <span class="star on"></span>
+                                <span class="star on"></span>
+                                <span class="star on"></span>
+                                <span class="star "></span>
+                                <span class="star "></span>
+                                <span class="star "></span>
+                                <span class="star "></span>
+                                <span class="star "></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-attributes">
+                        <div class="video-attribute video-director">
+                            <label>Réalisateur:</label>
+                            <div data-field="director" class="video-placeholder">{{video-director}}</div>
+                        </div>
+                        <div class="video-attribute video-duration">
+                            <label>Durée:</label>
+                            <div data-field="duration" class="video-placeholder">{{video-duration}}</div>
+                        </div>
+                        <div class="video-attribute video-countries">
+                            <label>Nationalité:</label>
+                            <div data-field="countries" class="video-placeholder">{{video-countries}}</div>
+                        </div>
+                        <div class="video-attribute video-genres">
+                            <label>Genres:</label>
+                            <div data-field="genres" class="video-placeholder">{{video-duration}}</div>
+                        </div>
+                        <div class="video-attribute video-actors">
+                            <label>Actors :</label>
+                            <div data-field="actors" class="video-placeholder">{{video-actors}}</div>
+                        </div>
+                    </div>
+
+                </div>
+
             </div>
-        </div>
 
-    </display-product>
+            <div class="video-overview">
+                <h3 class="video-panel-title">Synopsis</h3>
+                <div class="video-description">
+                    {{video-description}}
+                </div>
+            </div>
+
+        </product-preview>
+
+
+    </column-product>
 
 </app-panel>
 

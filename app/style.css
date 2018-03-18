@@ -83,6 +83,13 @@ a {
     color: #fff;
     text-decoration: none;
 }
+input, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    color: inherit;
+}
 
 ::-webkit-scrollbar {
     width: 10px;
@@ -126,6 +133,7 @@ app-titlebar {
 
     background: #2c3133 linear-gradient(to top, #25292b, #2a2e30 2px, #2c3133 3px);
     box-shadow: inset 0 1px rgba(238,238,236, 0.07); /*fg_color*/
+    border-bottom: 1px solid #0b0c0c;
 
     padding: 5px;
 }
@@ -211,6 +219,7 @@ app-toolbar { /* toolbar with main icons */
 
     padding: 5px;
     background-color: #2c3e50;
+    /* 33393b */
 }
 app-toolbar button {
     cursor: pointer;
@@ -268,7 +277,6 @@ search-toolbar {
 }
 search-toolbar .search-input {
     color: #999;
-    font-family: inherit;
     font-size: 15px;
     width: 100%;
     padding: 10px 20px;
@@ -336,27 +344,77 @@ product-item[data-favorite="true"] .favorite {
 
 
 
-
-
-display-product { /* right panel with all stuffs */
+column-product { /* right panel with all products view / edition */
     flex: 1;
+}
+
+
+
+product-preview { /* right panel with all product stuffs */
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: default;
+    width: 100%;
+    height: 100%;
 
     display: none;
-    flex-direction: column;
     padding: 25px;
     overflow-y: auto;
 
     background-color: #232729;
 }
-display-product .group {
+
+product-preview .video-panels {
     display: flex;
     align-items: stretch;
-}
 
-.video-panel {
     margin-bottom: 40px;
 }
-.video-poster {
+product-preview .video-panel-title {
+    font-size: 28px;
+    line-height: 28px;
+    font-weight: 700;
+
+    margin-bottom: 20px;
+}
+product-preview .video-panel-subtitle {
+    font-size: 16px;
+}
+
+
+
+product-preview .video-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: stretch;
+}
+
+
+
+product-preview .video-attributes {
+    flex: 1;
+    font-weight: 400;
+}
+product-preview .video-attributes label {
+    font-weight: 700;
+    margin-right: 10px;
+    width: 100px;
+}
+product-preview .video-attribute {
+    display: flex;
+    align-items: center;
+
+    margin-bottom: 10px;
+}
+
+product-preview .video-title {
+    font-size: 32px;
+    line-height: 32px;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+product-preview .video-poster {
     display: block;
     overflow: hidden;
     border-radius: 4px;
@@ -365,42 +423,104 @@ display-product .group {
     margin-right: 30px;
 }
 
-.video-title {
-    font-size: 32px;
-    line-height: 32px;
-    font-weight: 700;
-    margin-bottom: 10px;
-}
-.video-release-date {
-    font-size: 16px;
-}
-.ratings-wrap {
+product-preview .ratings-wrap {
     margin: 25px 0;
 }
-.video-attributes {
-    font-weight: 400;
-}
-.video-attributes attribute {
-    display: flex;
-    margin-bottom: 10px;
-}
-.video-attributes label {
-    font-weight: 700;
-    margin-right: 10px;
-    width: 100px;
-}
 
-.video-entry-title {
-    font-size: 28px;
-    line-height: 28px;
-    font-weight: 700;
 
-    margin-bottom: 20px;
-}
-.video-entry-content {
+product-preview .video-description {
     font-size: 17px;
     line-height: 1.5;
 }
+
+
+
+
+
+
+
+product-publication { /* right panel for editing product stuffs */
+    display: none;
+    width: 100%;
+    height: 100%;
+
+    padding: 25px;
+    overflow-y: auto;
+
+    background-color: #232729;
+}
+
+product-publication .publication-header {
+    display: flex;
+    justify-content: space-between;
+
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 25px;
+    background-color: #33393b;
+}
+product-publication .publication-header-search {
+    background-color: #2b3032;
+}
+product-publication .publication-innercontent {
+    display: inline;
+}
+
+
+
+product-publication .video-panels {
+    display: flex;
+    margin-bottom: 40px;
+}
+
+product-publication .video-details {
+    flex: 1;
+}
+
+product-publication .video-attribute {
+    display: flex;
+    align-items: center;
+
+    margin-bottom: 10px;
+}
+product-publication label {
+    font-weight: 700;
+    margin-right: 10px;
+    width: 150px;
+}
+product-publication input,
+product-publication textarea {
+    padding: 2px 10px;
+    background-color: #33393b;
+    border: 1px solid #1b1f20;
+    border-radius: 4px;
+    height: 34px;
+    width: 250px;
+}
+product-publication textarea {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+product-publication input:focus,
+product-publication textarea:focus {
+    border-color: #215d9c;
+}
+
+
+
+product-publication .video-poster-panel {
+    padding: 5px;
+    margin-right: 50px;
+    border: 1px solid #1b1f20;
+    border-radius: 4px;
+}
+product-publication .video-poster {
+    display: block;
+    overflow: hidden;
+    border-radius: 4px;
+    height: 200px;
+}
+
 
 
 
