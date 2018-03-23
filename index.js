@@ -10,7 +10,7 @@ const url = require('url')
 const platform = process.platform
 const appData = app.getPath('appData')
 
-const debug = process.argv.indexOf('--debug') >= 0
+const debug = process.argv.includes('--debug')
 
 // app.disableHardwareAcceleration()
 
@@ -19,9 +19,8 @@ let onlineStatusWindow
 
 
 // event logger for simple messages
-const logger = (message) => {
-    console.log('\x1b[36m%s\x1b[0m', '[logger]')
-    console.log(message)
+const logger = (...messages) => {
+    messages.forEach((message) => console.log('\x1b[36m%s\x1b[0m', '[logger]', message))
 }
 
 if( process.mas ) {
@@ -56,6 +55,10 @@ if( process.mas ) {
             titleBarStyle: 'hiddenInset', // macos
         })
 
+        if( win.setSheetOffset ) {
+            win.setSheetOffset(50) // mac
+        }
+
         win.loadURL(url.format({
             pathname: path.join(__dirname, 'app/index.html'),
             protocol: 'file:',
@@ -75,6 +78,14 @@ if( process.mas ) {
 
         win.on('closed', () => {
             win = null
+        })
+
+        win.on('enter-full-screen', () => {
+            send('fullscreen-status-changed', true)
+        })
+
+        win.on('leave-full-screen', () => {
+            send('fullscreen-status-changed', false)
         })
     }
 
@@ -111,11 +122,9 @@ function makeSingleInstance() {
     })
 }
 
-process.on('uncaughtException', (error) => logger(error))
+process.on('uncaughtException', (error) => logger('uncaughtException', error))
 
-process.on('unhandledRejection', (error) => logger(error))
-
-
+process.on('unhandledRejection', (error) => logger('unhandledRejection', error))
 
 
 
@@ -129,12 +138,12 @@ let catalogStorage = {} // content of the colelction & others stuffs
 
 
 // get an event fron the renderer
-function eventClientReceive( channel, listener ) {
+function receive( channel, listener ) {
     ipcMain.on(channel, listener)
 }
 
 // send a message to the renderer
-function eventClientSend( channel, args ) {
+function send( channel, args ) {
     win.webContents.send(channel, args)
 }
 
@@ -191,7 +200,7 @@ const getCatalogStorageCollection = () => {
 // get a single product
 const getCatalogStorageProduct = (productIndex) => {
     let product = catalogStorage.collection[productIndex]
-    
+
     return product 
 }
 
@@ -242,16 +251,16 @@ const showSaveDialog = (options) => {
 const onReadFileCatalogStorage = (filename, successHandler, errorhandler) => {
     return readFile(filename)
     .then((content) => JSON.parse(content))
-    .then((content) => setCatalogStorageFrom(content))
-    .then((response) => getCatalogStorageCollection())
-    .then((collection) => getProductsSimpleFrom(collection))
+    .then((content) => setCatalogStorageFrom(content)) // cosntruct catalogue
+    .then((response) => getCatalogStorageCollection()) // get parsed catalogue
+    .then((collection) => getProductsSimpleFrom(collection)) // get simple previews
     .then((products) => successHandler(products))
     .catch((error) => errorhandler(error))
 }
 
 // save the collection
 const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
-    let content = getCatalogStorageForSaving()
+    let content = getCatalogStorageForSaving() // construct catalogue
     content = JSON.stringify(content)
 
     return writeFile(filename, content)
@@ -266,14 +275,14 @@ const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
 
 // client api
 
-eventClientReceive('online-status-changed', (event, status) => {
+receive('online-status-changed', (event, status) => {
     logger('event:online-status-changed: '+status)
 
     onlineStatusWindow = status
 })
 
 
-eventClientReceive('open-collection-dialog', (event) => {
+receive('open-collection-dialog', (event) => {
     const sender = event.sender
     
     showOpenDialog({
@@ -304,7 +313,7 @@ eventClientReceive('open-collection-dialog', (event) => {
     .catch((error) => logger('showOpenDialog: no file set'))
 })
 
-eventClientReceive('save-collection-dialog', (event) => {
+receive('save-collection-dialog', (event) => {
     const sender = event.sender
 
     const onSaveError = (error) => {
@@ -319,7 +328,7 @@ eventClientReceive('save-collection-dialog', (event) => {
 
         let promise = onSaveFileCatalogStorage(filename, () => {
             // send notification
-            eventClientSend('notification', 'Fichier sauvegardé!')
+            sender.send('notification', 'Fichier sauvegardé!')
         },
         (error) => {
             logger(error)
@@ -348,7 +357,7 @@ eventClientReceive('save-collection-dialog', (event) => {
 })
 
 
-eventClientReceive('get-product', (event, productIndex) => {
+receive('get-product', (event, productIndex) => {
     const sender = event.sender
 
     // return a single product from the collection
