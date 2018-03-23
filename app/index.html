@@ -43,9 +43,9 @@
 </app-toolbar>
 
 
-<app-panel>
+<app-layout>
 
-    <column-panel>
+    <app-sidebar>
 
         <search-toolbar>
             <input class="search-input" type="search" placeholder="Recherche">
@@ -65,7 +65,7 @@
         </column-items>
 
     
-    </column-panel>
+    </app-sidebar>
 
 
     <column-product>
@@ -106,6 +106,22 @@
                             <label>Durée:</label>
                             <input data-field="duration" class="video-field" type="text" placeholder="" />
                         </div>
+
+                        <div class="video-attribute">
+                            <label>Nationalité:</label>
+                            <input data-field="countries" class="video-field video-field-multiple" type="text" placeholder="" />
+                        </div>
+    
+                        <div class="video-attribute">
+                            <label>Genres:</label>
+                            <input data-field="genres" class="video-field video-field-multiple" type="text" placeholder="" />
+                        </div>
+    
+                        <div class="video-attribute">
+                            <label>Acteurs:</label>
+                            <input data-field="actors" class="video-field video-field-multiple" type="text" placeholder="" />
+                        </div>
+
                     </div>
 
                 </div>
@@ -113,26 +129,8 @@
                 <div class="video-overview">
 
                     <div class="video-attribute">
-                        <label>Nationalité:</label>
-                        <input data-field="countries" class="video-field video-field-multiple" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Genres:</label>
-                        <input data-field="genres" class="video-field video-field-multiple" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Acteurs:</label>
-                        <input data-field="actors" class="video-field video-field-multiple" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
                         <label>Synopsis:</label>
-                        <div data-field="description" class="video-field video-field-contenteditable" contenteditable="true">
-
-                        </div>
-                        <textarea></textarea>
+                        <textarea rows="5" data-field="description" class="video-field video-field-contenteditable"></textarea>
                     </div>
                 
                 </div>
@@ -212,7 +210,7 @@
 
     </column-product>
 
-</app-panel>
+</app-layout>
 
 
 <app-statusbar>
