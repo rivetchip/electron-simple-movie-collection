@@ -11,11 +11,11 @@ const {createSnackbar} = require('./dashboard')
 let winState = 'preview' // view or edit product
 
 
-function eventServerSend( channel, args ) {
+function send( channel, args ) {
     ipcRenderer.send(channel, args)
 }
 
-function eventServerReceive( channel, listener ) {
+function receive( channel, listener ) {
     ipcRenderer.on(channel, listener)
 }
 
@@ -64,29 +64,29 @@ function eventServerReceive( channel, listener ) {
 
         let openButton = toolbar.querySelector('.open')
         openButton.addEventListener('click', (event) => {
-            eventServerSend('open-collection-dialog')
+            send('open-collection-dialog')
         })
 
         let saveButton = toolbar.querySelector('.save')
         saveButton.addEventListener('click', (event) => {
-            eventServerSend('save-collection-dialog')
+            send('save-collection-dialog')
         })
     })()
 
-    ;(function _panel(){
+    ;(function _frame(){
 
-        const panel = document.querySelector('app-panel')
-        const itemsList = panel.querySelector('column-items')
+        const appFrame = document.querySelector('app-layout')
+        const listItems = appFrame.querySelector('column-items')
 
         const searchPanel = document.querySelector('search-toolbar')
         const searchInput = searchPanel.querySelector('.search-input')
 
-        const previewPanel = panel.querySelector('product-preview')
-        const publicationPanel = panel.querySelector('product-publication')
+        const previewPanel = appFrame.querySelector('product-preview')
+        const publicationPanel = appFrame.querySelector('product-publication')
 
 
         // delegate events ; on item click
-        delegate(itemsList, 'product-item', 'click', (event) => {
+        delegate(listItems, 'product-item', 'click', (event) => {
             eventOpenProductDisplay(previewPanel, event)
         })
 
@@ -103,7 +103,7 @@ function eventServerReceive( channel, listener ) {
             // }
 
             // Loop through all rows, and hide those who don't match the search query
-            let productItems = itemsList.querySelectorAll('product-item')
+            let productItems = listItems.querySelectorAll('product-item')
 
             let hiddenClass = 'is-hidden'
 
@@ -127,16 +127,16 @@ function eventServerReceive( channel, listener ) {
 
 
         // get the full collection from server
-        eventServerReceive('get-collection', (event, products) => {
+        receive('get-collection', (event, products) => {
             // empty the current collection
-            emptyProductItemsList(itemsList)
+            emptyProductListItems(listItems)
 
             // parse the content & and show the list to the column
-            appendProductItemsList(itemsList, products)
+            appendProductListItems(listItems, products)
         })
 
         // get a single, full product
-        eventServerReceive('get-product', (event, productIndex, product) => {
+        receive('get-product', (event, productIndex, product) => {
             // parse and show the view panel
             if( product ) {
                 winState = 'preview'
@@ -151,20 +151,29 @@ function eventServerReceive( channel, listener ) {
 
     // general
 
-    eventServerReceive('notification', (event, message) => {
+    receive('notification', (event, message) => {
         createSnackbar(viewport, message)
     })
 
+    receive('fullscreen-status-changed', (event, status) => {
+        if( status ) {
+            return viewport.classList.add('is-fullscreen')
+        }
+
+        return viewport.classList.remove('is-fullscreen')
+    })
+
+    
 
 
-    function emptyProductItemsList(itemsList){
-        itemsList.innerHTML = '' // fatest way ; find a better one ?
+    function emptyProductListItems(listItems){
+        listItems.innerHTML = '' // fatest way ; find a better one ?
     }
 
-    function appendProductItemsList( itemsList, products ) {
+    function appendProductListItems( listItems, products ) {
         products.forEach((product, index) => {
             let item = createProductItem(index, product)
-            itemsList.appendChild(item)
+            listItems.appendChild(item)
         })
     }
 
@@ -192,7 +201,7 @@ function eventServerReceive( channel, listener ) {
         previousSelectedProduct = target
 
         // get infos from server
-        eventServerSend('get-product', productIndex)
+        send('get-product', productIndex)
     }
 
     function openProductDisplay( previewPanel, productIndex, product ) {
@@ -319,7 +328,7 @@ function eventServerReceive( channel, listener ) {
 
 
 const updateOnlineStatus = (event) => {
-    eventServerSend('online-status-changed', navigator.onLine ? 'online' : 'offline')
+    send('online-status-changed', navigator.onLine ? 'online' : 'offline')
 }
 
 addEventListener('online',  updateOnlineStatus)
