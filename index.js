@@ -55,6 +55,8 @@ if( process.mas ) {
             titleBarStyle: 'hiddenInset', // macos
         })
 
+        win.setMenu(null) // no menu
+
         if( win.setSheetOffset ) {
             win.setSheetOffset(50) // mac
         }
@@ -86,6 +88,12 @@ if( process.mas ) {
 
         win.on('leave-full-screen', () => {
             send('fullscreen-status-changed', false)
+        })
+
+
+        // TODO drag onto
+        app.on('open-file', (event, filePath) => {
+            console.log(filePath)
         })
     }
 
