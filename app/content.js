@@ -5,58 +5,25 @@ const {remote, ipcRenderer} = electron
 
 const win = remote.getCurrentWindow()
 
-const {createSnackbar} = require('./dashboard')
+// require main app functions
+const dashboard = require('./dashboard')
+const {send, receive, h, delegate, createSnackbar} = dashboard
+
+// custom app title bar
+const {ComponentAppTitlebar} = require('./components/app-titlebar')
+customElements.define('app-titlebar', ComponentAppTitlebar)
 
 
 let winState = 'preview' // view or edit product
 
 
-function send( channel, args ) {
-    ipcRenderer.send(channel, args)
-}
-
-function receive( channel, listener ) {
-    ipcRenderer.on(channel, listener)
-}
 
 
 
-;addEventListener('load', () => {
+addEventListener('load', () => {
 
     const viewport = document.querySelector('.viewport')
 
-
-    ;(function _titlebar(){
-
-        const titlebar = document.querySelector('app-titlebar')
-
-        let state = 'idle'
-
-        let minimizeButton = titlebar.querySelector('.minimize')
-        minimizeButton.addEventListener('click', (event) => {
-            win.minimize()
-            state = 'minimize'
-        })
-
-        let maximizeButton = titlebar.querySelector('.maximize')
-        maximizeButton.addEventListener('click', (event) => {
-            if( state == 'maximize' ) {
-                win.unmaximize()
-                state = 'idle'
-            }
-            else if( state == 'idle' ) {
-                win.maximize()
-                state = 'maximize'
-            }
-        })
-
-        let closeButton = titlebar.querySelector('.close')
-        closeButton.addEventListener('click', (event) => {
-            win.close()
-            state = 'close'
-        })
-
-    })()
 
     ;(function _toolbar(){
 
@@ -139,7 +106,7 @@ function receive( channel, listener ) {
         receive('get-product', (event, productIndex, product) => {
             // parse and show the view panel
             if( product ) {
-                winState = 'preview'
+                // winState = 'preview'
 
                 openProductDisplay(previewPanel, productIndex, product)
             }
@@ -244,79 +211,6 @@ function receive( channel, listener ) {
         return item
     }
 
-
-
-
-
-
-    // create element
-
-    function h( tagName, props, children = [] ) {
-        // document.createDocumentFragment()
-
-        const isEvent = (attr) => attr.startsWith('on:')
-        const getEventName = (attr) => attr.substring(3) // remove "on:"
-
-        let element = document.createElement(tagName)
-
-        if( typeof props === 'string' ) {
-            element.appendChild(document.createTextNode(props))
-        }
-        else {
-            Object.entries(props).forEach(([name, value]) => {
-
-                switch( name ) {
-                    case 'className':
-                        return element.className = value
-
-                    case 'html':
-                        return element.innerHTML = value
-
-                    case 'text':
-                        return element.appendChild(document.createTextNode(value))
-                }
-
-                if( !isEvent(name) ) {
-                    return element.setAttribute(name, value)
-                }
-
-                const eventName = getEventName(name)
-                element.addEventListener(eventName, value)
-            })
-        }
-
-        children.forEach((child) => {
-            if( typeof child === 'string' ) {
-                child = document.createTextNode(child)
-            }
-
-            element.appendChild(child)
-        })
-
-        children.forEach((child) => element.appendChild(child))
-  
-        return element
-    }
-
-    // delegate events
-    function delegate( parent, selector, eventType, callback ) {
-
-        parent.addEventListener(eventType, (event) => {
-            let target = event.target;
-
-            if( target.matches(selector) ) {
-                callback(event)
-            }
-        })
-    }
-
-    function toggleState( element, one, two ) {
-        element.setAttribute('data-state', element.getAttribute('data-state') === one ? two : one)
-    }
-    
-    function getState( element ) {
-        return element.getAttribute('data-state')
-    }
 
 
 
