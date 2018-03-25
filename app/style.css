@@ -88,18 +88,22 @@ html, body, .viewport {
     outline: none;
     border: 0;
     box-sizing: border-box;
-    transition: 200ms ease-out
+    transition: 200ms ease-out;
+    transition-property: opacity, background-color, border-color;
 }
 a {
     color: #fff;
     text-decoration: none;
 }
-input, textarea {
+input, button, textarea {
     font-family: inherit;
     font-size: inherit;
     line-height: inherit;
     font-weight: inherit;
     color: inherit;
+}
+button {
+    font-weight: 400;
 }
 
 ::-webkit-scrollbar {
@@ -318,18 +322,20 @@ button {
     color: #eeeeec;
     outline-color: rgba(238, 238, 236, 0.3);
     border-bottom-color: #0b0c0c;
+    background-color: #2e3436;
     background-image: linear-gradient(to bottom, #2e3436, #2a2e30 60%, #25292b);
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.05);
 }
 button:hover {
     background-image: linear-gradient(to bottom, #353c3e, #2e3436 60%, #2a2e30);
 }
-/* button:active,
+button:active,
 button:checked {
-  background-image: #25292b;
-  box-shadow: inset 0 1px rgba(255, 255, 255, 0);
-  text-shadow: none;
-} */
+    background-image: none;
+    background-color: #25292b;
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0);
+    text-shadow: none;
+}
 
 
 
@@ -588,7 +594,7 @@ product-publication .publication-header-search {
     background-color: #2b3032;
 }
 product-publication .publication-innercontent {
-    display: inline-block;
+    /* display: inline-block; */
 }
 
 
