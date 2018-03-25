@@ -269,7 +269,7 @@ const onReadFileCatalogStorage = (filename, successHandler, errorhandler) => {
 // save the collection
 const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
     let content = getCatalogStorageForSaving() // construct catalogue
-    content = JSON.stringify(content)
+    content = JSON.stringify(content) // TODO check if var not overitted ; passby référence
 
     return writeFile(filename, content)
     .then((response) => successHandler())
