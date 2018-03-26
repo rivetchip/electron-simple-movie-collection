@@ -1,7 +1,6 @@
 'use strict';
 
-const electron = require('electron')
-const {remote, ipcRenderer} = electron
+const {remote, ipcRenderer} = require('electron')
 
 const win = remote.getCurrentWindow()
 

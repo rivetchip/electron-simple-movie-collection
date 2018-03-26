@@ -1,13 +1,14 @@
 'use strict';
 
-const electron = require('electron')
-const {remote} = electron
+const {remote} = require('electron')
 
 const win = remote.getCurrentWindow()
 
 // require main app functions
 const dashboard = require('../dashboard')
 const {send, receive, h, delegate} = dashboard
+
+const currentDocument = document.currentScript.ownerDocument
 
 
 

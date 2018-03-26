@@ -1,7 +1,6 @@
 'use strict';
 
-const electron = require('electron')
-const {remote, ipcRenderer} = electron
+const {remote} = require('electron')
 
 const win = remote.getCurrentWindow()
 
@@ -17,6 +16,12 @@ customElements.define('app-titlebar', ComponentAppTitlebar)
 let winState = 'preview' // view or edit product
 
 
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+})
 
 
 
@@ -124,10 +129,10 @@ addEventListener('load', () => {
 
     receive('fullscreen-status-changed', (event, status) => {
         if( status ) {
-            return viewport.classList.add('is-fullscreen')
+            viewport.classList.add('is-fullscreen')
+        } else {
+            viewport.classList.remove('is-fullscreen')
         }
-
-        return viewport.classList.remove('is-fullscreen')
     })
 
     
