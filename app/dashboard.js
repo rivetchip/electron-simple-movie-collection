@@ -1,20 +1,10 @@
 'use strict';
 
-const {remote, ipcRenderer} = require('electron')
 
-const win = remote.getCurrentWindow()
-
+//var exports = window;
 
 
-// IPC sending events
 
-exports.send = function send( channel, args ) {
-    ipcRenderer.send(channel, args)
-}
-
-exports.receive = function receive( channel, listener ) {
-    ipcRenderer.on(channel, listener)
-}
 
 // create element
 

@@ -49,6 +49,12 @@ if( process.mas ) {
             show: false, // wait ready ; prevents white flickering
             // backgroundColor: '#fff',
 
+            webPreferences: {
+                //nodeIntegration: false, // todo wait for module in chrome 61
+                //contextIsolation: true,
+                preload: path.join(__dirname, 'app/preload.js'),
+            },
+
             // borderless frame
             frame: false,
             transparent: true,
@@ -287,6 +293,22 @@ receive('online-status-changed', (event, status) => {
     logger('event:online-status-changed: '+status)
 
     onlineStatusWindow = status
+})
+
+receive('application-close', (event) => {
+    win.close()
+})
+
+receive('application-minimize', (event) => {
+    win.minimize()
+})
+
+receive('application-maximize', (event) => {
+    win.maximize()
+})
+
+receive('application-unmaximize', (event) => {
+    win.unmaximize()
 })
 
 
