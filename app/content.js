@@ -1,12 +1,9 @@
 'use strict';
 
-const {remote} = require('electron')
-
-const win = remote.getCurrentWindow()
+//import {dashboard} from './dashboard'
 
 // require main app functions
-const dashboard = require('./dashboard')
-const {send, receive, h, delegate, createSnackbar} = dashboard
+const {h, delegate, createSnackbar} = require('./dashboard')
 
 // custom app title bar
 const {ComponentAppTitlebar} = require('./components/app-titlebar')
@@ -17,6 +14,7 @@ let winState = 'preview' // view or edit product
 
 
 
+//return;
 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -24,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 
-
+/*
 addEventListener('load', () => {
 
     const viewport = document.querySelector('.viewport')
@@ -232,3 +230,6 @@ const updateOnlineStatus = (event) => {
 
 addEventListener('online',  updateOnlineStatus)
 addEventListener('offline', updateOnlineStatus)
+
+
+*/

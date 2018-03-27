@@ -1,14 +1,7 @@
 'use strict';
 
-const {remote} = require('electron')
-
-const win = remote.getCurrentWindow()
-
 // require main app functions
-const dashboard = require('../dashboard')
-const {send, receive, h, delegate} = dashboard
-
-const currentDocument = document.currentScript.ownerDocument
+const ownerDocument = document.currentScript.ownerDocument
 
 
 
@@ -41,22 +34,31 @@ class ComponentAppTitlebar extends HTMLElement {
     }
 
     onCloseEvent( event ) {
-        win.close()
+
+        send('application-close')
+
         this.state = 'close'
     }
 
     onMinimizeEvent( event ) {
-        win.minimize()
+
+        send('application-minimize')
+
         this.state = 'minimize'
     }
 
     onMaximizeEvent( event ) {
+    
         if( this.state == 'idle' ) {
-            win.maximize()
+
+            send('application-maximize')
+
             this.state = 'maximize'
         }
         else if( this.state == 'maximize' ) {
-            win.unmaximize()
+
+            send('application-unmaximize')
+
             this.state = 'idle'
         }
     }
@@ -67,6 +69,7 @@ class ComponentAppTitlebar extends HTMLElement {
     }
 
     attributeChangedCallback( name, oldValue, newValue ) {
+
         if( name == 'title' ) {
             return this.onAttributeChangeTitle(newValue)
         }
