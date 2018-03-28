@@ -1,5 +1,6 @@
 release-builds
 node_modules/
+package-lock.json
 
 logs
 *.log
