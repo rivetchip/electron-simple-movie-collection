@@ -99,11 +99,11 @@ function createWindow() {
         win = null
     })
 
-    win.on('enter-full-screen', () => {
+    win.on('maximize', () => {
         send('fullscreen-status-changed', true)
     })
 
-    win.on('leave-full-screen', () => {
+    win.on('unmaximize', () => {
         send('fullscreen-status-changed', false)
     })
 
