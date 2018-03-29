@@ -3,7 +3,7 @@
   "productName": "Movie Collection",
   "description": "Application for electron tutorials",
   "version": "1.0.0",
-  "main": "app/index.js",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron .",
@@ -20,7 +20,7 @@
   "license": "MIT",
   "devDependencies": {
     "asar": "^0.14.3",
-    "electron": "^2.0.0-beta.6",
+    "electron": "^1.8.4",
     "electron-packager": "^11.2.0"
   }
 }
