@@ -1,7 +1,7 @@
 const package = require('./package.json')
 
 const electron = require('electron')
-const {app, BrowserWindow, ipcMain, dialog} = electron
+const {app, BrowserWindow, ipcMain, dialog, protocol} = electron
 
 const path = require('path')
 const fs = require('fs')
@@ -115,7 +115,9 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-    setTimeout(createWindow, 100) // Workaround for linux transparency
+    registerApiProtocol() // register api protocol
+
+    setTimeout(createWindow, 100) // create brower win + workaround for linux transparency
 })
 
 app.on('window-all-closed', () => {
@@ -136,6 +138,35 @@ process.on('unhandledRejection', (error) => logger('unhandledRejection', error))
 
 
 
+
+
+
+
+
+function registerApiProtocol() {
+
+    const protocolHandler = (request, callback) => {
+        const query = url.parse(request.url)
+
+        console.log(request)
+        console.log(query)
+
+        let data = '{"xx":"aa"}'
+
+        callback({
+            data,
+            mimeType: 'application/json',
+            charset: 'utf8'
+        })
+    }
+
+    const completionHandler = (error) => {
+        error && logger('ApiProtocol', error)
+    }
+
+
+    protocol.registerStringProtocol('moviesapi', protocolHandler, completionHandler)
+}
 
 
 
@@ -314,11 +345,11 @@ receive('application-minimize', (event) => {
 })
 
 receive('application-maximize', (event) => {
-    win.maximize()
-})
-
-receive('application-unmaximize', (event) => {
-    win.unmaximize()
+    if( win.isMaximized() ) {
+        win.unmaximize()
+    } else {
+        win.maximize()
+    }
 })
 
 

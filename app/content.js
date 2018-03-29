@@ -1,6 +1,6 @@
 'use strict';
 
-//import {dashboard} from './dashboard'
+// import {dashboard} from './dashboard'
 
 // require main app functions
 const {h, delegate, createSnackbar} = require('./dashboard')
@@ -11,6 +11,25 @@ customElements.define('app-titlebar', ComponentAppTitlebar)
 
 
 let winState = 'preview' // view or edit product
+
+
+
+
+
+fetch('moviesapi://aaa/bbb/ccc/ddd?eee=fff&ggg=hhh', {
+    headers: { "Content-Type" : "text/plain" }
+})
+.then(function(response) {
+    return response.json();
+})
+.then(function(response) {
+    console.log(response)
+})
+
+
+
+
+
 
 
 
