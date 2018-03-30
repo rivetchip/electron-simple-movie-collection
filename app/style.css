@@ -670,6 +670,50 @@ product-publication .video-poster {
 }
 
 
+.stars-rating {
+    display: flex;
+}
+.stars-rating-check {
+    display: none;
+}
+
+.stars-rating-star,
+.stars-rating-none { /*label icon*/
+    width: 30px;
+    height: 30px;
+    display: block;
+    margin: 0;
+    cursor: pointer;
+
+    background: transparent no-repeat center;
+    background-size: 24px;
+}
+.stars-rating-none {
+    background-image: url(imgs/icon-nostar-off.svg);
+}
+
+.stars-rating-check:checked ~ .stars-rating-check + .stars-rating-star { /* non-checked stars*/
+    background-image: url(imgs/icon-star-off.svg);
+    background-color: transparent;
+}
+.stars-rating-check:checked + .stars-rating-none { /* "none" checked star*/
+    background-image: url(imgs/icon-nostar-on.svg);
+    background-color: transparent;
+}
+
+.stars-rating-check + .stars-rating-star { /* checked star ; exclude "none" icon */
+    background-image: url(imgs/icon-star-on.svg);
+    /* background-color: orange; */
+}
+
+.stars-rating-check + .stars-rating-star:first-of-type { /* outer left checked star ; exclude "none" icon */
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+.stars-rating-check:checked + .stars-rating-star { /* outer right checked star */
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
 
 
 
