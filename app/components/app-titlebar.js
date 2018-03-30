@@ -10,8 +10,6 @@ class ComponentAppTitlebar extends HTMLElement {
     constructor() {
         super()
 
-        this.state = 'idle'
-
         //this.attachShadow({mode: 'open'})
         // this.shadowRoot.appendChild(template.content.cloneNode(true))
     }
@@ -34,33 +32,15 @@ class ComponentAppTitlebar extends HTMLElement {
     }
 
     onCloseEvent( event ) {
-
         send('application-close')
-
-        this.state = 'close'
     }
 
     onMinimizeEvent( event ) {
-
         send('application-minimize')
-
-        this.state = 'minimize'
     }
 
     onMaximizeEvent( event ) {
-    
-        if( this.state == 'idle' ) {
-
-            send('application-maximize')
-
-            this.state = 'maximize'
-        }
-        else if( this.state == 'maximize' ) {
-
-            send('application-unmaximize')
-
-            this.state = 'idle'
-        }
+        send('application-maximize')
     }
 
 
