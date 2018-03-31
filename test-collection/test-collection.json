@@ -6,6 +6,7 @@
         {
             "title":"Kiki la petite sorcière",
             "original":"Majo no takkyûbin / 魔女の宅急便",
+            "tagline":"Majo no takkyûbin",
             "duration":102,
             "dateReleased":"2003-11-10",
             "director":"Hayao Miyazaki",
@@ -29,6 +30,12 @@
             "dateModified":"2014-11-02",
             "favorite": true,
             "serie":"",
+            "companies": [
+                "Ghibli"
+            ],
+            "keywords": [
+                
+            ],
 
             "source":"tmdb",
             "sourceId":16859,
@@ -37,6 +44,7 @@
         {
             "title":"La tortue rouge",
             "original":"La tortue rouge",
+            "tagline":"La tortue rouge",
             "duration":80,
             "dateReleased":"2016-05-18",
             "director":"Michael Dudok de Wit",
@@ -66,6 +74,7 @@
         {
             "title":"Beetlejuice",
             "original":"Beetlejuice",
+            "tagline":"Beetlejuice",
             "duration":92,
             "dateReleased":"1988-12-13",
             "director":"Tim Burton",
