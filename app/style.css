@@ -474,7 +474,7 @@ product-item.is-selected:hover {
 product-item .favorite {
     display: none;
 
-    background: url(imgs/icon-favorite.svg) transparent no-repeat center;
+    background: url(imgs/emblem-favorite.svg) transparent no-repeat center;
     background-size: 20px;
 
     padding: 10px;
