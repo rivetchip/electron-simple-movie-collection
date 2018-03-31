@@ -1,16 +1,21 @@
 const package = require('./package.json')
 
-const electron = require('electron')
-const {app, BrowserWindow, ipcMain, dialog, protocol} = electron
+// Electron flow
+
+const {app, BrowserWindow, ipcMain, dialog} = require('electron')
 
 const platform = process.platform
 
 const path = require('path')
 const fs = require('fs')
-const url = require('url')
-const {stringify} = require('querystring')
+const {format: urlformat} = require('url')
 
-const https = require('https')
+// Application fow
+
+const {registerMoviesapiProtocol} = require('./moviesapi-protocol')
+
+
+// User flow
 
 const userDataPath = app.getPath('userData')
 const userSettingsFilename = path.join(userDataPath, 'settings.json');
@@ -26,9 +31,10 @@ let onlineStatusWindow
 // event logger for simple messages
 const logger = (...messages) => {
     messages.forEach((message) => {
-        console.log('\x1b[36m%s\x1b[0m', '[logger]', message)
+        console.log('\x1b[36m%s\x1b[0m', '[logger]', message.message || message)
     })
 }
+
 
 
 // Someone tried to run a second instance, we should focus our window
@@ -81,7 +87,7 @@ function createWindow() {
         win.setSheetOffset(50) // +titlebar height on mac
     }
 
-    win.loadURL(url.format({
+    win.loadURL(urlformat({
         pathname: path.join(__dirname, 'app/index.html'),
         protocol: 'file:',
         slashes: true
@@ -118,7 +124,7 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-    registerApiProtocol() // register api protocol
+    registerMoviesapiProtocol() // register movies api custom protocol
 
     setTimeout(createWindow, 100) // create brower win + workaround for linux transparency
 })
@@ -151,308 +157,9 @@ process.on('unhandledRejection', (error) => logger('unhandledRejection', error))
 
 
 
-const request = (options) => {
 
-    return new Promise((resolve, reject) => {
 
-        https.request(options, (response) => {
-            response.setEncoding('utf8')
-
-            let statusCode = response.statusCode
-            let headers = response.headers
-
-            let body = ''
-    
-            response.on('data', (chunk) => {
-                body += chunk
-            })
-
-            response.on('end', () => {
-                resolve(body)
-            })
-        })
-
-        .on('error', (error) => {
-            reject(error) //.message
-        })
-
-        .end()
-    })
-}
-
-// convert date from api, toe the application format
-const moviesapiRequestTransition = (controller, keyword, results) => {
-
-    const lookup = (context, token) => {
-
-        for( let key of token.split('.') ) {
-    
-            context = context[key]
-    
-            if(context == null) {
-                return null
-            }
-        }
-
-        return context
-
-        //return token.split('.').reduce((accumulator, value) => accumulator[value], context);
-    }
-
-    const convertDate = (dateString) => {
-
-        let [year, month, day] = dateString.split('-', 3); // 1998-08-21
-
-        return [year, month, day].join('-')
-    }
-
-    const convertText = (value) => {
-        return value || ''
-    }
-
-    const convertNamedArray = (values) => {
-        let response = []
-
-        if( !Array.isArray(values) ) {
-            return []
-        }
-
-        for( var value of values ) {
-            response.push(value.name)
-        }
-
-        return response
-    }
-
-    const convertNamedVaue = (value) => {
-        return value.name || ''
-    }
-
-    const convertDirector = (crews) => {
-
-        if( !Array.isArray(crews) ) {
-            return []
-        }
-
-        for( let crew of crews ) {
-
-            if(crew.job == 'Director') {
-                // get director name; usually the first
-                return crew.name
-            }
-        }
-
-        return ''
-    }
-
-    const convertActorsRoles = (casts) => {
-
-        if( !Array.isArray(casts) ) {
-            return []
-        }
-
-        let response = []
-
-        for( let cast of casts ) {
-            //[actor, role]
-
-            response.push([
-                cast.name, cast.character
-            ])
-        }
-
-        return response
-    }
-
-    const convertRating = (value) => {
-        return Math.round(value) / 2 // rounded (tmdb /10 -> /5)
-    }
-
-    
-
-    if(controller == 'search' ) {
-        // multiple ; simple
-
-        let response = []
-
-        for( let movie of results ) {
-            
-            response.push({
-                providerId: movie.id, // store for later
-                title: movie.title,
-                original: movie.original_title,
-                overview: movie.overview,
-                dateReleased: convertDate(movie.release_date)
-            })
-        }
-
-        return response
-    }
-
-    if(controller == 'movie' ) {
-        // single ; complete
-
-        let response = {}
-
-        let transitions = {
-            // format field : api field, callback
-            title: ['title', convertText],
-            original: ['original_title', convertText],
-            tagline: ['tagline', convertText],
-            duration: ['runtime'],
-            dateReleased: ['release_date', convertDate],
-            director: ['casts.crew', convertDirector],
-            description: ['overview', convertText],
-            countries: ['production_countries', convertNamedArray],
-            genres: ['genres', convertNamedArray],
-            actors: ['casts.cast', convertActorsRoles],
-            ratingPress: ['vote_average', convertRating],
-            serie: ['belongs_to_collection', convertNamedVaue],
-            companies: ['production_companies', convertNamedArray],
-            keywords: ['keywords.keywords', convertNamedArray],
-        }
-
-        for( let key in transitions ) {
-
-            let [field, callback] = transitions[key]
-
-            let value = lookup(results, field)
-
-            if(callback) {
-                value = callback(value)
-            }
-
-            response[key] = value
-        }
-
-        let sourceId = results.id
-        let imdbId = results.imdb_id
-
-        response.source = 'tmdb'
-        response.sourceId = sourceId
-        response.webPage = 'http://www.themoviedb.org/'+sourceId
-
-        if(imdbId) {
-            response.imdbId = imdbId
-        }
-
-        return response
-    }
-}
-
-const moviesapiRequest = (controller, keyword) => {
-    // default : TMDB : todo: add more
-
-    let provider = 'tmdb'
-    let apiKey = ''
-    let hostname = 'api.themoviedb.org'
-    let version = 3
-
-    let language = 'fr'
-
-    let requestUrl
-    let parameters = {} // query string
-    let queryString // full querystring
-
-
-    switch(controller) {
-
-        case 'search': // search movies based on a keyword
-            requestUrl = 'search/movie'
-            parameters.query = keyword
-        break
-
-        case 'movie': // get full informations about a movie
-            requestUrl = 'movie/'+keyword
-            parameters.append_to_response = 'casts,keywords'
-        break
-
-        case 'discover': // discover new movies
-            //requestUrl = 'discover/movie'
-        break
-
-        case 'popular': // popular movies
-            //requestUrl = 'movie/popular'
-        break
-
-        case 'now-playing': // movies in theatres
-            //requestUrl = 'movie/now_playing'
-        break
-
-        default:
-            throw new Error('moviesapiRequest: controller not found')
-        break
-    }
-
-    if(requestUrl) {
-        // append language and api key
-        parameters.api_key = apiKey
-        parameters.language = language
-
-        queryString = requestUrl+'?'+stringify(parameters)
-    }
-
-    return request({
-        host: hostname,
-        path: '/'+version+'/'+queryString,
-        headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json',
-        }
-    })
-    .then((response) => JSON.parse(response))
-    .then((response) => {
-
-        if( response.success === false ) {
-            let code = response.status_code
-            let message = response.status_message
-
-            throw new Error('moviesapiRequest: '+code+'-'+message)
-        }
-
-        console.log(response)
-    
-        return response.results || response // if multiple
-    })
-    .then((results) => moviesapiRequestTransition(controller, keyword, results))
-}
-
-let xxx = 'blade runner'
-moviesapiRequest('movie', '78')
-.then((data)=>{
-    console.log('FINAL DATA')
-    console.log(data)
-})
-.catch((message) => {
-    console.log(message)
-})
-
-function registerApiProtocol() {
-
-    const protocolHandler = (request, callback) => {
-        const query = url.parse(request.url)
-
-        // console.log(request)
-        // console.log(query)
-
-        let data = '{"xx":"aa"}'
-
-        callback({
-            data,
-            mimeType: 'application/json',
-            charset: 'utf8'
-        })
-    }
-
-    const completionHandler = (error) => {
-        error && logger('ApiProtocol', error)
-    }
-
-
-    protocol.registerStringProtocol('moviesapi', protocolHandler, completionHandler)
-}
-
-
+//// Application events flow
 
 
 let catalogStorage = {} // content of the collection, options & others stuffs

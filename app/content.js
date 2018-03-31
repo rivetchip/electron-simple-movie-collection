@@ -15,13 +15,10 @@ let winState = 'preview' // view or edit product
 
 
 
+//fetch('moviesapi://tmdb/movie/78')
+fetch('moviesapi://tmdb/search/blade runner')
+.then(response => response.text())
 
-fetch('moviesapi://aaa/bbb/ccc/ddd?eee=fff&ggg=hhh', {
-    headers: { "Content-Type" : "text/plain" }
-})
-.then(function(response) {
-    return response.json();
-})
 .then(function(response) {
     console.log(response)
 })
