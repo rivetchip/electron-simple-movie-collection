@@ -58,6 +58,103 @@ const request = (options) => {
 }
 
 
+// covnert dot-ntoation to the real object
+const lookup = (context, token) => {
+
+    for( let key of token.split('.') ) {
+
+        context = context[key]
+
+        if(context == null) {
+            return null
+        }
+    }
+
+    return context
+
+    //return token.split('.').reduce((accumulator, value) => accumulator[value], context);
+}
+
+const convertDate = (dateString) => {
+
+    let [year, month, day] = dateString.split('-', 3); // 1998-08-21
+
+    return [year, month, day].join('-')
+}
+
+const convertText = (value) => {
+    return value || ''
+}
+
+const convertNamedArray = (values) => {
+    let response = []
+
+    if( !Array.isArray(values) ) {
+        return []
+    }
+
+    for( var value of values ) {
+        response.push(value.name)
+    }
+
+    return response
+}
+
+const convertNamedVaue = (value) => {
+    return value.name || ''
+}
+
+const convertDirector = (crews) => {
+
+    if( !Array.isArray(crews) ) {
+        return []
+    }
+
+    for( let crew of crews ) {
+
+        if(crew.job == 'Director') {
+            // get director name; usually the first
+            return crew.name
+        }
+    }
+
+    return ''
+}
+
+const convertActorsRoles = (casts) => {
+
+    if( !Array.isArray(casts) ) {
+        return []
+    }
+
+    let response = []
+
+    for( let cast of casts ) {
+        //[actor, role]
+
+        response.push([
+            cast.name, cast.character
+        ])
+    }
+
+    return response
+}
+
+const convertRating = (value) => {
+    return Math.round(value) / 2 // rounded & convert tmdb /10 to /5
+}
+
+// trim first & last characters of a string
+const trimchar = (string, character) => {
+
+    const first = [...string].findIndex(char => char !== character)
+
+    const last = [...string].reverse().findIndex(char => char !== character)
+
+    return string.substring(first, string.length - last)
+}
+
+
 /**
  * Convert datas received from the api to the application format
  * 
@@ -67,93 +164,6 @@ const request = (options) => {
  * @param {*} results 
  */
 const moviesapiRequestTransition = (provider, action, keyword, results) => {
-
-    // covnert dot-ntoation to the real object
-    const lookup = (context, token) => {
-
-        for( let key of token.split('.') ) {
-    
-            context = context[key]
-    
-            if(context == null) {
-                return null
-            }
-        }
-
-        return context
-
-        //return token.split('.').reduce((accumulator, value) => accumulator[value], context);
-    }
-
-    const convertDate = (dateString) => {
-
-        let [year, month, day] = dateString.split('-', 3); // 1998-08-21
-
-        return [year, month, day].join('-')
-    }
-
-    const convertText = (value) => {
-        return value || ''
-    }
-
-    const convertNamedArray = (values) => {
-        let response = []
-
-        if( !Array.isArray(values) ) {
-            return []
-        }
-
-        for( var value of values ) {
-            response.push(value.name)
-        }
-
-        return response
-    }
-
-    const convertNamedVaue = (value) => {
-        return value.name || ''
-    }
-
-    const convertDirector = (crews) => {
-
-        if( !Array.isArray(crews) ) {
-            return []
-        }
-
-        for( let crew of crews ) {
-
-            if(crew.job == 'Director') {
-                // get director name; usually the first
-                return crew.name
-            }
-        }
-
-        return ''
-    }
-
-    const convertActorsRoles = (casts) => {
-
-        if( !Array.isArray(casts) ) {
-            return []
-        }
-
-        let response = []
-
-        for( let cast of casts ) {
-            //[actor, role]
-
-            response.push([
-                cast.name, cast.character
-            ])
-        }
-
-        return response
-    }
-
-    const convertRating = (value) => {
-        return Math.round(value) / 2 // rounded (tmdb /10 -> /5)
-    }
-
 
     if(action == 'search' ) {
         // multiple ; simple
@@ -321,26 +331,20 @@ const moviesapiRequest = (provider, action, keyword) => {
  */
 function registerMoviesapiProtocol() {
 
-    const trimByChar = (string, character) => {
-
-        const first = [...string].findIndex(char => char !== character)
-
-        const last = [...string].reverse().findIndex(char => char !== character)
-
-        return string.substring(first, string.length - last)
-    }
-
     const protocolHandler = (request, callback) => {
 
         // moviesapi://tmdb/search/blade runner
 
         let {hostname: provider, pathname: queryString, query} = urlparse(request.url)
 
-        queryString = trimByChar(decodeURIComponent(queryString), '/') // /search/blade%20runner
+        queryString = trimchar(decodeURIComponent(queryString), '/') // /search/blade%20runner
 
         // get actions from url
 
-        let [action, keyword] = queryString.split('/') // search/blade runner
+        let [action, keyword] = queryString.split('/', 2) // search/blade runner
+        // let slashIndex = queryString.indexOf('/')
+        // let action = queryString.substr(0, slashIndex);
+        // let keyword = queryString.substr(slashIndex+1)
 
         // send the request back to the client
 
@@ -359,7 +363,7 @@ function registerMoviesapiProtocol() {
     }
 
     const completionHandler = (error) => {
-        error && logger('ApiProtocol', error)
+        error && logger('MoviesapiProtocol', error) // TODO import logger
     }
 
 
