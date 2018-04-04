@@ -39,10 +39,21 @@
     <div>
         <button class="open" title="Ouvrir un fichier">Ouvrir</button>
         <button class="save" title="Enregistrer la liste courante">Enregistrer</button>
-    </div>
-    <div>
         <button class="new-product" title="Ajouter un film">Ajouter un film</button>
     </div>
+
+    <div id="providers">
+        <input id="provider-tmdb-en" class="provider-switch" type="radio" name="provider" value="tmdb-en">
+        <label for="provider-tmdb-en" class="provider">
+            TMDb<div class="provider-lang">EN</div>
+        </label>
+
+        <input id="provider-tmdb-fr" class="provider-switch" type="radio" name="provider" value="tmdb-fr" checked>
+        <label for="provider-tmdb-fr" class="provider">
+            TMDb<div class="provider-lang">FR</div>
+        </label>
+    </div>
+
 </app-toolbar>
 
 

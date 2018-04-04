@@ -280,13 +280,14 @@ app-toolbar { /* toolbar with main icons */
     /* 33393b */
 }
 app-toolbar button {
+    display: inline-block;
+    font-weight: 400;
     cursor: pointer;
     border: 0;
     border-radius: 4px;
     padding: 0 15px;
     padding-left: 40px;
     margin-right: 5px;
-
     height: 35px;
 
     background: transparent no-repeat 8px center;/*24px icon - 40*/
@@ -306,6 +307,37 @@ app-toolbar button.new-product {
     background-image: url(imgs/icon-new-product.svg);
 }
 app-toolbar button:hover {
+    background-color: #1abc9c;
+}
+
+/* providers list*/
+
+
+
+#providers {
+    display: flex;
+}
+  
+.provider-switch {
+    display: none;
+}
+
+.provider {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    font-weight: 400;
+    cursor: pointer;
+    height: 35px;
+    border-radius: 4px;
+    padding: 0 15px;
+}
+.provider-lang {
+    font-weight: 700;
+    margin-left: 5px;
+}
+.provider-switch:checked + .provider {
     background-color: #1abc9c;
 }
 
