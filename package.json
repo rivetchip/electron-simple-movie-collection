@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run babel-compile && electron .",
     "debug": "npm run babel-compile && electron . --inspect=12345 --debug-brk --debug",
-    "babel-compile": "babel browser-application --out-file browser-application/bundle.js --ignore preload.js,bundle.js --presets env --plugins transform-react-jsx",
+    "babel-compile": "true ||      npx babel browser-application --out-dir browser-application/bundle/ --ignore preload.js,bundle.js,bundle --plugins transform-react-jsx",
     "build-clean": "rm -rf ./release-builds",
     "build-all": "npm run clean && npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
     "build-linux32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
@@ -18,8 +18,10 @@
     "build-win32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=ia32 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
     "build-win64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=x64 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
     "build-mac": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true",
-  
-    "pack-linux64": "npm run build-clean && npm run babel-compile && npm run build-linux64"
+    "pack-linux32": "npm run build-clean && npm run babel-compile && npm run build-linux32",
+    "pack-linux64": "npm run build-clean && npm run babel-compile && npm run build-linux64",
+    "pack-win32": "npm run build-clean && npm run babel-compile && npm run build-win32",
+    "pack-win64": "npm run build-clean && npm run babel-compile && npm run build-win64"
   },
   "devDependencies": {
     "asar": "^0.14.3",

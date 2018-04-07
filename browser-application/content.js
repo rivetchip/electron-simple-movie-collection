@@ -3,9 +3,7 @@
 // import {dashboard} from './dashboard'
 
 // require main app functions
-//const {h, delegate, createSnackbar} = require('./dashboard')
-
-import {delegate, createSnackbar} from './dashboard'
+const {h, delegate, createSnackbar} = require('./dashboard')
 
 // custom app title bar
 const {ComponentAppTitlebar} = require('./components/app-titlebar')
