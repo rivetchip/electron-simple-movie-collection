@@ -1,4 +1,4 @@
-const package = require('./package.json')
+const package = require('../package.json')
 
 const {protocol} = require('electron')
 
@@ -17,8 +17,6 @@ const apiProviders = {
         version: 3
     }
 }
-
-const apiLanguage = 'fr'
 
 
 
@@ -246,10 +244,11 @@ const moviesapiRequestTransition = (provider, action, keyword, results) => {
  * Wrapper for the request() to make exclusive movies requests
  * 
  * @param {String} provider
+ * @param {String} language
  * @param {String} action 
  * @param {*} keyword 
  */
-const moviesapiRequest = (provider, action, keyword) => {
+const moviesapiRequest = (provider, language, action, keyword) => {
 
     let requestUrl
     let parameters = {} // query string
@@ -294,7 +293,7 @@ const moviesapiRequest = (provider, action, keyword) => {
     if(requestUrl) {
         // append language and api key
         parameters.api_key = apiKey
-        parameters.language = apiLanguage
+        parameters.language = language
 
         // then encode url with parameters
 
@@ -307,7 +306,7 @@ const moviesapiRequest = (provider, action, keyword) => {
         headers: {
             'User-Agent': 'Mozilla/5.0',
             'Accept': 'application/json',
-            'Accept-Language': 'fr,fr-FR,en-US,en'
+            'Accept-Language': language //'fr,fr-FR,en-US,en'
         }
     })
     .then(({statusCode, headers, body}) => JSON.parse(body))
@@ -333,9 +332,11 @@ function registerMoviesapiProtocol() {
 
     const protocolHandler = (request, callback) => {
 
-        // moviesapi://tmdb/search/blade runner
+        // moviesapi://tmdb-fr/search/blade runner
 
-        let {hostname: provider, pathname: queryString, query} = urlparse(request.url)
+        let {hostname, pathname: queryString, query} = urlparse(request.url)
+
+        let {provider, language} = hostname.split('-', 2) // tmdb-fr
 
         queryString = trimchar(decodeURIComponent(queryString), '/') // /search/blade%20runner
 
@@ -351,7 +352,7 @@ function registerMoviesapiProtocol() {
         let mimeType = 'application/json'
         let charset = 'utf8'
 
-        moviesapiRequest(provider, action, keyword)
+        moviesapiRequest(provider, language, action, keyword)
 
         .then((response) => callback({
             data: JSON.stringify(response), mimeType, charset
