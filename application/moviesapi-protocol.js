@@ -152,6 +152,25 @@ const trimchar = (string, character) => {
     return string.substring(first, string.length - last)
 }
 
+// fields transitions from api to app format
+const transitions = {
+    // format field : api field, callback
+    title: ['title'],
+    original: ['original_title'],
+    tagline: ['tagline', convertText],
+    duration: ['runtime'],
+    dateReleased: ['release_date', convertDate],
+    director: ['casts.crew', convertDirector],
+    description: ['overview'],
+    countries: ['production_countries', convertNamedArray],
+    genres: ['genres', convertNamedArray],
+    actors: ['casts.cast', convertActorsRoles],
+    ratingPress: ['vote_average', convertRating],
+    serie: ['belongs_to_collection', convertNamedVaue],
+    companies: ['production_companies', convertNamedArray],
+    keywords: ['keywords.keywords', convertNamedArray],
+}
+
 
 /**
  * Convert datas received from the api to the application format
@@ -187,24 +206,6 @@ const moviesapiRequestTransition = (provider, action, keyword, results) => {
         // single ; complete
 
         let response = {}
-
-        let transitions = {
-            // format field : api field, callback
-            title: ['title'],
-            original: ['original_title'],
-            tagline: ['tagline', convertText],
-            duration: ['runtime'],
-            dateReleased: ['release_date', convertDate],
-            director: ['casts.crew', convertDirector],
-            description: ['overview'],
-            countries: ['production_countries', convertNamedArray],
-            genres: ['genres', convertNamedArray],
-            actors: ['casts.cast', convertActorsRoles],
-            ratingPress: ['vote_average', convertRating],
-            serie: ['belongs_to_collection', convertNamedVaue],
-            companies: ['production_companies', convertNamedArray],
-            keywords: ['keywords.keywords', convertNamedArray],
-        }
 
         for( let key in transitions ) {
 

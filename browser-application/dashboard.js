@@ -1,11 +1,6 @@
 'use strict';
 
 
-//var exports = window;
-
-
-
-
 // create element
 
 exports.h = function h( tagName, props, children = [] ) {

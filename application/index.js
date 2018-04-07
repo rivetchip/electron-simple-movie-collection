@@ -2,7 +2,7 @@ const package = require('../package.json')
 
 // Electron flow
 
-const {app, BrowserWindow, ipcMain, dialog} = require('electron')
+const {app, BrowserWindow, ipcMain, dialog, globalShortcut} = require('electron')
 
 const platform = process.platform
 
@@ -124,9 +124,17 @@ function createWindow() {
 }
 
 app.on('ready', () => {
-    registerMoviesapiProtocol() // register movies api custom protocol
+    // register movies api custom protocol
+    registerMoviesapiProtocol()
 
-    setTimeout(createWindow, 100) // create brower win + workaround for linux transparency
+    // debug mode, set a global shortcut to reload the app
+    // debug && globalShortcut.register('Ctrl+W', () => {
+    //     win.webContents.reloadIgnoringCache()
+    //     win.focus()
+    // })
+
+    // create brower win + workaround for linux transparency
+    setTimeout(createWindow, 100)
 })
 
 app.on('window-all-closed', () => {
@@ -144,15 +152,6 @@ app.on('activate', () => {
 process.on('uncaughtException', (error) => logger('uncaughtException', error))
 
 process.on('unhandledRejection', (error) => logger('unhandledRejection', error))
-
-
-
-
-
-
-
-
-
 
 
 
