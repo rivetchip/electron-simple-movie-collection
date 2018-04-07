@@ -1,9 +1,11 @@
+/** @jsx h */
 'use strict';
-
 // import {dashboard} from './dashboard'
 
 // require main app functions
-const {h, delegate, createSnackbar} = require('./dashboard')
+//const {h, delegate, createSnackbar} = require('./dashboard')
+
+import {delegate, createSnackbar} from './dashboard'
 
 // custom app title bar
 const {ComponentAppTitlebar} = require('./components/app-titlebar')
@@ -14,14 +16,18 @@ let winState = 'preview' // view or edit product
 
 
 
+window.onload = function(){
+    console.log(<div />);
+  }
+
 
 //fetch('moviesapi://tmdb/movie/78')
-fetch('moviesapi://tmdb/search/blade runner')
-.then(response => response.text())
+// fetch('moviesapi://tmdb/search/blade runner')
+// .then(response => response.text())
 
-.then(function(response) {
-    console.log(response)
-})
+// .then(function(response) {
+//     console.log(response)
+// })
 
 
 

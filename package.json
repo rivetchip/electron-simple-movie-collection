@@ -14,12 +14,17 @@
     "pack-linux64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=x64 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
     "pack-win32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=ia32 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
     "pack-win64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=x64 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
-    "pack-mac": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true"
+    "pack-mac": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true",
+    "babelw": "babel app --watch --out-file app/bundle.js --ignore preload.js,bundle.js --presets env --plugins transform-react-jsx",
+    "babelc": "babel app --out-file app/bundle.js --ignore preload.js,bundle.js --plugins transform-react-jsx"
   },
   "author": "rivetchip",
   "license": "MIT",
   "devDependencies": {
     "asar": "^0.14.3",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-react-jsx": "^6.24.1",
+    "babel-preset-env": "^1.6.1",
     "electron": "^1.8.4",
     "electron-packager": "^11.2.0"
   }
