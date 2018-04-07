@@ -1,4 +1,4 @@
-const package = require('./package.json')
+const package = require('../package.json')
 
 // Electron flow
 
@@ -61,7 +61,7 @@ function createWindow() {
     let height = 800
 
     win = new BrowserWindow({
-        icon: path.join(__dirname, 'app-icon.png'),
+        icon: path.join(__dirname, '..', 'app-icon.png'),
         width,
         height,
         minWidth: width,
@@ -72,7 +72,7 @@ function createWindow() {
         webPreferences: {
             //nodeIntegration: false, // todo wait for module in chrome 61
             //contextIsolation: true,
-            preload: path.join(__dirname, 'app/preload.js'),
+            preload: path.join(__dirname, '..', 'browser-application/preload.js'),
         },
 
         // borderless frame
@@ -88,7 +88,7 @@ function createWindow() {
     }
 
     win.loadURL(urlformat({
-        pathname: path.join(__dirname, 'app/index.html'),
+        pathname: path.join(__dirname, '..', 'browser-application/index.html'),
         protocol: 'file:',
         slashes: true
     }))
