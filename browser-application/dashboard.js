@@ -20,7 +20,7 @@ exports.h = function h( tagName, props, children = [] ) {
         element.appendChild(document.createTextNode(props))
     }
     else {
-        Object.entries(props).forEach(([name, value]) => {
+        props && Object.entries(props).forEach(([name, value]) => {
 
             switch( name ) {
                 case 'className':
