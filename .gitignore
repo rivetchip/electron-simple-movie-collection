@@ -1,12 +1,6 @@
-release-builds
+release-builds/
 node_modules/
 package-lock.json
-
 logs
 *.log
 npm-debug.log*
-
-pids
-*.pid
-*.seed
-*.pid.lock
