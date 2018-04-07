@@ -9,7 +9,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Electron NPM DEV",
+            "name": "Electron NPM DEBUG",
             "runtimeExecutable": "npm",
             "runtimeArgs": [
                 "run",
@@ -17,26 +17,6 @@
             ],
             "port": 12345,
             "protocol": "inspector"
-        },
-
-
-
-
-
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Electron",
-            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "program": "${workspaceFolder}/application/index.js",
-            "protocol": "inspector",
-            "runtimeArgs": [
-                ".",
-            ],
-            "windows": {
-                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
-                "console": "integratedTerminal"
-            }
         },
         {
             "type": "node",
