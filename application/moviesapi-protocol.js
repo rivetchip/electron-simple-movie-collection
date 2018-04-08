@@ -14,7 +14,78 @@ const apiProviders = {
     tmdb : {
         key: 'e7c537c8a509f6d4b6975b3ff7bd5dbf',
         endpoint: 'api.themoviedb.org',
-        version: 3
+        version: 3,
+        requestUrl: '/{version}/{actionUrl}', // https:// endpoint / action
+
+        sourceId: 'id',
+        movieWebPage: 'http://www.themoviedb.org/{sourceId}',
+
+        isResponseSuccess(response){
+            if( response.success === false ) {
+                let code = response.status_code //tmdb
+                let message = response.status_message
+
+                return {code, message}
+            }
+
+            return true
+        },
+
+        defaultParameters:{
+            api_key: '{apiKey}',
+            language: '{language}'
+        },
+        actions: {
+            search: {
+                requestUrl: 'search/movie',
+                parameters: {
+                    query: '{keyword}'
+                }
+            },
+            movie: {
+                requestUrl: 'movie/{keyword}',
+                parameters: {
+                    append_to_response: 'casts,keywords'
+                }
+            },
+            discover: {
+
+            },
+            popular: {
+
+            },
+            nowplaying: {
+
+            }
+        },
+        transitions: {
+            search: {
+                // provider, // tmdb
+                // providerId: movie.id, // store for later
+                // title: movie.title,
+                // original: movie.original_title,
+                // overview: movie.overview,
+                // dateReleased: convertDate(movie.release_date)
+            },
+            movie: {
+                // format field : api field, callback
+                title: ['title'],
+                original: ['original_title'],
+                tagline: ['tagline', convertText],
+                duration: ['runtime'],
+                dateReleased: ['release_date', convertDate],
+                director: ['casts.crew', convertDirector],
+                description: ['overview'],
+                countries: ['production_countries', convertNamedArray],
+                genres: ['genres', convertNamedArray],
+                actors: ['casts.cast', convertActorsRoles],
+                ratingPress: ['vote_average', convertRating],
+                serie: ['belongs_to_collection', convertNamedVaue],
+                companies: ['production_companies', convertNamedArray],
+                keywords: ['keywords.keywords', convertNamedArray],
+            }
+            
+        }
     }
 }
 
@@ -26,7 +97,7 @@ const apiProviders = {
  * HTTPS external request
  * @param {array} options 
  */
-const request = (options) => {
+function request(options) {
 
     return new Promise((resolve, reject) => {
 
@@ -57,7 +128,7 @@ const request = (options) => {
 
 
 // covnert dot-ntoation to the real object
-const lookup = (context, token) => {
+function lookup(context, token) {
 
     for( let key of token.split('.') ) {
 
@@ -73,18 +144,18 @@ const lookup = (context, token) => {
     //return token.split('.').reduce((accumulator, value) => accumulator[value], context);
 }
 
-const convertDate = (dateString) => {
+function convertDate(dateString) {
 
     let [year, month, day] = dateString.split('-', 3); // 1998-08-21
 
     return [year, month, day].join('-')
 }
 
-const convertText = (value) => {
+function convertText(value) {
     return value || ''
 }
 
-const convertNamedArray = (values) => {
+function convertNamedArray(values) {
     let response = []
 
     if( !Array.isArray(values) ) {
@@ -98,11 +169,11 @@ const convertNamedArray = (values) => {
     return response
 }
 
-const convertNamedVaue = (value) => {
+function convertNamedVaue(value) {
     return value.name || ''
 }
 
-const convertDirector = (crews) => {
+function convertDirector(crews) {
 
     if( !Array.isArray(crews) ) {
         return []
@@ -110,7 +181,7 @@ const convertDirector = (crews) => {
 
     for( let crew of crews ) {
 
-        if(crew.job == 'Director') {
+        if(crew.job == 'Director') { // TODO multiple directors ?
             // get director name; usually the first
             return crew.name
         }
@@ -119,7 +190,7 @@ const convertDirector = (crews) => {
     return ''
 }
 
-const convertActorsRoles = (casts) => {
+function convertActorsRoles(casts) {
 
     if( !Array.isArray(casts) ) {
         return []
@@ -138,12 +209,12 @@ const convertActorsRoles = (casts) => {
     return response
 }
 
-const convertRating = (value) => {
+function convertRating(value) {
     return Math.round(value) / 2 // rounded & convert tmdb /10 to /5
 }
 
 // trim first & last characters of a string
-const trimchar = (string, character) => {
+function trimchar(string, character) {
 
     const first = [...string].findIndex(char => char !== character)
 
@@ -180,7 +251,7 @@ const transitions = {
  * @param {*} keyword 
  * @param {*} results 
  */
-const moviesapiRequestTransition = (provider, action, keyword, results) => {
+const moviesapiRequestTransition = (provider, language, action, keyword, results) => {
 
     if(action == 'search' ) {
         // multiple ; simple
@@ -251,59 +322,79 @@ const moviesapiRequestTransition = (provider, action, keyword, results) => {
  */
 const moviesapiRequest = (provider, language, action, keyword) => {
 
-    let requestUrl
-    let parameters = {} // query string
-    let queryString // full querystring
+    let requestUrl // full url ( api request uri / action ? query string )
+    let queryString // query string (action parameters)
+
+
+    // check current provider name exist
 
     if(!apiProviders[provider]) {
         throw new Error('moviesapiRequest: provider not found')
     }
 
-    const {key: apiKey, endpoint, version} = apiProviders[provider]
+    // get provider configuration
 
+    let {key: apiKey, endpoint, version, requestUrl: apiRequestUrl, actions, defaultParameters} = apiProviders[provider]
 
-    switch(action) {
+    // check current action exist
 
-        case 'search': // search movies based on a keyword
-            requestUrl = 'search/movie'
-            parameters.query = keyword
-        break
-
-        case 'movie': // get full informations about a movie
-            requestUrl = 'movie/'+keyword
-            parameters.append_to_response = 'casts,keywords'
-        break
-
-        case 'discover': // discover new movies
-            //requestUrl = 'discover/movie'
-        break
-
-        case 'popular': // popular movies
-            //requestUrl = 'movie/popular'
-        break
-
-        case 'now-playing': // movies in theatres
-            //requestUrl = 'movie/now_playing'
-        break
-
-        default: // todo
-            throw new Error('moviesapiRequest: action not found')
-        break
+    if(!actions[action]) {
+        throw new Error('moviesapiRequest: action not found')
     }
 
-    if(requestUrl) {
-        // append language and api key
-        parameters.api_key = apiKey
-        parameters.language = language
+    // get current action configuration
 
-        // then encode url with parameters
+    let {requestUrl: actionUrl, parameters = {}} = actions[action]
 
-        queryString = requestUrl+'?'+urlstringify(parameters)
+
+    // replace action url placeholders
+
+    actionUrl = actionUrl.replace('{keyword}', keyword)
+
+    // request uri = api url + action url
+
+    requestUrl = apiRequestUrl
+    .replace('{version}', version)
+    .replace('{actionUrl}', actionUrl)
+
+
+    // merge default params with params
+
+    if(defaultParameters) {
+        parameters = Object.assign({}, defaultParameters, parameters)
     }
+
+    // if parameters set, replace placeholder values
+
+    let hasParameters = false
+
+    for(const index in parameters) {
+        let parameter = parameters[index]
+
+        parameters[index] = parameter
+        .replace('{keyword}', keyword)
+        .replace('{apiKey}', apiKey)
+        .replace('{language}', language)
+
+        hasParameters = true
+    }
+
+    // finally encode parameters
+
+    if(hasParameters) {
+        queryString = '?'+urlstringify(parameters)
+
+        // set the full, final request url
+
+        requestUrl += queryString
+    }
+
+
+    // send the formated request to the api
 
     return request({
         host: endpoint,
-        path: '/'+version+'/'+queryString,
+        path: requestUrl,
         headers: {
             'User-Agent': 'Mozilla/5.0',
             'Accept': 'application/json',
@@ -322,7 +413,7 @@ const moviesapiRequest = (provider, language, action, keyword) => {
     
         return response.results || response // if multiple
     })
-    .then((results) => moviesapiRequestTransition(provider, action, keyword, results))
+    .then((results) => moviesapiRequestTransition(provider, language, action, keyword, results))
 }
 
 
@@ -337,7 +428,7 @@ function registerMoviesapiProtocol() {
 
         let {hostname, pathname: queryString, query} = urlparse(request.url)
 
-        let {provider, language} = hostname.split('-', 2) // tmdb-fr
+        let [provider, language] = hostname.split('-', 2) // tmdb-fr
 
         queryString = trimchar(decodeURIComponent(queryString), '/') // /search/blade%20runner
 

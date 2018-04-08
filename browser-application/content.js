@@ -15,17 +15,17 @@ let winState = 'preview' // view or edit product
 
 
 window.onload = function(){
-    console.log(<div />);
+    // console.log(<div />);
   }
 
 
-//fetch('moviesapi://tmdb/movie/78')
-// fetch('moviesapi://tmdb/search/blade runner')
-// .then(response => response.text())
+//fetch('moviesapi://tmdb-fr/movie/78')
+fetch('moviesapi://tmdb-fr/search/blade runner')
+.then(response => response.text())
 
-// .then(function(response) {
-//     console.log(response)
-// })
+.then(function(response) {
+    console.log(response)
+})
 
 
 
