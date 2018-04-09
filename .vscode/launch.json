@@ -16,7 +16,10 @@
                 "debug"
             ],
             "port": 12345,
-            "protocol": "inspector"
+            "protocol": "inspector",
+            "windows": {
+                "console": "integratedTerminal"
+            }
         },
         {
             "type": "node",
@@ -43,12 +46,6 @@
             "name": "Launch Program",
             "program": "${workspaceRoot}/application/index.js",
             "cwd": "${workspaceRoot}"
-        },
-        {
-            "type": "node",
-            "request": "attach",
-            "name": "Attach to Process",
-            "port": 5858
         }
     ]
 }
