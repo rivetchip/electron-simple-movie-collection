@@ -65,7 +65,7 @@ function createWindow() {
         webPreferences: {
             //nodeIntegration: false, // todo wait for module in chrome 61
             //contextIsolation: true,
-            preload: pathjoin(__dirname, '..', 'browser-application/preload.js'),
+            preload: pathjoin(__dirname, 'browser-preload.js'),
         },
 
         // borderless frame
@@ -81,7 +81,7 @@ function createWindow() {
     }
 
     win.loadURL(urlformat({
-        pathname: pathjoin(__dirname, '..', 'browser-application/index.html'),
+        pathname: pathjoin(__dirname, '..', 'browser-bundle/index.html'),
         protocol: 'file:',
         slashes: true
     }))
