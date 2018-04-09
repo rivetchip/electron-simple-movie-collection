@@ -1,7 +1,8 @@
 release-builds/
 node_modules/
 bundle
-bundle.*
+*bundle
+.cache
 package-lock.json
 logs
 *.log
