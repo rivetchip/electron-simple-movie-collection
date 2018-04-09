@@ -1,11 +1,18 @@
 const package = require('../package.json')
 
+// Electron flow
+
 const {protocol} = require('electron')
 
-const https = require('https')
+const {request: httpsrequest} = require('https')
 const {parse: urlparse} = require('url')
 
 const {stringify: urlstringify} = require('querystring')
+
+// Application fow
+
+const {logger} = require('./logger')
+
 
 
 //// Application custom Protocol API
@@ -17,21 +24,9 @@ const apiProviders = {
         version: 3,
         requestUrl: '/{version}/{actionUrl}', // https:// endpoint / action
 
-        sourceId: 'id',
-        movieWebPage: 'http://www.themoviedb.org/{sourceId}',
+        movieWebPage: 'https://www.themoviedb.org/movie/{sourceId}',
 
-        isResponseSuccess(response){
-            if( response.success === false ) {
-                let code = response.status_code //tmdb
-                let message = response.status_message
-
-                return {code, message}
-            }
-
-            return true
-        },
-
-        defaultParameters:{
+        defaultParameters: { // default parameters added to each request
             api_key: '{apiKey}',
             language: '{language}'
         },
@@ -58,17 +53,34 @@ const apiProviders = {
 
             }
         },
-        transitions: {
+
+        isResponseSuccess(action, response) { // check if api request is success
+            if( response.success === false ) {
+                let code = response.status_code //tmdb
+                let message = response.status_message
+
+                return {code, message}
+            }
+
+            return true
+        },
+
+        getResponseResult(action, response) { // get api response results
+            return response.results || response
+        },
+
+        transitions: { // fields transitions from api to app format
             search: {
-                // provider, // tmdb
-                // providerId: movie.id, // store for later
-                // title: movie.title,
-                // original: movie.original_title,
-                // overview: movie.overview,
-                // dateReleased: convertDate(movie.release_date)
+                // format field : api field, callback
+                sourceId: ['id'],
+                title: ['title'],
+                original: ['original_title'],
+                overview:['overview'],
+                dateReleased: ['release_date', convertDate],
             },
             movie: {
                 // format field : api field, callback
+                sourceId: ['id'],
                 title: ['title'],
                 original: ['original_title'],
                 tagline: ['tagline', convertText],
@@ -90,9 +102,6 @@ const apiProviders = {
 }
 
 
-
-
-
 /**
  * HTTPS external request
  * @param {array} options 
@@ -101,7 +110,7 @@ function request(options) {
 
     return new Promise((resolve, reject) => {
 
-        https.request(options, (response) => {
+        httpsrequest(options, (response) => {
             response.setEncoding('utf8')
 
             let statusCode = response.statusCode
@@ -126,8 +135,254 @@ function request(options) {
     })
 }
 
+/**
+ * Convert datas received from the api to the application format
+ * 
+ * @param {String} provider 
+ * @param {String} action 
+ * @param {*} keyword 
+ * @param {*} results 
+ */
+const moviesapiRequestTransition = (provider, providerConfiguration, language, action, keyword, results) => {
 
-// covnert dot-ntoation to the real object
+    // get transitions of the current action
+
+    const {transitions: providerTransitions, movieWebPage} = providerConfiguration
+
+    const transitions = providerTransitions[action]
+
+    if(!transitions){
+        throw new Error('moviesapiRequestTransition: transitions not found')
+    }
+
+
+    // convert a single set of result
+
+    const transpileResult = (result) => {
+
+        let response = {}
+
+        for( let key in transitions ) {
+
+            const [field, callback] = transitions[key]
+
+            let value = lookup(result, field)
+
+            if(callback) {
+                value = callback(value)
+            }
+
+            response[key] = value
+        }
+
+        // add source infos
+
+        response.source = provider
+
+        if(language){
+            response.language = language
+        }
+
+        if(response.sourceId && movieWebPage){
+            response.webPage = movieWebPage.replace('{sourceId}', response.sourceId);
+        }
+
+
+        return response
+    }
+
+
+    // if is multiple results -> return array results
+
+    if(isIterable(results)){
+
+        let response = []
+
+        for( let result of results ) {
+            response.push(transpileResult(result))
+        }
+
+        return response
+    }
+
+
+    // if is single result -> return single object
+
+    let response = transpileResult(results)
+
+    return response
+}
+
+/**
+ * Wrapper for the request() to make exclusive movies requests
+ * 
+ * @param {String} provider
+ * @param {String} language
+ * @param {String} action 
+ * @param {*} keyword 
+ */
+const moviesapiRequest = (provider, language, action, keyword) => {
+
+    let requestUrl // full url ( api request uri / action ?querystring )
+    let queryString // query string (action parameters)
+
+
+    // check current provider name exist
+
+    const providerConfiguration = apiProviders[provider]
+
+    if(!providerConfiguration) {
+        throw new Error('moviesapiRequest: provider not found')
+    }
+
+    // get provider configuration
+
+    let {key: apiKey, endpoint, version, requestUrl: apiRequestUrl, actions, defaultParameters} = providerConfiguration
+
+    // check current action exist
+
+    if(!actions[action]) {
+        throw new Error('moviesapiRequest: action not found')
+    }
+
+    // get current action configuration
+
+    let {requestUrl: actionUrl, parameters = {}} = actions[action]
+
+
+    // replace action url placeholders
+
+    actionUrl = actionUrl.replace('{keyword}', keyword)
+
+    // request uri = api url + action url
+
+    requestUrl = apiRequestUrl
+    .replace('{version}', version)
+    .replace('{actionUrl}', actionUrl)
+
+
+    // merge default params with params
+
+    if(defaultParameters) {
+        parameters = Object.assign({}, defaultParameters, parameters)
+    }
+
+    // if parameters set, replace placeholder values
+
+    let hasParameters = false
+
+    for(const index in parameters) {
+        let parameter = parameters[index]
+
+        parameters[index] = parameter
+        .replace('{keyword}', keyword)
+        .replace('{apiKey}', apiKey)
+        .replace('{language}', language)
+
+        hasParameters = true
+    }
+
+    // finally encode parameters
+
+    if(hasParameters) {
+
+        // set the full, final request url
+
+        queryString = '?'+urlstringify(parameters)
+
+        requestUrl += queryString
+    }
+
+
+    // send the formated request to the api
+
+    return request({
+        host: endpoint,
+        path: requestUrl,
+        headers: {
+            'User-Agent': 'Mozilla/5.0',
+            'Accept': 'application/json',
+            'Accept-Language': language //'fr,fr-FR,en-US,en'
+        }
+    })
+    .then(({statusCode, headers, body}) => JSON.parse(body))
+    .then((response) => {
+
+        const {isResponseSuccess, getResponseResult} = providerConfiguration
+
+        // check is the response is success
+
+        var isSuccess = isResponseSuccess(action, response)
+
+        if(isSuccess !== true){
+            let {code, message} = isSuccess
+
+            throw new Error('moviesapiRequest: '+code+'-'+message)
+        }
+    
+        return getResponseResult(action, response) // single or multiple results
+    })
+    .then((results) => moviesapiRequestTransition(provider, providerConfiguration, language, action, keyword, results))
+}
+
+
+/**
+ * Register Eletron custom protocol
+ */
+function registerMoviesapiProtocol() {
+
+    const protocolHandler = (request, callback) => {
+
+        // moviesapi://tmdb-fr/search/blade runner
+
+        let {hostname, pathname: queryString, query} = urlparse(request.url)
+
+        let [provider, language] = hostname.split('-', 2) // tmdb-fr
+
+        queryString = trimchar(decodeURIComponent(queryString), '/') // /search/blade%20runner
+
+        // get actions from url
+
+        let [action, keyword] = queryString.split('/', 2) // search/blade runner
+        // let slashIndex = queryString.indexOf('/')
+        // let action = queryString.substr(0, slashIndex);
+        // let keyword = queryString.substr(slashIndex+1)
+
+        // send the request back to the client
+
+        let mimeType = 'application/json'
+        let charset = 'utf8'
+
+        moviesapiRequest(provider, language, action, keyword)
+
+        .then((response) => callback({
+            data: JSON.stringify(response), mimeType, charset
+        }))
+
+        .catch((error) => callback({
+            data: JSON.stringify({error: error.message || error}), mimeType, charset
+        }))
+    }
+
+    const completionHandler = (error) => {
+        error && logger('MoviesapiProtocol', error)
+    }
+
+
+    protocol.registerStringProtocol('moviesapi', protocolHandler, completionHandler)
+}
+
+exports.registerMoviesapiProtocol = registerMoviesapiProtocol
+
+
+
+
+/**
+ * Convert dot-notation to the real object
+ * 
+ * @param {Object} context 
+ * @param {String} token 
+ */
 function lookup(context, token) {
 
     for( let key of token.split('.') ) {
@@ -141,8 +396,28 @@ function lookup(context, token) {
 
     return context
 
-    //return token.split('.').reduce((accumulator, value) => accumulator[value], context);
+    // return token.split('.').reduce((accumulator, value) => accumulator[value], context);
 }
+
+/**
+ * Check if we can loop thru the object
+ * 
+ * @param {*} object 
+ */
+function isIterable(object) {
+    return object != null && typeof object[Symbol.iterator] === 'function'
+}
+
+// trim first & last characters of a string
+function trimchar(string, character) {
+
+    const first = [...string].findIndex(char => char !== character)
+
+    const last = [...string].reverse().findIndex(char => char !== character)
+
+    return string.substring(first, string.length - last)
+}
+
 
 function convertDate(dateString) {
 
@@ -213,256 +488,3 @@ function convertRating(value) {
     return Math.round(value) / 2 // rounded & convert tmdb /10 to /5
 }
 
-// trim first & last characters of a string
-function trimchar(string, character) {
-
-    const first = [...string].findIndex(char => char !== character)
-
-    const last = [...string].reverse().findIndex(char => char !== character)
-
-    return string.substring(first, string.length - last)
-}
-
-// fields transitions from api to app format
-const transitions = {
-    // format field : api field, callback
-    title: ['title'],
-    original: ['original_title'],
-    tagline: ['tagline', convertText],
-    duration: ['runtime'],
-    dateReleased: ['release_date', convertDate],
-    director: ['casts.crew', convertDirector],
-    description: ['overview'],
-    countries: ['production_countries', convertNamedArray],
-    genres: ['genres', convertNamedArray],
-    actors: ['casts.cast', convertActorsRoles],
-    ratingPress: ['vote_average', convertRating],
-    serie: ['belongs_to_collection', convertNamedVaue],
-    companies: ['production_companies', convertNamedArray],
-    keywords: ['keywords.keywords', convertNamedArray],
-}
-
-
-/**
- * Convert datas received from the api to the application format
- * 
- * @param {String} provider 
- * @param {String} action 
- * @param {*} keyword 
- * @param {*} results 
- */
-const moviesapiRequestTransition = (provider, language, action, keyword, results) => {
-
-    if(action == 'search' ) {
-        // multiple ; simple
-
-        let response = []
-
-        for( let movie of results ) {
-            
-            response.push({
-                provider, // tmdb
-                providerId: movie.id, // store for later
-                title: movie.title,
-                original: movie.original_title,
-                overview: movie.overview,
-                dateReleased: convertDate(movie.release_date)
-            })
-        }
-
-        return response
-    }
-
-    if(action == 'movie' ) {
-        // single ; complete
-
-        let response = {}
-
-        for( let key in transitions ) {
-
-            let [field, callback] = transitions[key]
-
-            let value = lookup(results, field)
-
-            if(callback) {
-                value = callback(value)
-            }
-
-            response[key] = value
-        }
-
-        // add source informations :
-
-        let sourceId = results.id
-        let imdbId = results.imdb_id
-
-        response.source = provider // tmdb
-        response.sourceId = sourceId
-
-        if(provider == 'tmdb') {
-            response.webPage = 'http://www.themoviedb.org/'+sourceId
-        }
-        
-
-        if(imdbId) {
-            response.imdbId = imdbId
-        }
-
-        return response
-    }
-}
-
-/**
- * Wrapper for the request() to make exclusive movies requests
- * 
- * @param {String} provider
- * @param {String} language
- * @param {String} action 
- * @param {*} keyword 
- */
-const moviesapiRequest = (provider, language, action, keyword) => {
-
-    let requestUrl // full url ( api request uri / action ? query string )
-    let queryString // query string (action parameters)
-
-
-    // check current provider name exist
-
-    if(!apiProviders[provider]) {
-        throw new Error('moviesapiRequest: provider not found')
-    }
-
-    // get provider configuration
-
-    let {key: apiKey, endpoint, version, requestUrl: apiRequestUrl, actions, defaultParameters} = apiProviders[provider]
-
-    // check current action exist
-
-    if(!actions[action]) {
-        throw new Error('moviesapiRequest: action not found')
-    }
-
-    // get current action configuration
-
-    let {requestUrl: actionUrl, parameters = {}} = actions[action]
-
-
-    // replace action url placeholders
-
-    actionUrl = actionUrl.replace('{keyword}', keyword)
-
-    // request uri = api url + action url
-
-    requestUrl = apiRequestUrl
-    .replace('{version}', version)
-    .replace('{actionUrl}', actionUrl)
-
-
-    // merge default params with params
-
-    if(defaultParameters) {
-        parameters = Object.assign({}, defaultParameters, parameters)
-    }
-
-    // if parameters set, replace placeholder values
-
-    let hasParameters = false
-
-    for(const index in parameters) {
-        let parameter = parameters[index]
-
-        parameters[index] = parameter
-        .replace('{keyword}', keyword)
-        .replace('{apiKey}', apiKey)
-        .replace('{language}', language)
-
-        hasParameters = true
-    }
-
-    // finally encode parameters
-
-    if(hasParameters) {
-        queryString = '?'+urlstringify(parameters)
-
-        // set the full, final request url
-
-        requestUrl += queryString
-    }
-
-
-    // send the formated request to the api
-
-    return request({
-        host: endpoint,
-        path: requestUrl,
-        headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'Accept': 'application/json',
-            'Accept-Language': language //'fr,fr-FR,en-US,en'
-        }
-    })
-    .then(({statusCode, headers, body}) => JSON.parse(body))
-    .then((response) => {
-
-        if( response.success === false ) {
-            let code = response.status_code //tmdb
-            let message = response.status_message
-
-            throw new Error('moviesapiRequest: '+code+'-'+message)
-        }
-    
-        return response.results || response // if multiple
-    })
-    .then((results) => moviesapiRequestTransition(provider, language, action, keyword, results))
-}
-
-
-/**
- * Register Eletron custom protocol
- */
-function registerMoviesapiProtocol() {
-
-    const protocolHandler = (request, callback) => {
-
-        // moviesapi://tmdb-fr/search/blade runner
-
-        let {hostname, pathname: queryString, query} = urlparse(request.url)
-
-        let [provider, language] = hostname.split('-', 2) // tmdb-fr
-
-        queryString = trimchar(decodeURIComponent(queryString), '/') // /search/blade%20runner
-
-        // get actions from url
-
-        let [action, keyword] = queryString.split('/', 2) // search/blade runner
-        // let slashIndex = queryString.indexOf('/')
-        // let action = queryString.substr(0, slashIndex);
-        // let keyword = queryString.substr(slashIndex+1)
-
-        // send the request back to the client
-
-        let mimeType = 'application/json'
-        let charset = 'utf8'
-
-        moviesapiRequest(provider, language, action, keyword)
-
-        .then((response) => callback({
-            data: JSON.stringify(response), mimeType, charset
-        }))
-
-        .catch((error) => callback({
-            data: JSON.stringify({error: error.message || error}), mimeType, charset
-        }))
-    }
-
-    const completionHandler = (error) => {
-        error && logger('MoviesapiProtocol', error) // TODO import logger
-    }
-
-
-    protocol.registerStringProtocol('moviesapi', protocolHandler, completionHandler)
-}
-
-
-
-exports.registerMoviesapiProtocol = registerMoviesapiProtocol
