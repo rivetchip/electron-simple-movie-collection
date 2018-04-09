@@ -96,9 +96,9 @@ const apiProviders = {
                 companies: ['production_companies', convertNamedArray],
                 keywords: ['keywords.keywords', convertNamedArray],
             }
-            
         }
     }
+
 }
 
 

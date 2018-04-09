@@ -1,9 +1,67 @@
 /** @jsx h */
 'use strict';
-// import {dashboard} from './dashboard'
 
+import { h, app as hyperapp } from './hyperapp'
+
+// components
+
+import ProductItem from './components/product-item'
+
+// console.log(<div />);
+
+
+const state = {
+    count: 0
+}
+
+var actions = {
+    down: function down(value) {
+
+
+        return function (state) {
+            return { count: state.count - value };
+        };
+    },
+    up: function up(value) {
+
+
+        return function (state) {
+            return { count: state.count + value };
+        };
+    }
+};
+
+
+  const view = (state, actions) => (
+    <main>
+      <h1>{state.count}</h1>
+      <button onclick={() => actions.down(1)} disabled={state.count <= 0}>ー</button>
+      <button onclick={() => actions.up(1)}>＋</button>
+    </main>
+  )
+  
+
+hyperapp(state, actions, view, document.body)
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 // require main app functions
-const {h, delegate, createSnackbar} = require('./dashboard')
+//const {h, delegate, createSnackbar} = require('./dashboard')
 
 // custom app title bar
 const {ComponentAppTitlebar} = require('./components/app-titlebar')
@@ -19,17 +77,14 @@ window.onload = function(){
   }
 
 
-//fetch('moviesapi://tmdb-fr/movie/78')
-fetch('moviesapi://tmdb-fr/search/blade runner')
+fetch('moviesapi://tmdb-fr/movie/78')
+// fetch('moviesapi://tmdb-fr/search/blade runner')
 .then(response => response.text())
 
 .then(function(response) {
     console.log(response)
 })
-
-
-
-
+*/
 
 
 

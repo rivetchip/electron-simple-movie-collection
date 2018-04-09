@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run bundle && electron .",
     "debug": "electron . --inspect=12345 --debug-brk --debug",
-    "bundle-serve": "npx parcel ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron",
+    "bundle-serve": "npx parcel ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron --port 8080",
     "bundle": "npx parcel build ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron",
     "babel-compile": "npx babel browser-application --source-maps --out-dir browser-application/bundle/ --ignore preload.js,bundle.js,bundle --plugins transform-react-jsx",
     "build-clean": "rm -rf ./release-builds",
