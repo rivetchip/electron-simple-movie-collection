@@ -9,6 +9,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run babel-compile && electron .",
+    "start-debug": "npm run babel-compile && electron . --debug",
     "debug": "npm run babel-compile && electron . --inspect=12345 --debug-brk --debug",
     "babel-compile": "true ||      npx babel browser-application --out-dir browser-application/bundle/ --ignore preload.js,bundle.js,bundle --plugins transform-react-jsx",
     "build-clean": "rm -rf ./release-builds",

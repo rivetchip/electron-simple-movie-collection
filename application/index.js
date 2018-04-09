@@ -6,19 +6,19 @@ const {app, BrowserWindow, ipcMain, dialog, globalShortcut} = require('electron'
 
 const platform = process.platform
 
-const path = require('path')
+const {join: pathjoin} = require('path')
 const fs = require('fs')
 const {format: urlformat} = require('url')
 
 // Application fow
 
+const {logger} = require('./logger')
 const {registerMoviesapiProtocol} = require('./moviesapi-protocol')
-
 
 // User flow
 
 const userDataPath = app.getPath('userData')
-const userSettingsFilename = path.join(userDataPath, 'settings.json');
+const userSettingsFilename = pathjoin(userDataPath, 'settings.json');
 
 const debug = process.argv.includes('--debug')
 
@@ -27,23 +27,6 @@ const debug = process.argv.includes('--debug')
 let win
 let onlineStatusWindow
 
-
-// event logger for simple messages
-const logger = (...messages) => {
-    messages.forEach((message) => {
-        console.log('\x1b[36m%s\x1b[0m', '[logger]')
-    
-        if(message.message){
-            console.log(message.message)
-        }
-
-        if(message.stack){
-            console.log(message.stack)
-        }
-
-        console.log(message)
-    })
-}
 
 
 
@@ -71,7 +54,7 @@ function createWindow() {
     let height = 800
 
     win = new BrowserWindow({
-        icon: path.join(__dirname, '..', 'app-icon.png'),
+        icon: pathjoin(__dirname, '..', 'app-icon.png'),
         width,
         height,
         minWidth: width,
@@ -82,7 +65,7 @@ function createWindow() {
         webPreferences: {
             //nodeIntegration: false, // todo wait for module in chrome 61
             //contextIsolation: true,
-            preload: path.join(__dirname, '..', 'browser-application/preload.js'),
+            preload: pathjoin(__dirname, '..', 'browser-application/preload.js'),
         },
 
         // borderless frame
@@ -98,7 +81,7 @@ function createWindow() {
     }
 
     win.loadURL(urlformat({
-        pathname: path.join(__dirname, '..', 'browser-application/index.html'),
+        pathname: pathjoin(__dirname, '..', 'browser-application/index.html'),
         protocol: 'file:',
         slashes: true
     }))
@@ -148,7 +131,7 @@ app.on('ready', () => {
 })
 
 app.on('window-all-closed', () => {
-    if( process.platform !== 'darwin' ) { // macos stay in dock
+    if( platform !== 'darwin' ) { // macos stay in dock
         app.quit()
     }
 })
