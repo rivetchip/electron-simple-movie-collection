@@ -4,5 +4,9 @@
     ],
     "plugins": [
         ["transform-react-jsx",{"pragma": "h"}]
-    ]
+    ],
+    "ignore": [
+        "preload.js"
+    ],
+    "sourceMaps": true
 }
