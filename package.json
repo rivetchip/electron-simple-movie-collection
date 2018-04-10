@@ -10,9 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run bundle && electron .",
     "debug": "electron . --inspect=12345 --debug-brk --debug",
-    "bundle-serve": "npx parcel ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron --port 8080",
-    "bundle": "npx parcel build ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron",
-    "babel-compile": "npx babel browser-application --source-maps --out-dir browser-application/bundle/ --ignore preload.js,bundle.js,bundle --plugins transform-react-jsx",
+    "serve": "npx parcel ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron --port 8080",
+    "bundle": "npx parcel build ./browser-application/index.html --out-file index --out-dir ./browser-bundle/ --public-url ./ --target electron --no-source-maps",
     "build-clean": "rm -rf ./release-builds",
     "build-all": "npm run clean && npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
     "build-linux32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
@@ -27,9 +26,6 @@
   },
   "devDependencies": {
     "asar": "^0.14.3",
-    "babel-cli": "^6.26.0",
-    "babel-plugin-transform-react-jsx": "^6.24.1",
-    "babel-preset-env": "^1.6.1",
     "electron": "^1.8.4",
     "electron-packager": "^11.2.0",
     "parcel-bundler": "^1.7.0"
