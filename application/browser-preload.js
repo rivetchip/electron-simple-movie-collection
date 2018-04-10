@@ -28,9 +28,9 @@ window.receive = function receive( channel, listener ) {
 
 // disable eval
 
-window.eval = () => {
-    throw new Error('no eval')
-}
+// window.eval = () => {
+//     throw new Error('no eval')
+// }
 
 
 

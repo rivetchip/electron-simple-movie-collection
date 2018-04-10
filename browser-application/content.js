@@ -8,21 +8,6 @@ import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
 // console.log(<div />);
 
-function xxxclick (e, index)  {
-    // console.log('xxxclick')
-    // console.log(e);
-    // console.log(this);
-
-    console.log(e, index)
-}
-
-function onSearch(e, keyword){
-    console.log(e)
-    console.log(keyword)
-}
-
-
-
 const state = { // initial state
     count: 0,
 
@@ -35,16 +20,30 @@ const state = { // initial state
 }
 
 var actions = {
-    up: function up(value) {
-        return function (state) {
+    up: function(value) {
+        return function (state, actions) {
             return { count: state.count + value };
         };
     },
 
-    favorite: (e, index) => (state) => {
+    xxxclick: ({e, index}) => (state, actions) => {
+        console.log('xxxclick')
+        console.log(e);
+        console.log(index)
+    },
 
+    onSearch: ({e, keyword}) => (state, actions) => {
+        console.log('onSearch')
+        console.log(e)
+        console.log(keyword)
+    },
+    
+    favorite: ({e, index}) => (state, actions) => {
+
+        console.log('favorite')
         console.log(e)
         console.log(index)
+        // console.log(actions)
 
         state.products.push({
             title: 'qsd'
@@ -60,27 +59,19 @@ var actions = {
 
 const view = (state, actions) => (
 
-    <app-layout>
-
         <app-sidebar>
             <SearchToolbar
-                onSearch={onSearch}
+                onSearch={actions.onSearch}
             />
             <ProductItems
                 products={state.products}
-                onProductClick={xxxclick}
+                onProductClick={actions.xxxclick}
                 onProductFavorite={actions.favorite}
             />
         </app-sidebar>
-    
-
-
-
-
-    </app-layout>
 )
 
 
 
-hyperapp(state, actions, view, document.body)
+hyperapp(state, actions, view, document.querySelector('app-layout'))
   
