@@ -7,7 +7,7 @@ export const SearchToolbar = ({ onSearch }) => (
 
     <search-toolbar>
         <input
-            onkeyup={e => onSearch({e, keyword: e.target.value})}
+            onkeyup={e => onSearch({e, keyword: e.target.value, keyCode: event.code})}
             className="search-input"
             type="search"
             placeholder="Recherche"
