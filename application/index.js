@@ -69,12 +69,14 @@ function createWindow() {
         },
 
         // borderless frame
-        frame: false,
+        frame: debug ? true : false,
         transparent: true,
         titleBarStyle: 'hidden', // macos
     })
 
-    win.setMenu(null) // no menu
+    if( !debug ){
+        win.setMenu(null) // no menu
+    }
 
     if( win.setSheetOffset ) {
         win.setSheetOffset(50) // +titlebar height on mac
