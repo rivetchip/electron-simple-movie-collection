@@ -25,6 +25,7 @@ export const ProductItems = ({products, onProductClick, onProductFavorite}) => (
                 index={index}
                 title={product.title}
                 favorite={product.favorite}
+                hidden={product.hidden}
                 onClick={onProductClick}
                 onFavorite={onProductFavorite}
             />

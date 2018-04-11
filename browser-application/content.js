@@ -8,6 +8,10 @@ import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
 // console.log(<div />);
 
+
+
+
+
 const state = { // initial state
     count: 0,
 
@@ -26,19 +30,60 @@ var actions = {
         };
     },
 
-    xxxclick: ({e, index}) => (state, actions) => {
-        console.log('xxxclick')
-        console.log(e);
+    onProductClick: ({e, index}) => (state, actions) => {
+        console.log('onProductClick')
         console.log(index)
+
+        //return fetch('moviesapi://tmdb-fr/movie/78')
+        return fetch('moviesapi://tmdb-fr/search/blade runner')
+        .then(response => response.json())
+        .then(actions.setQuotes);
     },
 
-    onSearch: ({e, keyword}) => (state, actions) => {
+    setQuotes: (response) => (state, actions) => {
+        console.log('response')
+        console.log(response)
+
+        // state.products.push({
+        //     title: response.title
+        // })
+
+        return {
+            products: response // todo test
+        }
+    },
+
+    onSearch: ({e, keyword, keyCode}) => (state, actions) => {
         console.log('onSearch')
-        console.log(e)
-        console.log(keyword)
+
+        let products = state.products
+
+
+        if( keyCode == 'Escape' ) {
+            
+            // show all products
+
+
+
+
+
+
+
+            return;
+        }
+
+        // hide all products based on keyword
+
+        products.forEach((product, index) => {
+            const title = product.title
+
+            products[index].hidden = title.indexOf(keyword) < 0
+        })
+
+        return {products}
     },
     
-    favorite: ({e, index}) => (state, actions) => {
+    onProductFavorite: ({e, index}) => (state, actions) => {
 
         console.log('favorite')
         console.log(e)
@@ -57,6 +102,9 @@ var actions = {
 
 
 
+
+
+
 const view = (state, actions) => (
 
         <app-sidebar>
@@ -65,13 +113,13 @@ const view = (state, actions) => (
             />
             <ProductItems
                 products={state.products}
-                onProductClick={actions.xxxclick}
-                onProductFavorite={actions.favorite}
+                onProductClick={actions.onProductClick}
+                onProductFavorite={actions.onProductFavorite}
             />
         </app-sidebar>
 )
 
 
 
-hyperapp(state, actions, view, document.querySelector('app-layout'))
+hyperapp(state, actions, view, document.body)
   
