@@ -35,12 +35,38 @@ const apiProviders = {
                 requestUrl: 'search/movie',
                 parameters: {
                     query: '{keyword}'
-                }
+                },
+                transitions: { // fields transitions from api to app format
+                    // format field : api field, callback
+                    sourceId: ['id'],
+                    title: ['title'],
+                    original: ['original_title'],
+                    overview:['overview'],
+                    dateReleased: ['release_date', convertDate],
+                },
             },
             movie: {
                 requestUrl: 'movie/{keyword}',
                 parameters: {
                     append_to_response: 'casts,keywords'
+                },
+                transitions: {
+                    // format field : api field, callback
+                    sourceId: ['id'],
+                    title: ['title'],
+                    original: ['original_title'],
+                    tagline: ['tagline', convertText],
+                    duration: ['runtime'],
+                    dateReleased: ['release_date', convertDate],
+                    director: ['casts.crew', convertDirector],
+                    description: ['overview'],
+                    countries: ['production_countries', convertNamedArray],
+                    genres: ['genres', convertNamedArray],
+                    actors: ['casts.cast', convertActorsRoles],
+                    ratingPress: ['vote_average', convertRating],
+                    serie: ['belongs_to_collection', convertNamedVaue],
+                    companies: ['production_companies', convertNamedArray],
+                    keywords: ['keywords.keywords', convertNamedArray],
                 }
             },
             discover: {
@@ -68,35 +94,6 @@ const apiProviders = {
         getResponseResult(action, response) { // get api response results
             return response.results || response
         },
-
-        transitions: { // fields transitions from api to app format
-            search: {
-                // format field : api field, callback
-                sourceId: ['id'],
-                title: ['title'],
-                original: ['original_title'],
-                overview:['overview'],
-                dateReleased: ['release_date', convertDate],
-            },
-            movie: {
-                // format field : api field, callback
-                sourceId: ['id'],
-                title: ['title'],
-                original: ['original_title'],
-                tagline: ['tagline', convertText],
-                duration: ['runtime'],
-                dateReleased: ['release_date', convertDate],
-                director: ['casts.crew', convertDirector],
-                description: ['overview'],
-                countries: ['production_countries', convertNamedArray],
-                genres: ['genres', convertNamedArray],
-                actors: ['casts.cast', convertActorsRoles],
-                ratingPress: ['vote_average', convertRating],
-                serie: ['belongs_to_collection', convertNamedVaue],
-                companies: ['production_companies', convertNamedArray],
-                keywords: ['keywords.keywords', convertNamedArray],
-            }
-        }
     }
 
 }
@@ -138,23 +135,21 @@ function request(options) {
 /**
  * Convert datas received from the api to the application format
  * 
- * @param {String} provider 
- * @param {String} action 
- * @param {*} keyword 
- * @param {*} results 
+ * @param {String} provider tmdb
+ * @param {String} action
+ * @param {*} keyword
+ * @param {String} language
+ * @param {String} movieWebPage
+ * @param {Object} transitions
+ * @param {Object|Array} results
  */
-const moviesapiRequestTransition = (provider, providerConfiguration, language, action, keyword, results) => {
+const moviesapiRequestTransition = ({provider, action, keyword, language, movieWebPage, transitions, results}) => {
 
     // get transitions of the current action
-
-    const {transitions: providerTransitions, movieWebPage} = providerConfiguration
-
-    const transitions = providerTransitions[action]
 
     if(!transitions){
         throw new Error('moviesapiRequestTransition: transitions not found')
     }
-
 
     // convert a single set of result
 
@@ -176,6 +171,10 @@ const moviesapiRequestTransition = (provider, providerConfiguration, language, a
         }
 
         // add source infos
+
+        if( !transitions ){
+            response.sourceId = null
+        }
 
         response.source = provider
 
@@ -237,7 +236,7 @@ const moviesapiRequest = (provider, language, action, keyword) => {
 
     // get provider configuration
 
-    let {key: apiKey, endpoint, version, requestUrl: apiRequestUrl, actions, defaultParameters} = providerConfiguration
+    let {key: apiKey, endpoint, version, movieWebPage, requestUrl: apiRequestUrl, actions, defaultParameters} = providerConfiguration
 
     // check current action exist
 
@@ -247,7 +246,7 @@ const moviesapiRequest = (provider, language, action, keyword) => {
 
     // get current action configuration
 
-    let {requestUrl: actionUrl, parameters = {}} = actions[action]
+    let {requestUrl: actionUrl, parameters = {}, transitions} = actions[action]
 
 
     // replace action url placeholders
@@ -322,7 +321,10 @@ const moviesapiRequest = (provider, language, action, keyword) => {
     
         return getResponseResult(action, response) // single or multiple results
     })
-    .then((results) => moviesapiRequestTransition(provider, providerConfiguration, language, action, keyword, results))
+
+    // send the results to the transition
+
+    .then((results) => moviesapiRequestTransition({provider, action, keyword, language, movieWebPage, transitions, results}))
 }
 
 
