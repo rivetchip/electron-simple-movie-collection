@@ -23,6 +23,21 @@ fetch('moviesapi://tmdb-fr/movie/78')
 })
 */
 
+// previewPanel index
+// send('get-product', productIndex)
+
+/*
+if( previousSelectedProduct ) {
+            previousSelectedProduct.classList.remove('is-selected')
+        }
+*/
+
+//openProductDisplay
+
+
+
+
+
 
 
 const state = { // initial state
@@ -148,20 +163,18 @@ var actions = {
         return {products}
     },
     
-    onProductFavorite: ({event, index}) => (state, actions) => {
+    onProductFavorite: ({event, index}) => ({products}, actions) => {
 
         console.log('favorite')
         console.log(event)
         console.log(index)
         // console.log(actions)
 
-        state.products.push({
+        products.push({ // TODO
             title: 'qsd'
         })
 
-        return {
-            products: state.products
-        }
+        return {products}
     },
 };
 
@@ -227,7 +240,7 @@ receive('fullscreen-status-changed', (event, status) => {
 
 // receive a notification from the main app
 receive('notification', (event, message) => {
-
+    //createSnackbar(viewport, message)
 })
 
 // get the full collection from server
@@ -245,9 +258,26 @@ receive('get-product', (event, index, product) => {
 })
 
 
+
+
+
 const updateOnlineStatus = (event) => {
     return send('online-status-changed', navigator.onLine ? 'online' : 'offline')
 }
 
 addEventListener('online',  updateOnlineStatus)
 addEventListener('offline', updateOnlineStatus)
+
+
+
+
+
+
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+
+})
