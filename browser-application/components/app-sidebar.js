@@ -7,7 +7,7 @@ export const SearchToolbar = ({ onSearch }) => (
 
     <search-toolbar>
         <input
-            onkeyup={e => onSearch({e, keyword: e.target.value, keyCode: event.code})}
+            onkeyup={event => onSearch({event, keyword: event.target.value, keyCode: event.code})}
             className="search-input"
             type="search"
             placeholder="Recherche"
@@ -40,14 +40,14 @@ export const ProductItem = ({ index, title, favorite, hidden = false, onClick, o
     <product-item
         key={index}
         className={hidden && "is-hidden"}
-        onclick={e => onClick({e, index})}
+        onclick={event => onClick({event, index})}
     >
         <div class="title">{title}</div>
 
         { favorite && (
             <div
                 class="favorite"
-                onclick={e => onFavorite({e, index})}
+                onclick={event => onFavorite({event, index})}
             >
             </div>
         )}

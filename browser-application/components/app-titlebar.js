@@ -8,18 +8,14 @@ export const AppTitlebar = ({title, events: {onClose, onMinimize, onMaximize}}) 
     <app-titlebar>
 
         <app-controls>
-            <button
-                class="close"
-                onclick={event => onClose({event})}
-            ></button>
-            <button
-                class="minimize"
-                onclick={event => onMinimize({event})}
-            ></button>
-            <button
-                class="maximize"
-                onclick={event => onMaximize({event})}
-            ></button>
+            <button class="close" onclick={event => onClose({event})}>
+            </button>
+
+            <button class="minimize" onclick={event => onMinimize({event})}>
+            </button>
+
+            <button class="maximize" onclick={event => onMaximize({event})}>
+            </button>
         </app-controls>
 
         <div class="title">
