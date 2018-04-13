@@ -28,7 +28,7 @@ fetch('moviesapi://tmdb-fr/movie/78')
 const state = { // initial state
     count: 123,
     fullscreen: false,
-    location: 'idle',
+    location: 'idle', // current publicatoion or preview mode
 
     titlebar: {
         title: 'Movie Collection'
@@ -74,14 +74,6 @@ var actions = {
         onSave: ({event}) => {
             return send('save-collection-dialog')
         }
-    },
-
-
-
-    up: function(value) {
-        return function (state, actions) {
-            return { count: state.count + value };
-        };
     },
 
     // when user click fullscreen on the main app
@@ -133,6 +125,10 @@ var actions = {
 
     onSearch: ({event, keyword, keyCode}) => ({products}, actions) => {
 
+        // set to lower case in case of search accents and others
+
+        keyword = keyword.toLowerCase()
+
         // if escape : show all products
 
         let showEverything = false
@@ -144,6 +140,8 @@ var actions = {
         // hide all products based on keyword ; or if escape : show the all
 
         products.forEach(({title}, index) => {
+            title = title.toLowerCase()
+
             products[index].hidden = showEverything ? false : title.indexOf(keyword) < 0
         })
 
@@ -234,7 +232,7 @@ receive('notification', (event, message) => {
 
 // get the full collection from server
 receive('get-collection', (event, products) => {
-
+    return app.onReceiveCollection({products})
 })
 
 // get a single, full product
