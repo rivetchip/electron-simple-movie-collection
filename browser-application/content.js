@@ -4,6 +4,9 @@
 import { h, app as hyperapp } from './hyperapp'
 
 // components
+import {AppTitlebar} from './components/app-titlebar'
+import {AppToolbar} from './components/app-toolbar'
+
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
 // console.log(<div />);
@@ -13,7 +16,18 @@ import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
 
 const state = { // initial state
-    count: 0,
+    count: 123,
+    fullscreen: false,
+
+    titlebar: {
+        title: 'Movie Collection'
+    },
+
+    provider: 0, // first
+    providers: [
+        { name: 'TMDb', identifier: 'tmdb', lang: 'en' },
+        { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
+    ],
 
     products: [
         {title:'sqd', favorite: false},
@@ -24,11 +38,51 @@ const state = { // initial state
 }
 
 var actions = {
+
+    titlebar: {
+
+        onClose: ({event}) => {
+            return send('application-close')
+        },
+    
+        onMinimize: ({event}) => {
+            return send('application-minimize')
+        },
+    
+        onMaximize: ({event}) => {
+            return send('application-maximize')
+        }
+    },
+
+
+
     up: function(value) {
         return function (state, actions) {
             return { count: state.count + value };
         };
     },
+
+    // when user click fullscreen on the main app
+    onFullscreen: ({status}) => (state, actions) => {
+        return {fullscreen: status}
+    },
+
+    // when the collection has been opened
+    onReceiveCollection: ({products}) => (state, actions) => {
+        return {products}
+    },
+
+
+
+
+
+
+
+
+
+
+
+
 
     onProductClick: ({e, index}) => (state, actions) => {
         console.log('onProductClick')
@@ -97,7 +151,7 @@ var actions = {
         return {
             products: state.products
         }
-    }
+    },
 };
 
 
@@ -107,7 +161,22 @@ var actions = {
 
 const view = (state, actions) => (
 
-        <app-sidebar>
+        <div>
+
+
+
+        <AppTitlebar
+            {...state.titlebar}
+            events={actions.titlebar}
+        />
+
+        <AppToolbar
+            providers={state.providers}
+        />
+
+        <app-sidebar
+            className={state.fullscreen && "is-fullscreen"}
+        >
             <SearchToolbar
                 onSearch={actions.onSearch}
             />
@@ -117,9 +186,47 @@ const view = (state, actions) => (
                 onProductFavorite={actions.onProductFavorite}
             />
         </app-sidebar>
+
+
+        </div>
 )
 
 
+const viewport = document.querySelector('app.viewport')
 
-hyperapp(state, actions, view, document.body)
+const app = hyperapp(state, actions, view, viewport)
   
+
+
+// events
+
+receive('fullscreen-status-changed', (event, status) => {
+    return app.onFullscreen({status})
+})
+
+// receive a notification from the main app
+receive('notification', (event, message) => {
+
+})
+
+// get the full collection from server
+receive('get-collection', (event, products) => {
+
+})
+
+// get a single, full product
+receive('get-product', (event, index, product) => {
+    // parse and show the view panel
+    if( product ) {
+        // winState = 'preview'
+
+    }
+})
+
+
+const updateOnlineStatus = (event) => {
+    return send('online-status-changed', navigator.onLine ? 'online' : 'offline')
+}
+
+addEventListener('online',  updateOnlineStatus)
+addEventListener('offline', updateOnlineStatus)
