@@ -69,6 +69,7 @@ function createWindow() {
         },
 
         // borderless frame
+        resizable: true,
         frame: debug ? true : false,
         transparent: true,
         titleBarStyle: 'hidden', // macos
