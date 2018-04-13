@@ -161,9 +161,7 @@ var actions = {
 
 const view = (state, actions) => (
 
-        <div>
-
-
+    <app class="viewport">
 
         <AppTitlebar
             {...state.titlebar}
@@ -174,27 +172,37 @@ const view = (state, actions) => (
             providers={state.providers}
         />
 
-        <app-sidebar
-            className={state.fullscreen && "is-fullscreen"}
-        >
-            <SearchToolbar
-                onSearch={actions.onSearch}
-            />
-            <ProductItems
-                products={state.products}
-                onProductClick={actions.onProductClick}
-                onProductFavorite={actions.onProductFavorite}
-            />
-        </app-sidebar>
+        <app-layout>
+
+            <app-sidebar
+                className={state.fullscreen && "is-fullscreen"}
+            >
+                <SearchToolbar
+                    onSearch={actions.onSearch}
+                />
+                <ProductItems
+                    products={state.products}
+                    onProductClick={actions.onProductClick}
+                    onProductFavorite={actions.onProductFavorite}
+                />
+            </app-sidebar>
 
 
-        </div>
+            {/* EDITION */}
+
+
+
+
+
+        </app-layout>
+
+
+    </app>
 )
 
 
-const viewport = document.querySelector('app.viewport')
 
-const app = hyperapp(state, actions, view, viewport)
+const app = hyperapp(state, actions, view, document.body)
   
 
 
