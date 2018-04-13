@@ -13,11 +13,22 @@ import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
 
 
+/*
+fetch('moviesapi://tmdb-fr/movie/78')
+// fetch('moviesapi://tmdb-fr/search/blade runner')
+.then(response => response.text())
+
+.then(function(response) {
+    console.log(response)
+})
+*/
+
 
 
 const state = { // initial state
     count: 123,
     fullscreen: false,
+    location: 'idle',
 
     titlebar: {
         title: 'Movie Collection'
@@ -54,6 +65,17 @@ var actions = {
         }
     },
 
+    toolbar: {
+
+        onOpen: ({event}) => {
+            return send('open-collection-dialog')
+        },
+
+        onSave: ({event}) => {
+            return send('save-collection-dialog')
+        }
+    },
+
 
 
     up: function(value) {
@@ -84,7 +106,7 @@ var actions = {
 
 
 
-    onProductClick: ({e, index}) => (state, actions) => {
+    onProductClick: ({event, index}) => (state, actions) => {
         console.log('onProductClick')
         console.log(index)
 
@@ -107,40 +129,31 @@ var actions = {
         }
     },
 
-    onSearch: ({e, keyword, keyCode}) => (state, actions) => {
-        console.log('onSearch')
+    // search event when using the search box on the sidebar
 
-        let products = state.products
+    onSearch: ({event, keyword, keyCode}) => ({products}, actions) => {
 
+        // if escape : show all products
+
+        let showEverything = false
 
         if( keyCode == 'Escape' ) {
-            
-            // show all products
-
-
-
-
-
-
-
-            return;
+            showEverything = true
         }
 
-        // hide all products based on keyword
+        // hide all products based on keyword ; or if escape : show the all
 
-        products.forEach((product, index) => {
-            const title = product.title
-
-            products[index].hidden = title.indexOf(keyword) < 0
+        products.forEach(({title}, index) => {
+            products[index].hidden = showEverything ? false : title.indexOf(keyword) < 0
         })
 
         return {products}
     },
     
-    onProductFavorite: ({e, index}) => (state, actions) => {
+    onProductFavorite: ({event, index}) => (state, actions) => {
 
         console.log('favorite')
-        console.log(e)
+        console.log(event)
         console.log(index)
         // console.log(actions)
 
@@ -160,8 +173,9 @@ var actions = {
 
 
 const view = (state, actions) => (
+    // className={state.fullscreen && "is-fullscreen"
 
-    <app class="viewport">
+    <app class="viewport" >
 
         <AppTitlebar
             {...state.titlebar}
@@ -170,13 +184,13 @@ const view = (state, actions) => (
 
         <AppToolbar
             providers={state.providers}
+            events={actions.toolbar}
         />
 
         <app-layout>
 
-            <app-sidebar
-                className={state.fullscreen && "is-fullscreen"}
-            >
+            <app-sidebar>
+
                 <SearchToolbar
                     onSearch={actions.onSearch}
                 />
@@ -185,6 +199,7 @@ const view = (state, actions) => (
                     onProductClick={actions.onProductClick}
                     onProductFavorite={actions.onProductFavorite}
                 />
+
             </app-sidebar>
 
 
@@ -203,7 +218,7 @@ const view = (state, actions) => (
 
 
 const app = hyperapp(state, actions, view, document.body)
-  
+
 
 
 // events
