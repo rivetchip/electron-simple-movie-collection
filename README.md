@@ -3,7 +3,29 @@
 
 
 
+todo debugging :
+----------------
+
+npm install
+
+npm run serve
+
+rpm run debug ( with vscode inspect )
+
+
+todo building :
+---------------
+
+npm install
+
+npm run pack-linux64
+
+folder ./release-builds/
+
+
+
 todo credits :
+--------------
 
 
 http://www.latofonts.com/lato-free-fonts/
