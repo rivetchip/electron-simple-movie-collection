@@ -63,8 +63,8 @@ function createWindow() {
         // backgroundColor: '#fff',
 
         webPreferences: {
-            //nodeIntegration: false, // todo wait for module in chrome 61
-            //contextIsolation: true,
+            nodeIntegration: false,
+            // contextIsolation: true,
             preload: pathjoin(__dirname, 'browser-preload.js'),
         },
 
@@ -289,7 +289,16 @@ const showErrorBox = (title, content) => {
 
 
 // read a file collection ; and return a simple collection of products
-const onReadFileCatalogStorage = (filename, successHandler, errorhandler) => {
+const onReadFileCatalogStorage = async (filename, successHandler, errorhandler) => {
+
+    let content = await readFile(filename)
+
+    content = await setCatalogStorageFrom(JSON.parse(content))
+
+    let collection = getCatalogStorageCollection()
+    let products = getProductsSimpleFrom(collection)
+
+
     return readFile(filename)
     .then((content) => JSON.parse(content))
     .then((content) => setCatalogStorageFrom(content)) // cosntruct catalogue
