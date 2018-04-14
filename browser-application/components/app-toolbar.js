@@ -3,7 +3,7 @@ import { h, app as hyperapp } from '../hyperapp'
 
 
 
-export const AppToolbar = ({providers, events: {onOpen, onSave}}) => (
+export const AppToolbar = ({providerIndex, providers, onProviderChange, events: {onOpen, onSave, onNew}}) => (
 
     <app-toolbar>
         <div>
@@ -15,23 +15,29 @@ export const AppToolbar = ({providers, events: {onOpen, onSave}}) => (
                 Enregistrer
             </button>
 
-            <button class="new-product" title="Ajouter un film">
+            <button class="new-product" onclick={event => onNew({event})} title="Ajouter un film">
                 Ajouter un film
             </button>
         </div>
 
-        <div id="providers">
-        {
-            providers.map(({identifier, name, lang}, index) => (
-                <div key={index}>
-                    <input id={'provider-'+identifier+'-'+lang} class="provider-switch" type="radio" name="provider" value={identifier+'-'+lang} checked />
-                    <label for={'provider-'+identifier+'-'+lang} class="provider">
-                        {name} <div class="provider-lang">{lang.toUpperCase()}</div>
-                    </label>
-                </div>
-            ))
-        }
-        </div>
+        {providers && (
+            <div id="providers">
+                {providers.map(({identifier, name, lang}, index) => (
+                    <div key={index}>
+                        <input
+                            id={'provider-'+identifier+'-'+lang}
+                            class="provider-switch" type="radio"
+                            name="provider" value={identifier+'-'+lang}
+                            checked={providerIndex == index}
+                            onchange={event => onProviderChange({event, index})}
+                        />
+                        <label for={'provider-'+identifier+'-'+lang} class="provider">
+                            {name} <div class="provider-lang">{lang.toUpperCase()}</div>
+                        </label>
+                    </div>
+                ))}
+            </div>
+        )}
 
     </app-toolbar>
 

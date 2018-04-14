@@ -49,7 +49,7 @@ const state = { // initial state
         title: 'Movie Collection'
     },
 
-    provider: 0, // first
+    providerIndex: 1, // french
     providers: [
         { name: 'TMDb', identifier: 'tmdb', lang: 'en' },
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
@@ -82,22 +82,34 @@ var actions = {
 
     toolbar: {
 
+        // open file button
         onOpen: ({event}) => {
             return send('open-collection-dialog')
         },
 
+        // save file button
         onSave: ({event}) => {
             return send('save-collection-dialog')
-        }
+        },
+
+        // create new product button
+        onNew: ({event}) => {
+
+        },
     },
 
     // when user click fullscreen on the main app
-    onFullscreen: ({status}) => (state, actions) => {
+    onFullscreen: ({status}) => {
         return {fullscreen: status}
     },
 
+    // radio provider change
+    onProviderChange: ({event, index}) => {
+        return {providerIndex: index}
+    },
+
     // when the collection has been opened
-    onReceiveCollection: ({products}) => (state, actions) => {
+    onReceiveCollection: ({products}) => {
         return {products}
     },
 
@@ -115,12 +127,14 @@ var actions = {
 
     onProductClick: ({event, index}) => (state, actions) => {
         console.log('onProductClick')
-        console.log(index)
+        // console.log(index)
+
+        console.log(state.providerIndex)
 
         //return fetch('moviesapi://tmdb-fr/movie/78')
-        return fetch('moviesapi://tmdb-fr/search/blade runner')
-        .then(response => response.json())
-        .then(actions.setQuotes);
+        // return fetch('moviesapi://tmdb-fr/search/blade runner')
+        // .then(response => response.json())
+        // .then(actions.setQuotes);
     },
 
     setQuotes: (response) => (state, actions) => {
@@ -182,11 +196,9 @@ var actions = {
 
 
 
-
 const view = (state, actions) => (
-    // className={state.fullscreen && "is-fullscreen"
 
-    <app class="viewport" >
+    <app className={['viewport', state.fullscreen && 'is-fullscreen'].filter(e => !!e).join(' ')}>
 
         <AppTitlebar
             {...state.titlebar}
@@ -194,7 +206,9 @@ const view = (state, actions) => (
         />
 
         <AppToolbar
+            providerIndex={state.providerIndex}
             providers={state.providers}
+            onProviderChange={actions.onProviderChange}
             events={actions.toolbar}
         />
 
