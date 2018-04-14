@@ -290,15 +290,6 @@ const showErrorBox = (title, content) => {
 
 // read a file collection ; and return a simple collection of products
 const onReadFileCatalogStorage = async (filename, successHandler, errorhandler) => {
-
-    let content = await readFile(filename)
-
-    content = await setCatalogStorageFrom(JSON.parse(content))
-
-    let collection = getCatalogStorageCollection()
-    let products = getProductsSimpleFrom(collection)
-
-
     return readFile(filename)
     .then((content) => JSON.parse(content))
     .then((content) => setCatalogStorageFrom(content)) // cosntruct catalogue
