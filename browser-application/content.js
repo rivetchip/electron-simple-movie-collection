@@ -9,7 +9,9 @@ import {AppToolbar} from './components/app-toolbar'
 
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
-// console.log(<div />);
+import {AppStatusbar} from './components/app-statusbar'
+
+console.log(process);
 
 
 
@@ -55,6 +57,7 @@ const state = { // initial state
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
     ],
 
+    productIndex: 2, // current select product
     products: [
         {title:'sqd', favorite: false},
         {title:'sqerd', favorite: true},
@@ -135,19 +138,8 @@ var actions = {
         // return fetch('moviesapi://tmdb-fr/search/blade runner')
         // .then(response => response.json())
         // .then(actions.setQuotes);
-    },
 
-    setQuotes: (response) => (state, actions) => {
-        console.log('response')
-        console.log(response)
-
-        // state.products.push({
-        //     title: response.title
-        // })
-
-        return {
-            products: response // todo test
-        }
+        // open the preview ; then set the selected
     },
 
     // search event when using the search box on the sidebar
@@ -155,11 +147,9 @@ var actions = {
     onSearch: ({event, keyword, keyCode}) => ({products}, actions) => {
 
         // set to lower case in case of search accents and others
-
         keyword = keyword.toLowerCase()
 
         // if escape : show all products
-
         let showEverything = false
 
         if( keyCode == 'Escape' ) {
@@ -198,7 +188,7 @@ var actions = {
 
 const view = (state, actions) => (
 
-    <app className={['viewport', state.fullscreen && 'is-fullscreen'].filter(e => !!e).join(' ')}>
+    <app className={['viewport', state.fullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
 
         <AppTitlebar
             {...state.titlebar}
@@ -220,6 +210,7 @@ const view = (state, actions) => (
                     onSearch={actions.onSearch}
                 />
                 <ProductItems
+                    productIndex={state.productIndex}
                     products={state.products}
                     onProductClick={actions.onProductClick}
                     onProductFavorite={actions.onProductFavorite}
@@ -236,6 +227,7 @@ const view = (state, actions) => (
 
         </app-layout>
 
+        <AppStatusbar />
 
     </app>
 )
