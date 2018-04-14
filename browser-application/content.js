@@ -132,7 +132,7 @@ var actions = {
         console.log('onProductClick')
         // console.log(index)
 
-        console.log(state.providerIndex)
+        console.log(state.products)
 
         //return fetch('moviesapi://tmdb-fr/movie/78')
         // return fetch('moviesapi://tmdb-fr/search/blade runner')
@@ -227,7 +227,9 @@ const view = (state, actions) => (
 
         </app-layout>
 
-        <AppStatusbar />
+        <AppStatusbar
+            productCount={state.products.length}
+        />
 
     </app>
 )
