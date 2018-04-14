@@ -16,39 +16,37 @@ export const SearchToolbar = ({ onSearch }) => (
 
 )
 
-export const ProductItems = ({products, onProductClick, onProductFavorite}) => (
+export const ProductItems = ({productIndex, products, onProductClick, onProductFavorite}) => (
 
     <product-items>
-    {
-        products.map((product, index) => (
-            <ProductItem
-                index={index}
-                title={product.title}
-                favorite={product.favorite}
-                hidden={product.hidden}
-                onClick={onProductClick}
-                onFavorite={onProductFavorite}
-            />
-        ))
-    }
+
+    {products.map(({title, favorite, hidden}, index) => (
+        <ProductItem
+            index={index}
+            title={title}
+            selected={productIndex == index}
+            favorite={favorite}
+            hidden={hidden}
+            onClick={onProductClick}
+            onFavorite={onProductFavorite}
+        />
+    ))}
+
     </product-items>
 
 )
 
-export const ProductItem = ({ index, title, favorite, hidden = false, onClick, onFavorite }) => (
+export const ProductItem = ({ index, title, selected, favorite, hidden, onClick, onFavorite }) => (
 
     <product-item
         key={index}
-        className={hidden && "is-hidden"}
+        className={[selected && 'is-selected', hidden && 'is-hidden'].filter(c => !!c).join(' ')}
         onclick={event => onClick({event, index})}
     >
         <div class="title">{title}</div>
 
-        { favorite && (
-            <div
-                class="favorite"
-                onclick={event => onFavorite({event, index})}
-            >
+        {favorite && (
+            <div class="favorite" onclick={event => onFavorite({event, index})}>
             </div>
         )}
 
