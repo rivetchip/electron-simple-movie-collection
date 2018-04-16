@@ -3,7 +3,7 @@ import { h, app as hyperapp } from '../hyperapp'
 
 
 
-export const AppTitlebar = ({title, events: {onClose, onMinimize, onMaximize}}) => (
+export const AppTitlebar = ({title, onClose, onMinimize, onMaximize}) => (
 
     <app-titlebar>
 

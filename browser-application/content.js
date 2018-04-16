@@ -9,9 +9,11 @@ import {AppToolbar} from './components/app-toolbar'
 
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
+import {ProductPreview, ProductPublication} from './components/product-preview-publication'
+
 import {AppStatusbar} from './components/app-statusbar'
 
-console.log(process);
+// console.log(process);
 
 
 
@@ -43,8 +45,9 @@ if( previousSelectedProduct ) {
 
 
 const state = { // initial state
-    fullscreen: false,
-    location: 'idle', // current publicatoion or preview mode
+    isLoading: false,
+    isFullscreen: false,
+    location: null, // current publicatoion or preview mode
 
     titlebar: {
         title: 'Movie Collection'
@@ -102,7 +105,7 @@ var actions = {
 
     // when user click fullscreen on the main app
     onFullscreen: ({status}) => {
-        return {fullscreen: status}
+        return {isFullscreen: status}
     },
 
     // radio provider change
@@ -110,7 +113,7 @@ var actions = {
         return {providerIndex: index}
     },
 
-    // when the collection has been opened
+    // empty the previous collection ; when the collection has been opened
     onReceiveCollection: ({products}) => {
         return {products: new Map(
             products.map((product, index) => [index, product]
@@ -128,25 +131,18 @@ var actions = {
 
 
 
-
     onProductClick: ({event, index}) => (state, actions) => {
         console.log('onProductClick', index)
-        // console.log(index)
 
+        // set the selected ; then open the preview
 
-        //return fetch('moviesapi://tmdb-fr/movie/78')
-        // return fetch('moviesapi://tmdb-fr/search/blade runner')
-        // .then(response => response.json())
-        // .then(actions.setQuotes);
-
-        // open the preview ; then set the selected
-
-        return {productIndex: index}
+        return {productIndex: index, location: 'preview'}
     },
 
     // search event when using the search box on the sidebar
 
     onSearch: ({event, keyword, keyCode}) => ({products}, actions) => {
+        console.log('onSearch', keyword)
 
         // set to lower case in case of search accents and others
         keyword = keyword.toLowerCase()
@@ -173,11 +169,9 @@ var actions = {
     },
     
     onProductFavorite: ({event, index}) => ({products}, actions) => {
+        console.log('onProductFavorite', index)
 
-        console.log('favorite')
-        console.log(event)
-        console.log(index)
-        // console.log(actions)
+
 
         // products.push({ // TODO
         //     title: 'qsd'
@@ -191,19 +185,18 @@ var actions = {
 
 
 
-const view = (state, actions) => (
+const view = ({isFullscreen, titlebar, location, providerIndex, providers, productIndex, products}, actions) => (
 
-    <app className={['viewport', state.fullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
+    <app className={['viewport', isFullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
 
         <AppTitlebar
-            {...state.titlebar}
-            events={actions.titlebar}
-            // TODO BETTER
+            {...titlebar}
+            {...actions.titlebar}
         />
 
         <AppToolbar
-            providerIndex={state.providerIndex}
-            providers={state.providers}
+            providerIndex={providerIndex}
+            providers={providers}
             onProviderChange={actions.onProviderChange}
             events={actions.toolbar}
         />
@@ -216,8 +209,8 @@ const view = (state, actions) => (
                     onSearch={actions.onSearch}
                 />
                 <ProductItems
-                    productIndex={state.productIndex}
-                    products={state.products}
+                    productIndex={productIndex}
+                    products={products}
                     onProductClick={actions.onProductClick}
                     onProductFavorite={actions.onProductFavorite}
                 />
@@ -225,16 +218,16 @@ const view = (state, actions) => (
             </app-sidebar>
 
 
-            {/* EDITION */}
-
-
-
+            {location ? (
+                location == 'preview' && <ProductPreview /> ||
+                location == 'publication' && <ProductPublication />
+            ) : <div />}
 
 
         </app-layout>
 
         <AppStatusbar
-            productCount={state.products.size}
+            productCount={products.size}
         />
 
     </app>
