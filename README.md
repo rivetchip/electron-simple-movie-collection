@@ -2,7 +2,8 @@
 # Simple movie collection electron app
 
 
-
+bugs list :
+starrating : use </> fragments
 
 
 

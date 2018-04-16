@@ -9,7 +9,7 @@ import {AppToolbar} from './components/app-toolbar'
 
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
-import {ProductPreview, ProductPublication} from './components/product-preview-publication'
+import {ProductPreview, ProductPublication, StarsRating} from './components/product-preview-publication'
 
 import {AppStatusbar} from './components/app-statusbar'
 
@@ -217,6 +217,8 @@ const view = ({isFullscreen, titlebar, location, providerIndex, providers, produ
                 />
 
             </app-sidebar>
+
+            <StarsRating name={'rating'} rating={0} />
 
 
             {location ? (
