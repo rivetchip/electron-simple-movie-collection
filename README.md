@@ -4,12 +4,6 @@
 
 
 
-bugs list :
-- search zone with keyword, then open a new file ; unable to read element.events
-
-
-
-
 
 
 todo debugging :

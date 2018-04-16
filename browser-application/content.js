@@ -199,6 +199,7 @@ const view = ({isFullscreen, titlebar, location, providerIndex, providers, produ
             providers={providers}
             onProviderChange={actions.onProviderChange}
             events={actions.toolbar}
+            // TODO BETTER
         />
 
         <app-layout>
