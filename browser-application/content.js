@@ -43,7 +43,6 @@ if( previousSelectedProduct ) {
 
 
 const state = { // initial state
-    count: 123,
     fullscreen: false,
     location: 'idle', // current publicatoion or preview mode
 
@@ -57,13 +56,13 @@ const state = { // initial state
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
     ],
 
-    productIndex: 2, // current select product
-    products: [
-        {title:'sqd', favorite: false},
-        {title:'sqerd', favorite: true},
-        {title:'sqd', favorite: false},
-        {title:'sqerd', favorite: true},
-    ]
+    productIndex: null, // current select product
+    products: new Map([
+        [4, {title:'sqd', favorite: false}],
+        [5, {title:'sqerd', favorite: true}],
+        [6, {title:'sqd', favorite: false}],
+        [7, {title:'sqerd', favorite: true}],
+    ])
 }
 
 var actions = {
@@ -113,7 +112,9 @@ var actions = {
 
     // when the collection has been opened
     onReceiveCollection: ({products}) => {
-        return {products}
+        return {products: new Map(
+            products.map((product, index) => [index, product]
+        ))}
     },
 
 
@@ -129,10 +130,9 @@ var actions = {
 
 
     onProductClick: ({event, index}) => (state, actions) => {
-        console.log('onProductClick')
+        console.log('onProductClick', index)
         // console.log(index)
 
-        console.log(state.products)
 
         //return fetch('moviesapi://tmdb-fr/movie/78')
         // return fetch('moviesapi://tmdb-fr/search/blade runner')
@@ -140,6 +140,8 @@ var actions = {
         // .then(actions.setQuotes);
 
         // open the preview ; then set the selected
+
+        return {productIndex: index}
     },
 
     // search event when using the search box on the sidebar
@@ -158,10 +160,13 @@ var actions = {
 
         // hide all products based on keyword ; or if escape : show the all
 
-        products.forEach(({title}, index) => {
+        products.forEach((product, index) => {
+            let {title} = product
             title = title.toLowerCase()
 
-            products[index].hidden = showEverything ? false : title.indexOf(keyword) < 0
+            product.hidden = showEverything ? false : title.indexOf(keyword) < 0
+
+            products.set(index, product)
         })
 
         return {products}
@@ -174,9 +179,9 @@ var actions = {
         console.log(index)
         // console.log(actions)
 
-        products.push({ // TODO
-            title: 'qsd'
-        })
+        // products.push({ // TODO
+        //     title: 'qsd'
+        // })
 
         return {products}
     },
@@ -193,6 +198,7 @@ const view = (state, actions) => (
         <AppTitlebar
             {...state.titlebar}
             events={actions.titlebar}
+            // TODO BETTER
         />
 
         <AppToolbar
@@ -228,7 +234,7 @@ const view = (state, actions) => (
         </app-layout>
 
         <AppStatusbar
-            productCount={state.products.length}
+            productCount={state.products.size}
         />
 
     </app>

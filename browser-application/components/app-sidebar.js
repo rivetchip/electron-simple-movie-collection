@@ -20,33 +20,34 @@ export const ProductItems = ({productIndex, products, onProductClick, onProductF
 
     <product-items>
 
-    {products.map(({title, favorite, hidden}, index) => (
-        <ProductItem
+    {/* [...products].map */}
+    {Array.from(products, ([index, {title, favorite, hidden}]) => (
+        !hidden && (<ProductItem
             index={index}
             title={title}
             selected={productIndex == index}
             favorite={favorite}
-            hidden={hidden}
             onClick={onProductClick}
             onFavorite={onProductFavorite}
-        />
+        />)
     ))}
 
     </product-items>
 
 )
 
-export const ProductItem = ({ index, title, selected, favorite, hidden, onClick, onFavorite }) => (
+export const ProductItem = ({ index, title, selected, favorite, onClick, onFavorite }) => (
 
     <product-item
         key={index}
-        className={[selected && 'is-selected', hidden && 'is-hidden'].filter(c => !!c).join(' ')}
+        className={selected && 'is-selected'}
         onclick={event => onClick({event, index})}
     >
         <div class="title">{title}</div>
 
         {favorite && (
             <div class="favorite" onclick={event => onFavorite({event, index})}>
+            {/* TODO */}
             </div>
         )}
 
