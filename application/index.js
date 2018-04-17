@@ -411,7 +411,7 @@ receive('open-collection-dialog', async (event) => {
     return sender.send('collection', collection)
 })
 
-receive('save-collection-dialog', (event) => {
+receive('save-collection-dialog', (event) => { // TODO
     const sender = event.sender
 
     const onSaveError = (error) => {
