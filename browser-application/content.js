@@ -9,7 +9,7 @@ import {AppToolbar} from './components/app-toolbar'
 
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
-import {ProductPreview, ProductPublication, StarsRating} from './components/product-preview-publication'
+import {ProductPanelEmpty, ProductPanelPreview, ProductPanelPublication} from './components/product-panels'
 
 import {AppStatusbar} from './components/app-statusbar'
 
@@ -185,9 +185,23 @@ var actions = {
 
 
 
-const view = ({isFullscreen, titlebar, location, providerIndex, providers, productIndex, products}, actions) => (
+const view = ({isFullscreen, titlebar, location, providerIndex, providers, productIndex, products}, actions) => {
 
-    <app className={['viewport', isFullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
+    let productPanel
+    const product = products.get(productIndex) // current product
+
+    if(location == 'preview') {
+        productPanel = <ProductPanelPreview {...product} />
+    }
+    else if(location == 'publication') {
+        productPanel = <ProductPanelPublication {...product} />
+    }
+    else {
+        productPanel = <ProductPanelEmpty />
+    }
+
+
+    return (<app className={['viewport', isFullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
 
         <AppTitlebar
             {...titlebar}
@@ -218,14 +232,9 @@ const view = ({isFullscreen, titlebar, location, providerIndex, providers, produ
 
             </app-sidebar>
 
-            <StarsRating name={'rating'} rating={0} />
-
-
-            {location ? (
-                location == 'preview' && <ProductPreview /> ||
-                location == 'publication' && <ProductPublication />
-            ) : <div />}
-
+            <product-panel>
+                {productPanel}
+            </product-panel>
 
         </app-layout>
 
@@ -233,8 +242,8 @@ const view = ({isFullscreen, titlebar, location, providerIndex, providers, produ
             productCount={products.size}
         />
 
-    </app>
-)
+    </app>)
+}
 
 
 
