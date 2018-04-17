@@ -114,17 +114,10 @@ var actions = {
     },
 
     // empty the previous collection ; when the collection has been opened
-    onReceiveCollection: ({products}) => {
-        return {products: new Map(
-            products.map((product, index) => [index, product]
-        ))}
+    onReceiveCollection: ({collection}) => {
+        // we receive a Maped array [id, {product}]
+        return {products: new Map(collection)}
     },
-
-
-
-
-
-
 
 
 
@@ -264,8 +257,8 @@ receive('notification', (event, message) => {
 })
 
 // get the full collection from server
-receive('collection', (event, products) => {
-    return app.onReceiveCollection({products})
+receive('collection', (event, collection) => {
+    return app.onReceiveCollection({collection})
 })
 
 // get a single, full product
