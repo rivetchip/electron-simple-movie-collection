@@ -172,6 +172,20 @@ function send( channel, args ) {
     win.webContents.send(channel, args)
 }
 
+
+/**
+ * Using async, await, with error handling
+ * return [resolve datas, error]
+ * 
+ * @param {Promise} promise 
+ */
+const to = (promise) => {
+    return promise.then((response) => {
+       return [null, response];
+    })
+    .catch(error => [error]);
+ }
+
 const fileExist = (filename) => {
     return new Promise((resolve, reject) => {
         fs.access(filename, fs.F_OK, (error) => {
@@ -219,18 +233,33 @@ const emptyCatalogStorage = () => {
 // const the collection from the content of a file or anything ; and get the colection
 const setCatalogStorageFrom = (content) => {
     // parse content of file, & assigns defaults values
-    let defaults = {
+    const defaults = {
         version: 1,
         options: {},
-        collection: []
+        collection: [] // Map
     }
 
-    catalogStorage = Object.assign({}, defaults, content) // shallow merge
+    const storage = Object.assign({}, defaults, content) // shallow merge
+
+    // construct the mapped collection
+
+    storage.collection = new Map(storage.collection)
+
+    //.map((product, index) => [index, product])
+
+    // set the new storage to the catalog
+
+    catalogStorage = storage
 }
 
 // return the collection of all products
 const getCatalogStorageCollection = () => {
     return catalogStorage.collection
+}
+
+// return the collection of all products
+const getCatalogStorageCollectionMapped = () => {
+    return [...catalogStorage.collection]
 }
 
 // get a single product
@@ -268,7 +297,7 @@ const getProductsSimpleFrom = (collection) => {
 const showOpenDialog = (options) => {
     return new Promise((resolve, reject) => {
         dialog.showOpenDialog(options, (filenames) => {
-            return filenames ? resolve(filenames) : reject() // no file
+            return filenames ? resolve(filenames) : reject('showOpenDialog: no file set')
         })
     })
 }
@@ -276,7 +305,7 @@ const showOpenDialog = (options) => {
 const showSaveDialog = (options) => {
     return new Promise((resolve, reject) => {
         dialog.showSaveDialog(options, (filename) => {
-            return filename ? resolve(filename) : reject() // no file
+            return filename ? resolve(filename) : reject('showSaveDialog: no file set')
         })
     })
 
@@ -289,14 +318,8 @@ const showErrorBox = (title, content) => {
 
 
 // read a file collection ; and return a simple collection of products
-const onReadFileCatalogStorage = async (filename, successHandler, errorhandler) => {
-    return readFile(filename)
-    .then((content) => JSON.parse(content))
-    .then((content) => setCatalogStorageFrom(content)) // cosntruct catalogue
-    .then((response) => getCatalogStorageCollection()) // get parsed catalogue
-    .then((collection) => getProductsSimpleFrom(collection)) // get simple previews
-    .then((products) => successHandler(products))
-    .catch((error) => errorhandler(error))
+const onReadFileCatalogStorage = (filename) => {
+    return readFile(filename).then((content) => JSON.parse(content))
 }
 
 // save the collection
@@ -339,38 +362,53 @@ receive('application-maximize', (event) => {
 })
 
 
-receive('open-collection-dialog', (event) => {
+receive('open-collection-dialog', async (event) => {
     const sender = event.sender
-    
-    showOpenDialog({
+
+
+    let [openError, filePaths] = await to(showOpenDialog({
         properties: ['openFile'],
         filters: [
             {name: 'Movie Collection', extensions: ['json']}
         ]
-    })
-    .then((filePaths) => {
-        let filename = filePaths[0] // get the single first
+    }))
+    // .catch((error) => {
 
-        setCatalogStorageFilename(filename)
+    if(openError){
 
+        //reinit only the filename! in case a collection is already opened
+        revertCatalogStorageFilename()
 
-        const onOpenError = (message) => {
+        return logger(openError)
+    }
 
-            //reinit only the filename! in case a collection is already opened
-            revertCatalogStorageFilename()
+    // then we try to read the current file
 
-            showErrorBox('Cannot open file', message)
-        }
+    let filename = filePaths[0] // get first file
 
-        let promise = onReadFileCatalogStorage(filename, (products) => {
-            return sender.send('get-collection', products)
-        },
-        (error) => {
-            logger(error)
-            onOpenError(error.message || error)
-        })
-    })
-    .catch((error) => logger('showOpenDialog: no file set'))
+    let [readError, storage] = await to(onReadFileCatalogStorage(filename))
+
+    if(readError){
+        showErrorBox('Cannot open file', readError.message || readError)
+
+        return logger(readError)
+    }
+
+    // set the catalog storage
+
+    setCatalogStorageFrom(storage)
+
+    // get the current collection, as an array [id, {product}]
+
+    const collection = getCatalogStorageCollectionMapped()
+
+    // set the collection from the read file
+
+    setCatalogStorageFilename(filename)
+
+    // then send it back to the client
+
+    return sender.send('collection', collection)
 })
 
 receive('save-collection-dialog', (event) => {
@@ -425,7 +463,8 @@ receive('save-collection-dialog', (event) => {
 })
 
 
-receive('get-product', (event, productIndex) => {
+
+receive('product', (event, productIndex) => {
     const sender = event.sender
 
     // return a single product from the collection
@@ -434,12 +473,10 @@ receive('get-product', (event, productIndex) => {
     if( product ) {
         sender.send('get-product', productIndex, product)
 
-        return
     }
 
     showErrorBox('Cannot get product', '')
 })
-
 
 
 
