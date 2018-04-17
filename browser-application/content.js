@@ -134,6 +134,7 @@ var actions = {
     onProductClick: ({event, index}) => (state, actions) => {
         console.log('onProductClick', index)
 
+        console.log(state.products)
         // set the selected ; then open the preview
 
         return {productIndex: index, location: 'preview'}
@@ -263,12 +264,12 @@ receive('notification', (event, message) => {
 })
 
 // get the full collection from server
-receive('get-collection', (event, products) => {
+receive('collection', (event, products) => {
     return app.onReceiveCollection({products})
 })
 
 // get a single, full product
-receive('get-product', (event, index, product) => {
+receive('product', (event, index, product) => {
     // parse and show the view panel
     if( product ) {
         // winState = 'preview'
