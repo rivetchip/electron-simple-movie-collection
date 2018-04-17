@@ -3,7 +3,8 @@
 
     },
     "collection": [
-        {
+
+        [1,{
             "title":"Kiki la petite sorcière",
             "original":"Majo no takkyûbin / 魔女の宅急便",
             "tagline":"Majo no takkyûbin",
@@ -40,8 +41,8 @@
             "source":"tmdb",
             "sourceId":16859,
             "webPage":"http://www.themoviedb.org/movie/16859"
-        },
-        {
+        }],
+        [2,{
             "title":"La tortue rouge",
             "original":"La tortue rouge",
             "tagline":"La tortue rouge",
@@ -70,8 +71,8 @@
             "source":"tmdb",
             "sourceId":337703,
             "webPage":"http://www.themoviedb.org/movie/337703"
-        },
-        {
+        }],
+        [3,{
             "title":"Beetlejuice",
             "original":"Beetlejuice",
             "tagline":"Beetlejuice",
@@ -103,6 +104,6 @@
             "source":"tmdb",
             "sourceId":4011,
             "webPage":"http://www.themoviedb.org/movie/4011"
-        }
+        }]
     ]
 }
