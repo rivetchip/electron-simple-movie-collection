@@ -4,6 +4,7 @@
 
 bugs list :
 starrating : use </> fragments
+- preload: window.ipc => max events listeners exeed
 
 
 
