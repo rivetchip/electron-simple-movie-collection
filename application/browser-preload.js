@@ -36,10 +36,7 @@ window.receive = ( channel, listener ) => {
 window.ipc = (channel, args) => {
     return new Promise((resolve, reject) => {
         ipcRenderer.send(channel, args) // send event
-        ipcRenderer.once(channel, (event, result) => { // reply event   // TODO: max event listener
-            
-            console.log(result)
-            
+        ipcRenderer.once(channel, (event, result) => { // reply event   // TODO: max event listener            
             resolve(result)
         })
     })
