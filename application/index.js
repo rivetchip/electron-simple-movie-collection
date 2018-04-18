@@ -162,14 +162,26 @@ let catalogStorage = {} // content of the collection, options & others stuffs
 let catalogStorageFilename // current opened file
 
 
-// get an event fron the renderer
-function receive( channel, listener ) {
-    ipcMain.on(channel, listener)
+/**
+ * Receive an event from the renderer
+ * optional: send the reply with respond(args)
+ * 
+ * @param {String} channel 
+ * @param {Function} listener 
+ */
+const receive = (channel, listener) => {
+
+    return ipcMain.on(channel, (event, args) => {
+        const sender = event.sender // original sender
+        const respond = (args) => sender.send(channel, args) // send back
+
+        return listener(event, respond, args) // TODO remove 'event'
+    })
 }
 
 // send a message to the renderer
-function send( channel, args ) {
-    win.webContents.send(channel, args)
+const send = (channel, args) => {
+    return win.webContents.send(channel, args)
 }
 
 
@@ -263,8 +275,9 @@ const getCatalogStorageCollectionMapped = () => {
 }
 
 // get a single product
-const getCatalogStorageProduct = (productIndex) => {
-    let product = catalogStorage.collection[productIndex]
+const getCatalogStorageProduct = (index) => {
+
+    let product = catalogStorage.collection.get(index)
 
     return product 
 }
@@ -281,13 +294,16 @@ const getProductsSimpleFrom = (collection) => {
 
     let products = []
 
-    collection.forEach((product) => {
-        products.push({
-            id: product.id,
-            title: product.title,
-            favorite: product.favorite,
-            // poster: product.poster
-        })
+    collection.forEach(([index, product]) => {
+        // [index, {product}] ; foreach.index = real index
+        
+        products.push([
+            index, {
+                title: product.title,
+                favorite: product.favorite,
+                // poster: product.poster
+            }
+        ])
     })
 
     return products
@@ -339,21 +355,21 @@ const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
 
 // client api
 
-receive('online-status-changed', (event, status) => {
+receive('online-status-changed', (event, respond, {status}) => {
     logger('event:online-status-changed: '+status)
 
     onlineStatusWindow = status
 })
 
-receive('application-close', (event) => {
+receive('application-close', () => {
     win.close()
 })
 
-receive('application-minimize', (event) => {
+receive('application-minimize', () => {
     win.minimize()
 })
 
-receive('application-maximize', (event) => {
+receive('application-maximize', () => {
     if( win.isMaximized() ) {
         win.unmaximize()
     } else {
@@ -362,9 +378,7 @@ receive('application-maximize', (event) => {
 })
 
 
-receive('open-collection-dialog', async (event) => {
-    const sender = event.sender
-
+receive('open-collection-dialog', async (event, respond) => {
 
     let [openError, filePaths] = await to(showOpenDialog({
         properties: ['openFile'],
@@ -400,7 +414,10 @@ receive('open-collection-dialog', async (event) => {
 
     // get the current collection, as an array [id, {product}]
 
-    const collection = getCatalogStorageCollectionMapped()
+    const collectionMap = getCatalogStorageCollectionMapped()
+
+    const collection = getProductsSimpleFrom(collectionMap)
+
 
     // set the collection from the read file
 
@@ -408,11 +425,10 @@ receive('open-collection-dialog', async (event) => {
 
     // then send it back to the client
 
-    return sender.send('collection', collection)
+    return respond(collection)
 })
 
-receive('save-collection-dialog', (event) => { // TODO
-    const sender = event.sender
+receive('save-collection-dialog', (event, respond) => { // TODO
 
     const onSaveError = (error) => {
         //reinit files
@@ -431,7 +447,7 @@ receive('save-collection-dialog', (event) => { // TODO
 
         let promise = onSaveFileCatalogStorage(filename, () => {
             // send notification
-            sender.send('notification', 'Fichier sauvegardé!')
+            send('notification', 'Fichier sauvegardé!')
         },
         (error) => {
             logger(error)
@@ -464,18 +480,16 @@ receive('save-collection-dialog', (event) => { // TODO
 
 
 
-receive('product', (event, productIndex) => {
-    const sender = event.sender
+receive('product', (event, respond, {index}) => {
 
     // return a single product from the collection
-    let product = getCatalogStorageProduct(productIndex)
+    let product = getCatalogStorageProduct(index)
 
     if( product ) {
-        sender.send('get-product', productIndex, product)
-
+        return respond({index, product})
     }
 
-    showErrorBox('Cannot get product', '')
+    return showErrorBox('Cannot get product', '')
 })
 
 

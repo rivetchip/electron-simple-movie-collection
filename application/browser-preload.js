@@ -3,7 +3,8 @@
 const electron = require('electron')
 const {remote, ipcRenderer, webFrame} = electron
 
-//const win = remote.getCurrentWindow()
+const remoteWindow = remote.getCurrentWindow()
+
 
 
 // set custom scheme handled by chrome as privileged for fetch
@@ -17,18 +18,39 @@ webFrame.registerURLSchemeAsPrivileged('moviesapi', {
 
 // IPC main/renderer communication
 
-window.send = function send( channel, args ) {
-    ipcRenderer.send(channel, args)
+window.send = ( channel, args ) => {
+    return ipcRenderer.send(channel, args)
 }
 
-window.receive = function receive( channel, listener ) {
-    ipcRenderer.on(channel, listener)
+window.receive = ( channel, listener ) => {
+    return ipcRenderer.on(channel, listener)
 }
+
+/**
+ * Send/receive events communications with Main
+ * eg: send 'hello', Main reply with 'hello' and get the results as a promise
+ * 
+ * @param {String} channel 
+ * @param {Object} args 
+ */
+window.ipc = (channel, args) => {
+    return new Promise((resolve, reject) => {
+        ipcRenderer.send(channel, args) // send event
+        ipcRenderer.once(channel, (event, result) => { // reply event   // TODO: max event listener
+            
+            console.log(result)
+            
+            resolve(result)
+        })
+    })
+}
+
+
 
 
 // disable eval
 
-// window.eval = () => {
+// window.eval = global.eval = () => {
 //     throw new Error('no eval')
 // }
 
