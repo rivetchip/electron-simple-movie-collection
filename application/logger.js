@@ -1,7 +1,11 @@
 const package = require('../package.json')
 
 
-// event logger for simple messages
+/**
+ * Event logger for simple messages
+ * 
+ * @param {Array} messages 
+ */
 const logger = (...messages) => {
     messages.forEach((message) => {
         console.log('\x1b[36m%s\x1b[0m', '[logger]')
