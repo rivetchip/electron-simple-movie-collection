@@ -20,8 +20,7 @@ export const ProductItems = ({productIndex, products, onProductClick, onProductF
 
     <product-items>
 
-    {/* [...products].map */}
-    {Array.from(products, ([index, {title, favorite, hidden}]) => (
+    {products && Array.from(products, ([index, {title, favorite, hidden}]) => (
         !hidden && (<ProductItem
             index={index}
             title={title}
