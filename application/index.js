@@ -425,7 +425,7 @@ receive('open-collection-dialog', async (event, respond) => {
 
     // then send it back to the client
 
-    return respond(collection)
+    return respond({collection})
 })
 
 receive('save-collection-dialog', (event, respond) => { // TODO
