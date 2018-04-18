@@ -489,6 +489,8 @@ receive('product', (event, respond, {index}) => {
         return respond({index, product})
     }
 
+    // TODO : if multiple not found product : multiple events on IPC renderer
+
     return showErrorBox('Cannot get product', '')
 })
 
