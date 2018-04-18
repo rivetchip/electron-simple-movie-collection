@@ -49,9 +49,8 @@ const state = { // initial state
     isFullscreen: false,
     location: null, // current publicatoion or preview mode
 
-    titlebar: {
-        title: 'Movie Collection'
-    },
+    appTitle: 'Movie Collection',
+
 
     providerIndex: 1, // french
     providers: [
@@ -60,82 +59,76 @@ const state = { // initial state
     ],
 
     productIndex: null, // current select product
-    products: new Map([
-        [4, {title:'sqd', favorite: false}],
-        [5, {title:'sqerd', favorite: true}],
-        [6, {title:'sqd', favorite: false}],
-        [7, {title:'sqerd', favorite: true}],
-    ])
+    product: null, // current product values
+    products: null,
 }
 
 var actions = {
 
-    titlebar: {
+    // Application titlebar
 
-        onClose: ({event}) => {
-            return send('application-close')
-        },
-    
-        onMinimize: ({event}) => {
-            return send('application-minimize')
-        },
-    
-        onMaximize: ({event}) => {
-            return send('application-maximize')
-        }
+    onAppClose: () => {
+        ipc('application-close')
     },
-
-    toolbar: {
-
-        // open file button
-        onOpen: ({event}) => {
-            return send('open-collection-dialog')
-        },
-
-        // save file button
-        onSave: ({event}) => {
-            return send('save-collection-dialog')
-        },
-
-        // create new product button
-        onNew: ({event}) => {
-
-        },
+    onAppMinimize: () => {
+        ipc('application-minimize')
+    },
+    onAppMaximize: () => {
+        ipc('application-maximize')
     },
 
     // when user click fullscreen on the main app
-    onFullscreen: ({status}) => {
+    onAppFullscreen: ({status}) => {
         return {isFullscreen: status}
     },
 
+
+    // Application toolbar
+
+    onToolbarOpen: () => async (state, {onReceiveCollection}) => {
+        onReceiveCollection(await ipc('open-collection-dialog')) // {collection[index, {product}]}
+    },
+
+    onToolbarSave: () => {
+        ipc('save-collection-dialog')
+    },
+
+    onToolbarNewProduct: () => {
+
+    },
+
     // radio provider change
-    onProviderChange: ({event, index}) => {
+    onProviderChange: ({index}) => {
         return {providerIndex: index}
     },
 
     // empty the previous collection ; when the collection has been opened
     onReceiveCollection: ({collection}) => {
-        // we receive a Maped array [id, {product}]
-        return {products: new Map(collection)}
+        // we receive a new Maped array [id, {product}] collection of simple products
+        return {
+            productIndex: null,
+            product: null,
+            products: new Map(collection)
+        }
     },
 
 
+    showProductPreview: ({index, product}) => {
+        return {productIndex: index, product, location: 'preview'}
+    },
 
-
-
-
-    onProductClick: ({event, index}) => (state, actions) => {
+    // set the selected ; then open the preview
+    onProductClick: ({index}) => async (state, {showProductPreview}) => {
         console.log('onProductClick', index)
 
-        console.log(state.products)
-        // set the selected ; then open the preview
+        // TODO use async await + return {state product}
 
-        return {productIndex: index, location: 'preview'}
+        showProductPreview(await ipc('product', {index})) // {index, product}
     },
 
     // search event when using the search box on the sidebar
 
-    onSearch: ({event, keyword, keyCode}) => ({products}, actions) => {
+    onSearch: ({keyword, keyCode}) => ({products}, actions) => {
         console.log('onSearch', keyword)
 
         // set to lower case in case of search accents and others
@@ -162,7 +155,7 @@ var actions = {
         return {products}
     },
     
-    onProductFavorite: ({event, index}) => ({products}, actions) => {
+    onProductFavorite: ({index}) => ({products}, actions) => {
         console.log('onProductFavorite', index)
 
 
@@ -179,10 +172,9 @@ var actions = {
 
 
 
-const view = ({isFullscreen, titlebar, location, providerIndex, providers, productIndex, products}, actions) => {
+const view = ({appTitle, isFullscreen, location, providerIndex, providers, productIndex, product, products}, actions) => {
 
     let productPanel
-    const product = products.get(productIndex) // current product
 
     if(location == 'preview') {
         productPanel = <ProductPanelPreview {...product} />
@@ -194,25 +186,30 @@ const view = ({isFullscreen, titlebar, location, providerIndex, providers, produ
         productPanel = <ProductPanelEmpty />
     }
 
-
     return (<app className={['viewport', isFullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
 
         <AppTitlebar
-            {...titlebar}
-            {...actions.titlebar}
+            title={appTitle}
+            onClose={actions.onAppClose}
+            onMinimize={actions.onAppMinimize}
+            onMaximize={actions.onAppMaximize}
         />
 
         <AppToolbar
+            onOpen={actions.onToolbarOpen}
+            onSave={actions.onToolbarSave}
+            onNewProduct={actions.onToolbarNewProduct}
+
             providerIndex={providerIndex}
             providers={providers}
             onProviderChange={actions.onProviderChange}
-            events={actions.toolbar}
-            // TODO BETTER
         />
 
         <app-layout>
 
             <app-sidebar>
+
+                {/* TODO check if products to do onSearch() event */}
 
                 <SearchToolbar
                     onSearch={actions.onSearch}
@@ -233,7 +230,7 @@ const view = ({isFullscreen, titlebar, location, providerIndex, providers, produ
         </app-layout>
 
         <AppStatusbar
-            productCount={products.size}
+            productCount={(products && products.size) || 0}
         />
 
     </app>)
@@ -248,28 +245,13 @@ const app = hyperapp(state, actions, view, document.body)
 // events
 
 receive('fullscreen-status-changed', (event, status) => {
-    return app.onFullscreen({status})
+    return app.onAppFullscreen({status})
 })
 
 // receive a notification from the main app
 receive('notification', (event, message) => {
     //createSnackbar(viewport, message)
 })
-
-// get the full collection from server
-receive('collection', (event, collection) => {
-    return app.onReceiveCollection({collection})
-})
-
-// get a single, full product
-receive('product', (event, index, product) => {
-    // parse and show the view panel
-    if( product ) {
-        // winState = 'preview'
-
-    }
-})
-
 
 
 
