@@ -3,19 +3,19 @@ import { h, app as hyperapp } from '../hyperapp'
 
 
 
-export const AppToolbar = ({providerIndex, providers, onProviderChange, events: {onOpen, onSave, onNew}}) => (
+export const AppToolbar = ({providerIndex, providers, onProviderChange, onOpen, onSave, onNewProduct}) => (
 
     <app-toolbar>
         <div>
-            <button class="open" onclick={event => onOpen({event})} title="Ouvrir un fichier">
+            <button class="open" onclick={event => onOpen()} title="Ouvrir un fichier">
                 Ouvrir
             </button>
     
-            <button class="save" onclick={event => onSave({event})} title="Enregistrer la liste courante">
+            <button class="save" onclick={event => onSave()} title="Enregistrer la liste courante">
                 Enregistrer
             </button>
 
-            <button class="new-product" onclick={event => onNew({event})} title="Ajouter un film">
+            <button class="new-product" onclick={event => onNewProduct()} title="Ajouter un film">
                 Ajouter un film
             </button>
         </div>
@@ -29,7 +29,7 @@ export const AppToolbar = ({providerIndex, providers, onProviderChange, events: 
                             class="provider-switch" type="radio"
                             name="provider" value={identifier+'-'+lang}
                             checked={providerIndex == index}
-                            onchange={event => onProviderChange({event, index})}
+                            onchange={event => onProviderChange({index})}
                         />
                         <label for={'provider-'+identifier+'-'+lang} class="provider">
                             {name} <div class="provider-lang">{lang.toUpperCase()}</div>

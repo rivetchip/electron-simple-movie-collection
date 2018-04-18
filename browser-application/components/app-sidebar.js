@@ -40,12 +40,12 @@ export const ProductItem = ({ index, title, selected, favorite, onClick, onFavor
     <product-item
         key={index}
         className={selected && 'is-selected'}
-        onclick={event => onClick({event, index})}
+        onclick={event => onClick({index})}
     >
         <div class="title">{title}</div>
 
         {favorite && (
-            <div class="favorite" onclick={event => onFavorite({event, index})}>
+            <div class="favorite" onclick={event => onFavorite({index})}>
             {/* TODO */}
             </div>
         )}
