@@ -175,7 +175,7 @@ const receive = (channel, listener) => {
         const sender = event.sender // original sender
         const respond = (args) => sender.send(channel, args) // send back
 
-        return listener(event, respond, args) // TODO remove 'event'
+        return listener(respond, args)
     })
 }
 
@@ -355,7 +355,7 @@ const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
 
 // client api
 
-receive('online-status-changed', (event, respond, {status}) => {
+receive('online-status-changed', (respond, {status}) => {
     logger('event:online-status-changed: '+status)
 
     onlineStatusWindow = status
@@ -378,7 +378,7 @@ receive('application-maximize', () => {
 })
 
 
-receive('open-collection-dialog', async (event, respond) => {
+receive('open-collection-dialog', async (respond) => {
 
     let [openError, filePaths] = await to(showOpenDialog({
         properties: ['openFile'],
@@ -428,7 +428,7 @@ receive('open-collection-dialog', async (event, respond) => {
     return respond({collection})
 })
 
-receive('save-collection-dialog', (event, respond) => { // TODO
+receive('save-collection-dialog', (respond) => { // TODO
 
     const onSaveError = (error) => {
         //reinit files
@@ -480,7 +480,7 @@ receive('save-collection-dialog', (event, respond) => { // TODO
 
 
 
-receive('product', (event, respond, {index}) => {
+receive('product', (respond, {index}) => {
 
     // return a single product from the collection
     let product = getCatalogStorageProduct(index)
@@ -505,3 +505,8 @@ receive('product', (event, respond, {index}) => {
 
 
 console.log('Running...')
+console.log(
+    'electron', process.versions.electron,
+    'node', process.versions.node,
+    'chrome', process.versions.chrome
+)
