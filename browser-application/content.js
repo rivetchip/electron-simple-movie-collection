@@ -47,10 +47,10 @@ if( previousSelectedProduct ) {
 const state = { // initial state
     isLoading: false,
     isFullscreen: false,
-    location: null, // current publicatoion or preview mode
 
     appTitle: 'Movie Collection',
 
+    location: null, // current publication or preview mode
 
     providerIndex: 1, // french
     providers: [
@@ -61,6 +61,9 @@ const state = { // initial state
     productIndex: null, // current select product
     product: null, // current product values
     products: null,
+
+    draftIndex: null, // draft product index / null if new
+    draft: null, // curent edit product
 }
 
 var actions = {
@@ -94,7 +97,7 @@ var actions = {
     },
 
     onToolbarNewProduct: () => {
-
+        return {draftIndex: null, draft: {}, location: 'publication'}
     },
 
     // radio provider change
@@ -106,6 +109,7 @@ var actions = {
     onReceiveCollection: ({collection}) => {
         // we receive a new Maped array [id, {product}] collection of simple products
         return {
+            location: null,
             productIndex: null,
             product: null,
             products: new Map(collection)
@@ -114,16 +118,18 @@ var actions = {
 
 
     showProductPreview: ({index, product}) => {
+        console.log('showProductPreview', index)
+
         return {productIndex: index, product, location: 'preview'}
     },
 
     // set the selected ; then open the preview
-    onProductClick: ({index}) => async (state, {showProductPreview}) => {
+    onProductClick: ({index}) => async ({productIndex}, {showProductPreview}) => {
         console.log('onProductClick', index)
 
-        // TODO use async await + return {state product}
-
-        showProductPreview(await ipc('product', {index})) // {index, product}
+        if(productIndex != index ) {
+            showProductPreview(await ipc('product', {index})) // {index, product}
+        }
     },
 
     // search event when using the search box on the sidebar
