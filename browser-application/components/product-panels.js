@@ -8,13 +8,11 @@ export const ProductPanelEmpty = () => (
 )
 
 
-export const ProductPanelPreview = ({ title, dateReleased, rating, poster, director, duration, countries, actors, description }) => (
+export const ProductPanelPreview = ({ title, dateReleased, rating, poster, director, duration, countries, genres, actors, description }) => (
 
     <product-preview>
 
         <div class="video-panels">
-
-            <img data-field="poster" class="video-poster" src={poster} />
 
             <div class="video-details">
                 <div data-field="title" class="video-placeholder video-title">{title}</div>
@@ -45,7 +43,7 @@ export const ProductPanelPreview = ({ title, dateReleased, rating, poster, direc
                     </div>
                     <div class="video-attribute video-duration">
                         <label>Durée:</label>
-                        <div data-field="duration" class="video-placeholder">{duration}</div>
+                        <div data-field="duration" class="video-placeholder">{duration} min.</div>
                     </div>
                     <div class="video-attribute video-countries">
                         <label>Nationalité:</label>
@@ -53,7 +51,7 @@ export const ProductPanelPreview = ({ title, dateReleased, rating, poster, direc
                     </div>
                     <div class="video-attribute video-genres">
                         <label>Genres:</label>
-                        <div data-field="genres" class="video-placeholder">{duration}</div>
+                        <div data-field="genres" class="video-placeholder">{genres}</div>
                     </div>
                     <div class="video-attribute video-actors">
                         <label>Actors :</label>
@@ -62,6 +60,8 @@ export const ProductPanelPreview = ({ title, dateReleased, rating, poster, direc
                 </div>
 
             </div>
+
+            <img data-field="poster" class="video-poster" src={poster} />
 
         </div>
 
