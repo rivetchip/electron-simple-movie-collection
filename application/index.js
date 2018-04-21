@@ -164,22 +164,29 @@ let catalogStorageFilename // current opened file
 
 /**
  * Receive an event from the renderer
- * optional: send the reply with respond(args)
+ * listener: (reply, reject, args)
+ * reply(args) : send back a OK response
+ * reject(reason) : send back a NOTOK response
+ * args* : args got from the renderer
  * 
  * @param {String} channel 
  * @param {Function} listener 
  */
 const receive = (channel, listener) => {
 
-    return ipcMain.on(channel, (event, args) => {
-        const sender = event.sender // original sender
-        const respond = (args) => sender.send(channel, args) // send back
+    return ipcMain.on(channel, (event, message) => {
 
-        return listener(respond, args)
+        const sender = event.sender
+        const {responseChannel, args} = message // from the renderer
+
+        const reply = (args) => sender.send(responseChannel, {args}) // send back
+        const reject = (error) => sender.send(responseChannel, {error}) // send error back
+
+        return listener(reply, reject, args)
     })
 }
 
-// send a message to the renderer
+// send a message to the renderer TODO remove
 const send = (channel, args) => {
     return win.webContents.send(channel, args)
 }
@@ -187,7 +194,7 @@ const send = (channel, args) => {
 
 /**
  * Using async, await, with error handling
- * return [resolve datas, error]
+ * return [error, resolve datas]
  * 
  * @param {Promise} promise 
  */
@@ -355,7 +362,7 @@ const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
 
 // client api
 
-receive('online-status-changed', (respond, {status}) => {
+receive('online-status-changed', (reply, reject, {status}) => {
     logger('event:online-status-changed: '+status)
 
     onlineStatusWindow = status
@@ -378,7 +385,7 @@ receive('application-maximize', () => {
 })
 
 
-receive('open-collection-dialog', async (respond) => {
+receive('open-collection-dialog', async (reply) => {
 
     let [openError, filePaths] = await to(showOpenDialog({
         properties: ['openFile'],
@@ -425,10 +432,15 @@ receive('open-collection-dialog', async (respond) => {
 
     // then send it back to the client
 
-    return respond({collection})
+    return reply({collection})
 })
 
-receive('save-collection-dialog', (respond) => { // TODO
+receive('save-collection-dialog', (reply) => { // FIXME
+
+    console.log('TODO save-collection-dialog')
+
+    return;
+
 
     const onSaveError = (error) => {
         //reinit files
@@ -480,13 +492,13 @@ receive('save-collection-dialog', (respond) => { // TODO
 
 
 
-receive('product', (respond, {index}) => {
+receive('product', (reply, reject, {index}) => {
 
     // return a single product from the collection
     let product = getCatalogStorageProduct(index)
 
     if( product ) {
-        return respond({index, product})
+        return reply({index, product})
     }
 
     // TODO : if multiple not found product : multiple events on IPC renderer
@@ -505,6 +517,7 @@ receive('product', (respond, {index}) => {
 
 
 console.log('Running...')
+
 console.log(
     'electron', process.versions.electron,
     'node', process.versions.node,

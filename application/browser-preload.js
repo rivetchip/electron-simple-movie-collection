@@ -16,7 +16,7 @@ webFrame.registerURLSchemeAsPrivileged('moviesapi', {
     supportFetchAPI: true
 })
 
-// IPC main/renderer communication
+// IPC main/renderer communication OLD DEPRECATED TODO use ipc()
 
 window.send = ( channel, args ) => {
     return ipcRenderer.send(channel, args)
@@ -27,17 +27,26 @@ window.receive = ( channel, listener ) => {
 }
 
 /**
- * Send/receive events communications with Main
+ * Send/receive events communications with IPC Main
  * eg: send 'hello', Main reply with 'hello' and get the results as a promise
  * 
  * @param {String} channel 
  * @param {Object} args 
  */
 window.ipc = (channel, args) => {
+
+    const responseChannel = 'id-'+Math.random()+Date.now() // on the fly
+
     return new Promise((resolve, reject) => {
-        ipcRenderer.send(channel, args) // send event
-        ipcRenderer.once(channel, (event, result) => { // reply event   // TODO: max event listener            
-            resolve(result)
+
+        ipcRenderer.once(responseChannel, (event, message) => {
+            const {error, args} = message
+
+            return error ? reject(error) : resolve(args)
+        })
+
+        ipcRenderer.send(channel, {
+            responseChannel, args
         })
     })
 }
