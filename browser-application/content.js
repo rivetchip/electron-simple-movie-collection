@@ -39,7 +39,9 @@ if( previousSelectedProduct ) {
 //openProductDisplay
 
 
-
+function identity(v) {
+    return v
+}
 
 
 
@@ -112,7 +114,7 @@ var actions = {
             location: null,
             productIndex: null,
             product: null,
-            products: new Map(collection)
+            products: collection
         }
     },
 
@@ -137,9 +139,6 @@ var actions = {
     onSearch: ({keyword, keyCode}) => ({products}, actions) => {
         console.log('onSearch', keyword)
 
-        // set to lower case in case of search accents and others
-        keyword = keyword.toLowerCase()
-
         // if escape : show all products
         let showEverything = false
 
@@ -149,16 +148,23 @@ var actions = {
 
         // hide all products based on keyword ; or if escape : show the all
 
-        products.forEach((product, index) => {
-            let {title} = product
-            title = title.toLowerCase()
+        let lowerCase = (text) => text.toLowerCase()
 
-            product.hidden = showEverything ? false : title.indexOf(keyword) < 0
+        let matchText = (text, keyword) => text.includes(keyword)
 
-            products.set(index, product)
-        })
+        let mapHiddenOnTitle = ({format = lowerCase, match = matchText, showEverything}) => {
+            return (product) => {
+                let title = format(product.title) // in case of search accents and others
 
-        return {products}
+                product.hidden = showEverything ? false : !match(title, keyword)
+
+                return product
+            }
+        }
+
+        let hiddenOnTitle = mapHiddenOnTitle({format: lowerCase, match: matchText, showEverything})
+
+        return {products: products.map(hiddenOnTitle)}
     },
     
     onProductFavorite: ({index}) => ({products}, actions) => {

@@ -260,10 +260,6 @@ const setCatalogStorageFrom = (content) => {
 
     const storage = Object.assign({}, defaults, content) // shallow merge
 
-    // construct the mapped collection
-
-    storage.collection = new Map(storage.collection)
-
     //.map((product, index) => [index, product])
 
     // set the new storage to the catalog
@@ -276,15 +272,10 @@ const getCatalogStorageCollection = () => {
     return catalogStorage.collection
 }
 
-// return the collection of all products
-const getCatalogStorageCollectionMapped = () => {
-    return [...catalogStorage.collection]
-}
-
 // get a single product
 const getCatalogStorageProduct = (index) => {
 
-    let product = catalogStorage.collection.get(index)
+    let product = catalogStorage.collection[index]
 
     return product 
 }
@@ -301,16 +292,14 @@ const getProductsSimpleFrom = (collection) => {
 
     let products = []
 
-    collection.forEach(([index, product]) => {
+    collection.forEach((product) => {
         // [index, {product}] ; foreach.index = real index
-        
-        products.push([
-            index, {
-                title: product.title,
-                favorite: product.favorite,
-                // poster: product.poster
-            }
-        ])
+
+        products.push({
+            title: product.title,
+            favorite: product.favorite,
+            // poster: product.poster
+        })
     })
 
     return products
@@ -421,7 +410,7 @@ receive('open-collection-dialog', async (reply) => {
 
     // get the current collection, as an array [id, {product}]
 
-    const collectionMap = getCatalogStorageCollectionMapped()
+    const collectionMap = getCatalogStorageCollection()
 
     const collection = getProductsSimpleFrom(collectionMap)
 
