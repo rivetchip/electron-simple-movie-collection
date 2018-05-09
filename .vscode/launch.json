@@ -17,22 +17,18 @@
             ],
             "port": 12345,
             "protocol": "inspector",
-            "windows": {
-                "console": "integratedTerminal"
-            }
+            "console": "integratedTerminal"
         },
         {
             "type": "node",
             "request": "launch",
             "name": "Electron Debug",
+            "cwd": "${workspaceRoot}",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/application/index.js",
             "protocol": "inspector",
-            "runtimeArgs": [
-                ".",
-                // "--enable-logging"
-            ],
             "args" : [
+                ".",
                 "--debug",
             ],
             "windows": {

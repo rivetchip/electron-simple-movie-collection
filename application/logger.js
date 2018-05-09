@@ -6,20 +6,20 @@ const package = require('../package.json')
  * 
  * @param {Array} messages 
  */
-const logger = (...messages) => {
+const logger = (stream) => (...messages) => {
     messages.forEach((message) => {
-        console.log('\x1b[36m%s\x1b[0m', '[logger]')
+        stream('\x1b[36m%s\x1b[0m', '[logger]')
     
         if(message.message){
-            console.log(message.message)
+            stream(message.message)
         }
 
         if(message.stack){
-            console.log(message.stack)
+            stream(message.stack)
         }
 
-        console.log(message)
+        stream(message)
     })
 }
 
-exports.logger = logger
+exports.logger = logger(console.log)
