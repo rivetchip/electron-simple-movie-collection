@@ -269,10 +269,11 @@ receive('notification', (event, message) => {
 
 
 const updateOnlineStatus = (event) => {
-    return send('online-status-changed', navigator.onLine ? 'online' : 'offline')
+    let status =  navigator.onLine ? 'online' : 'offline'
+    return ipc('online-status-changed', {status})
 }
 
-addEventListener('online',  updateOnlineStatus)
+addEventListener('online', updateOnlineStatus)
 addEventListener('offline', updateOnlineStatus)
 
 
