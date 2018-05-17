@@ -22,6 +22,18 @@ const userSettingsFilename = pathjoin(userDataPath, 'settings.json');
 
 const debug = process.argv.includes('--debug')
 
+if( debug ) {
+    const electronIpcLog = require('./electron-ipc-log')
+
+    electronIpcLog((event) => {
+        let {channel, data, sent, sync} = event
+        let args = [sent ? '⬆️' : '⬇️', channel, ...data]
+        let mode = sync ? 'ipc:sync' : 'ipc'
+
+        console.log(mode, ...args)
+    })
+}
+
 // app.disableHardwareAcceleration()
 
 let win

@@ -32,6 +32,7 @@ folder ./release-builds/
 todo credits :
 --------------
 
+https://github.com/ungoldman/electron-ipc-log
 
 http://www.latofonts.com/lato-free-fonts/
 

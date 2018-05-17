@@ -285,7 +285,7 @@ addEventListener('offline', updateOnlineStatus)
 
 
 
-
+//deviceready
 document.addEventListener('DOMContentLoaded', () => {
 
 })
