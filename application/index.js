@@ -27,7 +27,7 @@ if( debug ) {
 
     electronIpcLog((event) => {
         let {channel, data, sent, sync} = event
-        let args = [sent ? '⬆️' : '⬇️', channel, ...data]
+        let args = [sent ? '-->' : '<--', channel, ...data]
         let mode = sync ? 'ipc:sync' : 'ipc'
 
         console.log(mode, ...args)
