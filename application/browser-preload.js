@@ -56,9 +56,9 @@ window.ipc = (channel, args) => {
 
 // disable eval
 
-// window.eval = global.eval = () => {
-//     throw new Error('no eval')
-// }
+window.eval = global.eval = () => {
+    throw new Error('no eval')
+}
 
 
 
