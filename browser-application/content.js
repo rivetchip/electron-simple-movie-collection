@@ -242,7 +242,7 @@ const view = ({appTitle, isFullscreen, location, providerIndex, providers, produ
         </app-layout>
 
         <AppStatusbar
-            productCount={(products && products.size) || 0}
+            productCount={(products && products.length) || 0}
         />
 
     </app>)
