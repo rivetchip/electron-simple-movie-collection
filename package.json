@@ -10,8 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run bundle && electron .",
     "debug": "electron . --inspect=12345 --debug-brk --debug",
-    "serve": "npx parcel serve browser-application/index.html --out-file index --out-dir browser-bundle/ --public-url ./ --target browser --hmr-hostname 127.0.0.1 --hmr-port 6789 --port 8080",
-    "bundle": "npx parcel build browser-application/index.html --out-file index --out-dir browser-bundle/ --public-url ./ --target browser --no-source-maps",
+    "serve": "parcel serve browser-application/index.html --out-file index --out-dir browser-bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
+    "bundle": "parcel build browser-application/index.html --out-file index --out-dir browser-bundle/ --public-url ./ --target browser --no-source-maps",
     "build-clean": "rm -rf ./release-builds",
     "build-all": "npm run clean && npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
     "build-linux32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
@@ -28,6 +28,6 @@
     "asar": "^0.14.3",
     "electron": "^2.0.0",
     "electron-packager": "^11.2.0",
-    "parcel-bundler": "^1.7.0"
+    "parcel-bundler": "^1.8.1"
   }
 }
