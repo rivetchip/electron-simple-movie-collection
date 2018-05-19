@@ -242,7 +242,7 @@ const view = ({appTitle, isFullscreen, location, providerIndex, providers, produ
         </app-layout>
 
         <AppStatusbar
-            productCount={(products && products.size) || 0}
+            productCount={(products && products.length) || 0}
         />
 
     </app>)
@@ -269,10 +269,11 @@ receive('notification', (event, message) => {
 
 
 const updateOnlineStatus = (event) => {
-    return send('online-status-changed', navigator.onLine ? 'online' : 'offline')
+    let status =  navigator.onLine ? 'online' : 'offline'
+    return ipc('online-status-changed', {status})
 }
 
-addEventListener('online',  updateOnlineStatus)
+addEventListener('online', updateOnlineStatus)
 addEventListener('offline', updateOnlineStatus)
 
 
@@ -284,7 +285,7 @@ addEventListener('offline', updateOnlineStatus)
 
 
 
-
+//deviceready
 document.addEventListener('DOMContentLoaded', () => {
 
 })
