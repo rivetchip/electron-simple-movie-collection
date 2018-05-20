@@ -251,11 +251,6 @@ const getCatalogStorageFilename = () => {
     return catalogStorageFilename
 }
 
-// reinit the catalogue storage filename
-const revertCatalogStorageFilename = () => {
-    catalogStorageFilename = null
-}
-
 // empty the catalog storage
 const emptyCatalogStorage = () => {
     catalogStorage = {}
@@ -293,6 +288,7 @@ const getCatalogStorageProduct = (index) => {
 }
 
 // construct file for when we want to save it to a file or other
+// TODO : if save when there is no movies : options, version are not set
 const getCatalogStorageForSaving = () => {
     let content = catalogStorage
 
@@ -347,13 +343,11 @@ const onReadFileCatalogStorage = (filename) => {
 }
 
 // save the collection
-const onSaveFileCatalogStorage = (filename, successHandler, errorhandler) => {
+const onSaveFileCatalogStorage = (filename) => {
     let content = getCatalogStorageForSaving() // construct catalogue
     content = JSON.stringify(content) // TODO check if var not overitted ; passby référence
 
     return writeFile(filename, content)
-    .then((response) => successHandler())
-    .catch((error) => errorhandler(error))
 }
 
 
@@ -388,37 +382,32 @@ receive('application-maximize', () => {
 
 receive('open-collection-dialog', async (reply) => {
 
-    let [openError, filePaths] = await to(showOpenDialog({
+    let [errorOpen, filePaths] = await to(showOpenDialog({
         properties: ['openFile'],
         filters: [
             {name: 'Movie Collection', extensions: ['json']}
         ]
     }))
-    // .catch((error) => {
 
-    if(openError){
-
-        //reinit only the filename! in case a collection is already opened
-        revertCatalogStorageFilename()
-
-        return logger(openError)
+    if(errorOpen){
+        return logger(errorOpen)
     }
 
     // then we try to read the current file
 
     let filename = filePaths[0] // get first file
 
-    let [readError, storage] = await to(onReadFileCatalogStorage(filename))
+    let [errorRead, content] = await to(onReadFileCatalogStorage(filename))
 
-    if(readError){
-        showErrorBox('Cannot open file', readError.message || readError)
+    if(errorRead){
+        showErrorBox('Cannot open file', errorRead.message || errorRead)
 
-        return logger(readError)
+        return logger(errorRead)
     }
 
-    // set the catalog storage
+    // set the catalog content
 
-    setCatalogStorageFrom(storage)
+    setCatalogStorageFrom(content)
 
     // get the current collection, as an array [id, {product}]
 
@@ -436,59 +425,52 @@ receive('open-collection-dialog', async (reply) => {
     return reply({collection})
 })
 
-receive('save-collection-dialog', (reply) => { // FIXME
+receive('save-collection-dialog', async (reply) => {
 
-    console.log('TODO save-collection-dialog')
-
-    return;
-
-
-    const onSaveError = (error) => {
-        //reinit files
-        revertCatalogStorageFilename()
-
-        showErrorBox('Cannot save file', error)
-    }
-
-    const onSaveCollection = (filename) => {
+    const onSaveCollection = async (filename) => {
         // when validate save file
 
-        // onSaveFileCatalogStorage(filename, {
-        //     success(){},
-        //     reject(error){}
-        // })
+        let [errorSave, successSave] = await to(onSaveFileCatalogStorage(filename))
 
-        let promise = onSaveFileCatalogStorage(filename, () => {
-            // send notification
-            send('notification', 'Fichier sauvegardé!')
-        },
-        (error) => {
-            logger(error)
-            onOpenError(error.message || error)
-        })
+        if( errorSave ) {
+            logger(errorSave)
+
+            return showErrorBox('Cannot save file', errorSave.message || errorSave)
+        }
+        
+        // set the opened file
+
+        setCatalogStorageFilename(filename)
+
+        // send notification
+
+        send('notification', 'Fichier sauvegardé!')
     }
+
+    // get current opened file (if already set)
 
     let filename = getCatalogStorageFilename()
 
     if( filename ) {
-        onSaveCollection(filename)
+        return onSaveCollection(filename)
     }
-    else {
-        // the file doesn't exist yet, we show the prompt
 
-        showSaveDialog({
-            properties: ['openFile'],
-            filters: [
-                {name: 'Movie Collection', extensions: ['json']}
-            ]
-        })
-        .then((filename) => {
-            setCatalogStorageFilename(filename)
+    // the file doesn't exist yet, we show the prompt
 
-            return onSaveCollection(filename)
-        })
-        .catch((error) => logger('showSaveDialog: no file set'))
+    let [errorSave, newfilename] = await to(showSaveDialog({
+        properties: ['openFile'],
+        filters: [
+            {name: 'Movie Collection', extensions: ['json']}
+        ]
+    }))
+
+    if( errorSave ) {
+        return logger('showSaveDialog: no file set')
     }
+
+    // save file if all is correct
+
+    return onSaveCollection(newfilename)
 })
 
 
