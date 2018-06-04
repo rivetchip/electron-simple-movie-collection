@@ -1,6 +1,12 @@
 /** @jsx h */
 'use strict';
 
+window.send = ( channel, args ) => {}
+    window.receive = ( channel, listener ) => {}
+    window.ipc = (channel, args) => {}
+
+
+
 import { h, app as hyperapp } from './hyperapp'
 
 // components
