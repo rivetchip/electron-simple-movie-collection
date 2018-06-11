@@ -3,10 +3,14 @@ import { h, app as hyperapp } from '../hyperapp'
 
 
 
-export const AppToolbar = ({providerIndex, providers, onProviderChange, onOpen, onSave, onNewProduct}) => (
+export const AppToolbar = ({providerIndex, providers, onProviderChange, onHamburger, onOpen, onSave, onNewProduct}) => (
 
     <app-toolbar>
         <div>
+            <button class="hamburger" onclick={event => onHamburger()}>
+                Menu
+            </button>
+
             <button class="open" onclick={event => onOpen()} title="Ouvrir un fichier">
                 Ouvrir
             </button>

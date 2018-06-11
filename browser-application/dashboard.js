@@ -1,9 +1,10 @@
 /** @jsx h */
 'use strict';
 
-window.send = ( channel, args ) => {}
-    window.receive = ( channel, listener ) => {}
-    window.ipc = (channel, args) => {}
+//TODO cordova
+// window.send = ( channel, args ) => {}
+// window.receive = ( channel, listener ) => {}
+// window.ipc = (channel, args) => {}
 
 
 
@@ -55,6 +56,7 @@ function identity(v) {
 const state = { // initial state
     isLoading: false,
     isFullscreen: false,
+    isHamburgerOpen: false,
 
     appTitle: 'Movie Collection',
 
@@ -95,6 +97,10 @@ var actions = {
 
 
     // Application toolbar
+
+    onToolbarHamburger: () => ({isHamburgerOpen}) => { // ham click
+        return {isHamburgerOpen: !isHamburgerOpen}
+    },
 
     onToolbarOpen: () => async (state, {onReceiveCollection}) => {
         onReceiveCollection(await ipc('open-collection-dialog')) // {collection[index, {product}]}
@@ -190,7 +196,7 @@ var actions = {
 
 
 
-const view = ({appTitle, isFullscreen, location, providerIndex, providers, productIndex, product, products}, actions) => {
+const view = ({appTitle, isFullscreen, isHamburgerOpen, location, providerIndex, providers, productIndex, product, products}, actions) => {
 
     let productPanel
 
@@ -204,7 +210,11 @@ const view = ({appTitle, isFullscreen, location, providerIndex, providers, produ
         productPanel = <ProductPanelEmpty />
     }
 
-    return (<app className={['viewport', isFullscreen && 'is-fullscreen'].filter(c => !!c).join(' ')}>
+    return (<app className={[
+        'viewport',
+        isFullscreen && 'is-fullscreen',
+        isHamburgerOpen && 'is-hamburger-open'
+    ].filter(c => !!c).join(' ')}>
 
         <AppTitlebar
             title={appTitle}
@@ -214,6 +224,7 @@ const view = ({appTitle, isFullscreen, location, providerIndex, providers, produ
         />
 
         <AppToolbar
+            onHamburger={actions.onToolbarHamburger}
             onOpen={actions.onToolbarOpen}
             onSave={actions.onToolbarSave}
             onNewProduct={actions.onToolbarNewProduct}

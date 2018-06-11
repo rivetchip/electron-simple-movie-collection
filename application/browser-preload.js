@@ -35,6 +35,8 @@ window.receive = ( channel, listener ) => {
  */
 window.ipc = (channel, args) => {
 
+console.log(channel, args)
+
     const responseChannel = 'id-'+Math.random()+Date.now() // on the fly
 
     return new Promise((resolve, reject) => {
