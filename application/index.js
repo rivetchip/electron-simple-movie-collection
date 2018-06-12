@@ -96,7 +96,7 @@ function createWindow() {
     }
 
     win.loadURL(urlformat({
-        pathname: pathjoin(__dirname, '..', 'browser-bundle/index.html'),
+        pathname: pathjoin(__dirname, '..', 'electron-bundle/index.html'),
         protocol: 'file:',
         slashes: true
     }))

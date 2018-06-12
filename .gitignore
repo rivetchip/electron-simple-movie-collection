@@ -1,9 +1,5 @@
-release-builds/
 node_modules/
-bundle
-*bundle
-.cache
 package-lock.json
-logs
-*.log
-npm-debug.log*
+release-builds/
+*-bundle
+.cache
