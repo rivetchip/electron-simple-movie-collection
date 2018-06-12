@@ -5,7 +5,7 @@
 bugs list :
 starrating : use </> fragments
 - preload: window.ipc => max events listeners exeed
-
+- title bar alignement (sur toute largeur, pas juste le width)
 
 
 todo debugging :
