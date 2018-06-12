@@ -134,7 +134,7 @@ var actions = {
     showProductPreview: ({index, product}) => {
         console.log('showProductPreview', index)
 
-        return {productIndex: index, product, location: 'preview'}
+        return {productIndex: index, product, isHamburgerOpen: false, location: 'preview'}
     },
 
     // set the selected ; then open the preview
