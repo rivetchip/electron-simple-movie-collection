@@ -34,8 +34,7 @@ window.receive = ( channel, listener ) => {
  * @param {Object} args 
  */
 window.ipc = (channel, args) => {
-
-console.log(channel, args)
+    // console.log('window.ipc', channel, args)
 
     const responseChannel = 'id-'+Math.random()+Date.now() // on the fly
 
@@ -66,3 +65,4 @@ window.eval = global.eval = () => {
 
 
 console.log('preload.js')
+console.log(process)

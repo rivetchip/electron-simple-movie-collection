@@ -152,11 +152,7 @@ var actions = {
         console.log('onSearch', keyword)
 
         // if escape : show all products
-        let showEverything = false
-
-        if( keyCode == 'Escape' ) {
-            showEverything = true
-        }
+        let showEverything = keyCode == 'Escape'
 
         // hide all products based on keyword ; or if escape : show the all
 
@@ -164,19 +160,22 @@ var actions = {
 
         let matchText = (text, keyword) => text.includes(keyword)
 
-        let mapHiddenOnTitle = ({format = lowerCase, match = matchText, showEverything}) => {
-            return (product) => {
-                let title = format(product.title) // in case of search accents and others
-
-                product.hidden = showEverything ? false : !match(title, keyword)
-
-                return product
-            }
+        let mapHiddenOnTitle = ({format = lowerCase, match = matchText}) => (product) => {
+            
+            product.hidden = !match(format(product.title), keyword)
+            
+            return product
         }
 
-        let hiddenOnTitle = mapHiddenOnTitle({format: lowerCase, match: matchText, showEverything})
+        let mapShowOnTitle = () => (product) => {
+            product.hidden = false;
+            return product
+        }
 
-        return {products: products.map(hiddenOnTitle)}
+        let productMapFn = showEverything ? mapShowOnTitle() : mapHiddenOnTitle({format: lowerCase, match: matchText})
+
+
+        return {products: products.map(productMapFn)}
     },
     
     onProductFavorite: ({index}) => ({products}, actions) => {

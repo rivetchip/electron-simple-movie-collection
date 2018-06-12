@@ -9,14 +9,13 @@
 
     <link rel="stylesheet" type="text/css" href="style.css">
 
+    <!-- <script type="text/javascript" src="cordova.js"></script> -->
 </head>
 <body>
 
     <app class="viewport"></app>
 
     <script type="text/javascript" src="dashboard.js"></script>
-
-    <!-- <script>document.write(process.versions.node)</script> -->
 
 </body>
 </html>
@@ -25,34 +24,6 @@
 
 
 <!--
-
-<app-layout>
-
-    <app-sidebar>
-
-        <search-toolbar>
-            <input class="search-input" type="search" placeholder="Recherche">
-        </search-toolbar>
-
-        <column-items>
-            <product-item>
-                <div class="title">test movie1</div>
-                <div class="favorite"></div>
-            </product-item>
-            <product-item>
-                <div class="title">test movie2</div>
-                <div class="favorite"></div>
-            </product-item>
-
-
-        </column-items>
-
-    
-    </app-sidebar>
-
-
-    <column-product>
-
         <product-publication data-index="" style="display: block">
 
             <div class="publication-header">
@@ -60,7 +31,6 @@
             
                 <button class="download">Télécharger</button>
             </div>
-
 
             <div class="video-panels">
 
@@ -74,179 +44,18 @@
 
                 </div>
 
-                <div class="video-details">
 
-                    <div class="video-attribute">
-                        <label>Note:</label>
+<div class="video-attribute">
+    <label>Titre original:</label>
+    <input name="originalTitle" class="video-field" type="text" placeholder="" />
+</div>
 
-                        <div class="stars-rating">
-                            <input class="stars-rating-check" name="rating" id="rating-none" value="0" type="radio" checked>
-                            <label title="Non-noté" aria-label="No rating" class="stars-rating-none" for="rating-none"></label>
-                            
-                            <input class="stars-rating-check" name="rating" id="rating-1" value="1" type="radio">
-                            <label aria-label="1 star" class="stars-rating-star" for="rating-1"></label>
-                            
-                            <input class="stars-rating-check" name="rating" id="rating-2" value="2" type="radio">
-                            <label aria-label="2 stars" class="stars-rating-star" for="rating-2"></label>
+<div class="video-overview">
 
-                            <input class="stars-rating-check" name="rating" id="rating-3" value="3" type="radio">
-                            <label aria-label="3 stars" class="stars-rating-star" for="rating-3"></label>
-                            
-                            <input class="stars-rating-check" name="rating" id="rating-4" value="4" type="radio">
-                            <label aria-label="4 stars" class="stars-rating-star" for="rating-4"></label>
-
-                            <input class="stars-rating-check" name="rating" id="rating-5" value="5" type="radio">
-                            <label aria-label="5 stars" class="stars-rating-star" for="rating-5"></label>
-                        </div>
-
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Note presse:</label>
-
-                        <div class="stars-rating">
-                            <input class="stars-rating-check" name="ratingPress" id="ratingPress-none" value="0" type="radio" checked>
-                            <label title="Non-noté" aria-label="No rating" class="stars-rating-none" for="ratingPress-none"></label>
-                            
-                            <input class="stars-rating-check" name="ratingPress" id="ratingPress-1" value="1" type="radio">
-                            <label aria-label="1 star" class="stars-rating-star" for="ratingPress-1"></label>
-                            
-                            <input class="stars-rating-check" name="ratingPress" id="ratingPress-2" value="2" type="radio">
-                            <label aria-label="2 stars" class="stars-rating-star" for="ratingPress-2"></label>
-
-                            <input class="stars-rating-check" name="ratingPress" id="ratingPress-3" value="3" type="radio">
-                            <label aria-label="3 stars" class="stars-rating-star" for="ratingPress-3"></label>
-                            
-                            <input class="stars-rating-check" name="ratingPress" id="ratingPress-4" value="4" type="radio">
-                            <label aria-label="4 stars" class="stars-rating-star" for="ratingPress-4"></label>
-
-                            <input class="stars-rating-check" name="ratingPress" id="ratingPress-5" value="5" type="radio">
-                            <label aria-label="5 stars" class="stars-rating-star" for="ratingPress-5"></label>
-                        </div>
-
-                    </div>
-
-
-                    <div class="video-attribute">
-                        <label>Titre original:</label>
-                        <input name="originalTitle" class="video-field" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Date de sortie:</label>
-                        <input name="dateReleased" class="video-field" type="text" placeholder="" />
-                    </div>
-                    <div class="video-attribute">
-                        <label>Réalisateur:</label>
-                        <input name="director" class="video-field" type="text" placeholder="" />
-                    </div>
-                    <div class="video-attribute">
-                        <label>Durée:</label>
-                        <input name="duration" class="video-field" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Nationalité:</label>
-                        <input name="countries" class="video-field video-field-multiple" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Genres:</label>
-                        <input name="genres" class="video-field video-field-multiple" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-attribute">
-                        <label>Acteurs:</label>
-                        <input name="actors" class="video-field video-field-multiple" type="text" placeholder="" />
-                    </div>
-
-                    <div class="video-overview">
-
-                        <div class="video-attribute">
-                            <label>Synopsis:</label>
-                            <textarea rows="5" name="description" class="video-field video-field-contenteditable"></textarea>
-                        </div>
+    <div class="video-attribute">
+        <label>Synopsis:</label>
+        <textarea rows="5" name="description" class="video-field video-field-contenteditable"></textarea>
+    </div>
                     
-                    </div>
-
-                </div><!-- video-details
-
-            </div><!-- video-panels
-
-
-
-        </product-publication>
-
-
-        <product-preview data-index="" style="display: none">
-
-            <div class="video-panels">
-
-                <img data-field="poster" class="video-poster" src="imgs/placeholder-poster.png" />
-
-                <div class="video-details">
-                    <div data-field="title" class="video-placeholder video-title">{{video-title}}</div>
-                    <div data-field="dateReleased" class="video-panel-subtitle video-placeholder">{{video-date-released}}</div>
-
-                    <div class="ratings-wrap">
-                        <span class="rating">5</span>
-                        <div class="expanded-rating">
-                            <div class="star-rating">
-                                <span class="star on"></span>
-                                <span class="star on"></span>
-                                <span class="star on"></span>
-                                <span class="star on"></span>
-                                <span class="star on"></span>
-                                <span class="star "></span>
-                                <span class="star "></span>
-                                <span class="star "></span>
-                                <span class="star "></span>
-                                <span class="star "></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="video-attributes">
-                        <div class="video-attribute video-director">
-                            <label>Réalisateur:</label>
-                            <div data-field="director" class="video-placeholder">{{video-director}}</div>
-                        </div>
-                        <div class="video-attribute video-duration">
-                            <label>Durée:</label>
-                            <div data-field="duration" class="video-placeholder">{{video-duration}}</div>
-                        </div>
-                        <div class="video-attribute video-countries">
-                            <label>Nationalité:</label>
-                            <div data-field="countries" class="video-placeholder">{{video-countries}}</div>
-                        </div>
-                        <div class="video-attribute video-genres">
-                            <label>Genres:</label>
-                            <div data-field="genres" class="video-placeholder">{{video-duration}}</div>
-                        </div>
-                        <div class="video-attribute video-actors">
-                            <label>Actors :</label>
-                            <div data-field="actors" class="video-placeholder">{{video-actors}}</div>
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="video-overview">
-                <h3 class="video-panel-title">Synopsis</h3>
-                <div class="video-description">
-                    {{video-description}}
-                </div>
-            </div>
-
-        </product-preview>
-
-
-    </column-product>
-
-</app-layout>
-
-
 
 -->
