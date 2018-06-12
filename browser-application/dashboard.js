@@ -57,6 +57,7 @@ const state = { // initial state
     isLoading: false,
     isFullscreen: false,
     isHamburgerOpen: false,
+    isMobile: appDevice == 'mobile',
 
     appTitle: 'Movie Collection',
 
@@ -195,7 +196,7 @@ var actions = {
 
 
 
-const view = ({appTitle, isFullscreen, isHamburgerOpen, location, providerIndex, providers, productIndex, product, products}, actions) => {
+const view = ({appTitle, isMobile, isFullscreen, isHamburgerOpen, location, providerIndex, providers, productIndex, product, products}, actions) => {
 
     let productPanel
 
@@ -211,7 +212,8 @@ const view = ({appTitle, isFullscreen, isHamburgerOpen, location, providerIndex,
 
     return (<app className={[
         'viewport',
-        isFullscreen && 'is-fullscreen',
+        isMobile && 'is-mobile',
+        isFullscreen || isMobile && 'is-fullscreen',
         isHamburgerOpen && 'is-hamburger-open'
     ].filter(c => !!c).join(' ')}>
 

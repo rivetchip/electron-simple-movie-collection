@@ -78,9 +78,6 @@ html, body, .viewport {
 .is-visible {
     display: block;
 }
-.is-selected {
-
-}
 
 
 /* reset */
@@ -158,6 +155,20 @@ app-titlebar {
 
     padding: 5px;
 }
+.is-mobile app-titlebar {
+    height: 40px;
+    min-height: 40px;
+}
+.is-mobile app-controls {
+    display: none;
+}
+
+app-titlebar .title {
+    padding: 0 10px;
+    width: 100%; /* left controls size*/
+    text-align: center;
+}
+
 app-controls { /* main app buttons controls*/
     display: flex;
     position: relative;
@@ -272,7 +283,6 @@ app-toolbar { /* toolbar with main icons */
 
     display: flex;
     align-items: center;
-    justify-content: space-between;
 
     height: 45px;
     min-height: 45px;
@@ -325,6 +335,7 @@ app-toolbar button:hover {
 
 #providers {
     display: flex;
+    margin-left: auto;/*align right flex*/
 }
   
 .provider-switch {
@@ -371,6 +382,8 @@ app-layout { /* main content with colmun and product info */
 app-sidebar {
     display: flex;
     flex-direction: column;
+    width: 300px;
+    box-sizing: border-box;
 
     border-right: 1px solid #1b1f20;
     background-color: #2b3032;
@@ -451,7 +464,6 @@ product-items { /*left column*/
     font-weight: 400;
 
     height: 100%;
-    width: 300px;
     overflow: hidden;
     overflow-y: auto;
 }
@@ -507,6 +519,7 @@ product-preview { /* right panel with all product stuffs */
     width: 100%;
     height: 100%;
     padding: 25px;
+    overflow: hidden;
     overflow-y: auto;
 
     background-color: #232729;
@@ -531,7 +544,6 @@ product-preview .video-panel-subtitle {
 }
 
 
-
 product-preview .video-details {
     display: flex;
     flex-direction: column;
@@ -552,7 +564,7 @@ product-preview .video-attributes label {
 }
 product-preview .video-attribute {
     display: flex;
-    /* align-items: center; */
+    flex-wrap: wrap;
 
     margin-bottom: 12px;
 }
@@ -615,10 +627,6 @@ product-publication .publication-header {
 product-publication .publication-header-search {
     background-color: #2b3032;
 }
-product-publication .publication-innercontent {
-    /* display: inline-block; */
-}
-
 
 
 product-publication .video-panels {
@@ -822,7 +830,7 @@ snackbar.is-visible {
 
 
 
-@media all and ( max-width: 700px ) {
+@media all and ( max-width: 650px ) {
 
     /* top toolbar */
 
@@ -843,10 +851,51 @@ snackbar.is-visible {
         display: none;
     }
 
-    .is-hamburger-open {
+    app-sidebar {
+        width: 100%;
+        margin-left: -100%;
+        transition: all 200ms ease-in;
+        border-right: 0;
+    }
+    .is-hamburger-open app-sidebar {
+        margin-left: initial;
+    }
 
+    search-toolbar {
+        height: 60px;
+        min-height: 60px;
+        padding: 10px;
+    }
+
+    /*content*/
+
+    product-preview {
+        padding: 15px;
+    }
+
+    product-preview .video-title,
+    product-preview .video-panel-title,
+    product-preview .video-panel-subtitle {
+        text-align: center;
+    }
+
+    product-preview .video-attributes label {
+        margin-bottom: 12px;
+        width: 100%;
+        min-width: 100%;
+        text-align: center;
+    }
+    product-preview .video-attribute {
+        align-items: center;
+        flex-direction: column;
+    }
+
+    product-preview .video-poster {
+        display: none; /*todo*/
     }
 
 
-
+    .stars-rating {
+        justify-content: center;
+    }
 }
