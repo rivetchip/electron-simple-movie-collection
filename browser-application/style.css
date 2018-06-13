@@ -873,6 +873,11 @@ snackbar.is-visible {
         padding: 15px;
     }
 
+
+    product-preview .video-details {
+        width: 100%;
+    }
+
     product-preview .video-title,
     product-preview .video-panel-title,
     product-preview .video-panel-subtitle {
