@@ -1,3 +1,5 @@
+
+/*
 const package = require('../package.json')
 
 // Electron flow
@@ -12,7 +14,7 @@ const {stringify: urlstringify} = require('querystring')
 // Application fow
 
 const {logger} = require('./logger')
-
+*/
 
 
 //// Application custom Protocol API
@@ -246,7 +248,7 @@ const moviesapiRequest = (provider, language, action, keyword) => {
 
     // get current action configuration
 
-    let {requestUrl: actionUrl, parameters = {}, transitions} = actions[action]
+    let {requestUrl: actionUrl, parameters, transitions} = actions[action]
 
 
     // replace action url placeholders
@@ -263,7 +265,7 @@ const moviesapiRequest = (provider, language, action, keyword) => {
     // merge default params with params
 
     if(defaultParameters) {
-        parameters = Object.assign({}, defaultParameters, parameters)
+        parameters = Object.assign({}, defaultParameters, parameters || {})
     }
 
     // if parameters set, replace placeholder values

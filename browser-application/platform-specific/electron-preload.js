@@ -3,7 +3,14 @@
 const electron = require('electron')
 const {remote, ipcRenderer, webFrame} = electron
 
-const remoteWindow = remote.getCurrentWindow()
+const fs = require('fs')
+
+
+
+
+
+
+
 
 
 

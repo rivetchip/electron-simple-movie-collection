@@ -24,6 +24,12 @@ import {AppStatusbar} from './components/app-statusbar'
 
 
 
+
+
+
+
+
+
 /*
 fetch('moviesapi://tmdb-fr/movie/78')
 // fetch('moviesapi://tmdb-fr/search/blade runner')
