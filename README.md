@@ -18,6 +18,11 @@ npm run serve
 rpm run debug ( with vscode inspect )
 
 
+ENOSPC
+echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+
+
+
 todo building :
 ---------------
 
