@@ -3,3 +3,6 @@ package-lock.json
 release-builds/
 *-bundle
 .cache
+android/obj/
+android/bin/
+android/classes.dex
