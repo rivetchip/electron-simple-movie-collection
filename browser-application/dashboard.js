@@ -63,7 +63,7 @@ const state = { // initial state
     isLoading: false,
     isFullscreen: false,
     isHamburgerOpen: false,
-    isMobile: appDevice == 'mobile',
+    isMobile: appPlatform == 'mobile',
 
     appTitle: 'Movie Collection',
 
