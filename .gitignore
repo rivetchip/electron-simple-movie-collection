@@ -1,8 +1,9 @@
 node_modules/
 package-lock.json
 release-builds/
-*-bundle
 .cache
+electron-bundle/
+android-bundle
 android/obj/
 android/bin/
 android/classes.dex
