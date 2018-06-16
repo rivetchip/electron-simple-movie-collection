@@ -1,5 +1,13 @@
 
-# Simple movie collection electron app
+# Simple Movie Collection cross-app
+
+Available on Linux, Windows, Mac, Android.
+
+
+TODO : I really need to write this README :)
+
+
+
 
 
 bugs list :
@@ -8,12 +16,12 @@ starrating : use </> fragments
 - title bar alignement (sur toute largeur, pas juste le width)
 
 
-todo debugging :
+todo debugging (desktop) :
 ----------------
 
 npm install
 
-npm run serve
+npm run serve (keep terminal open)
 
 rpm run debug ( with vscode inspect )
 
@@ -23,14 +31,24 @@ echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo s
 
 
 
-todo building :
----------------
+todo building desktop :
+-----------------------
 
 npm install
 
 npm run pack-linux64
 
-folder ./release-builds/
+>> ./release-builds/
+
+
+todo building webview android :
+-------------------------------
+
+npm install
+
+npm run bundle-android && ./android.sh
+
+>> ./android/bin/simplemoviecollection.apk
 
 
 
@@ -46,6 +64,8 @@ https://github.com/GNOME/adwaita-icon-theme
 star rating
 https://codepen.io/mburnette/pen/eNNZbm
 
+android build tool
+https://medium.com/@authmane512/7260e1e22676
 
 todo attribution: ( about page ) 🐛
 
