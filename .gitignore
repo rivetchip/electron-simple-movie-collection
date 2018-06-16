@@ -7,3 +7,4 @@ android/obj/
 android/bin/
 android/classes.dex
 android/mykey.keystore
+android/keystorepass

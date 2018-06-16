@@ -41,7 +41,7 @@ if [ ! -f mykey.keystore ]; then
 fi
 if [ -f mykey.keystore ]; then
     echo "Signing APK..."
-	$APKSIGNER sign --ks mykey.keystore bin/simplemoviecollection.apk --ks-pass file:keystorepass
+	$APKSIGNER sign --ks mykey.keystore --ks-pass file:keystorepass bin/simplemoviecollection.apk
 fi
 
 if [ "$1" == "test" ]; then
@@ -49,6 +49,7 @@ if [ "$1" == "test" ]; then
 	adb install -r bin/simplemoviecollection.apk
 	adb shell am start -n fr.spidery.moviecollection/.MainActivity
 
+	adb logcat -c # clear log
 	adb logcat -v color -s "CONSOLE"
 fi
 
