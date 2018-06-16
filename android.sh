@@ -29,7 +29,7 @@ echo "Translating in Dalvik bytecode..."
 $DX --dex --output=classes.dex obj
 
 echo "Making APK..."
-$AAPT package -f -m -F bin/hello.unaligned.apk -M AndroidManifest.xml -S res -I $PLATFORM
+$AAPT package -f -m -F bin/hello.unaligned.apk -M AndroidManifest.xml -S res -I $PLATFORM -A assets
 $AAPT add bin/hello.unaligned.apk classes.dex
 
 echo "Aligning APK..."
@@ -41,7 +41,7 @@ if [ ! -f mykey.keystore ]; then
 fi
 if [ -f mykey.keystore ]; then
     echo "Signing APK..."
-	$APKSIGNER sign --ks mykey.keystore bin/simplemoviecollection.apk
+	$APKSIGNER sign --ks mykey.keystore bin/simplemoviecollection.apk --ks-pass file:keystorepass
 fi
 
 if [ "$1" == "test" ]; then
