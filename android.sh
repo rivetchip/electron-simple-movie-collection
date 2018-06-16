@@ -15,6 +15,7 @@ PLATFORM="$SDK/platforms/android-28/android.jar"
 
 echo "Cleaning..."
 rm -rf obj/*
+rm -rf bin/*
 rm -rf java/fr/spidery/moviecollection/R.java
 
 echo "Generating R.java file..."
@@ -31,14 +32,24 @@ echo "Making APK..."
 $AAPT package -f -m -F bin/hello.unaligned.apk -M AndroidManifest.xml -S res -I $PLATFORM
 $AAPT add bin/hello.unaligned.apk classes.dex
 
-echo "Aligning and signing APK..."
-$APKSIGNER sign --ks mykey.keystore bin/hello.unaligned.apk
-$ZIPALIGN -f 4 bin/hello.unaligned.apk bin/hello.apk
+echo "Aligning APK..."
+$ZIPALIGN -f 4 bin/hello.unaligned.apk bin/simplemoviecollection.apk
+
+if [ ! -f mykey.keystore ]; then
+	echo "Generate Key..."
+	keytool -genkey -v -keystore mykey.keystore -keyalg RSA -keysize 2048 -validity 365 -alias app
+fi
+if [ -f mykey.keystore ]; then
+    echo "Signing APK..."
+	$APKSIGNER sign --ks mykey.keystore bin/simplemoviecollection.apk
+fi
 
 if [ "$1" == "test" ]; then
 	echo "Launching..."
-	adb install -r bin/hello.apk
+	adb install -r bin/simplemoviecollection.apk
 	adb shell am start -n fr.spidery.moviecollection/.MainActivity
+
+	adb logcat -v color -s "CONSOLE"
 fi
 
 
