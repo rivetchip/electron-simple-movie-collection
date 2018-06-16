@@ -51,6 +51,7 @@ if [ "$1" == "test" ]; then
 
 	adb logcat -c # clear log
 	adb logcat -v color -s "CONSOLE"
+	#adb logcat -v color --pid=`adb shell pidof -s fr.spidery.moviecollection`
 fi
 
 
