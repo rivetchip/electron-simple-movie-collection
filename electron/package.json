@@ -1,0 +1,9 @@
+{
+    "name": "movie-collection",
+    "productName": "Movie Collection",
+    "description": "Simple movie collection app",
+    "version": "1.0.0",
+    "author": "rivetchip",
+    "license": "MIT",
+    "main": "index.js"
+}
