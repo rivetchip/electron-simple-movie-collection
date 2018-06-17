@@ -40,6 +40,9 @@ npm run pack-linux64
 
 >> ./release-builds/
 
+missing libXss.so.1 >> dnf install libXScrnSaver
+
+
 
 todo building webview android :
 -------------------------------
