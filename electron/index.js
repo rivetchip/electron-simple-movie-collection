@@ -5,6 +5,11 @@ const {platform, argv} = process
 
 const {app, BrowserWindow, ipcMain, dialog} = require('electron')
 
+if(platform == 'linux') {
+    //--enable-transparent-visuals --disable-gpu
+    app.disableHardwareAcceleration() // transparency and fire win.ready-show
+}
+
 const {join: pathjoin} = require('path')
 const fs = require('fs')
 
