@@ -38,11 +38,13 @@ $ZIPALIGN -f 4 bin/hello.unaligned.apk bin/simplemoviecollection.apk
 if [ ! -f mykey.keystore ]; then
 	echo "Generate Key..."
 	keytool -genkey -v -keystore mykey.keystore -keyalg RSA -keysize 2048 -validity 365 -alias app
+	
+	echo "Don't forget to add the password to the 'keystorepass' file."
 fi
-if [ -f mykey.keystore ]; then
-    echo "Signing APK..."
-	$APKSIGNER sign --ks mykey.keystore --ks-pass file:keystorepass bin/simplemoviecollection.apk
-fi
+
+echo "Signing APK..."
+$APKSIGNER sign --ks mykey.keystore --ks-pass file:keystorepass bin/simplemoviecollection.apk
+
 
 if [ "$1" == "test" ]; then
 	echo "Launching..."
