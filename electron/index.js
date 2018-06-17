@@ -1,28 +1,23 @@
-const package = require('../package.json')
+const package = require('./package.json')
 
 // Electron flow
+const {platform, argv} = process
 
-const {app, BrowserWindow, ipcMain, dialog, globalShortcut} = require('electron')
-
-const platform = process.platform
+const {app, BrowserWindow, ipcMain, dialog} = require('electron')
 
 const {join: pathjoin} = require('path')
 const fs = require('fs')
-const {format: urlformat} = require('url')
 
 // Application fow
-
 const {logger} = require('./logger')
-const {registerMoviesapiProtocol} = require('./moviesapi-protocol')
 
 // User flow
-
 const userDataPath = app.getPath('userData')
 const userSettingsFilename = pathjoin(userDataPath, 'settings.json');
 
-const debug = process.argv.includes('--debug')
+const debug = argv.includes('--debug')
 
-if( debug ) {
+if(debug) {
     const electronIpcLog = require('./electron-ipc-log')
 
     electronIpcLog((event) => {
@@ -56,7 +51,7 @@ const shouldStartInstance = app.makeSingleInstance((commandLine, workingDirector
     return true
 })
 
-if( shouldStartInstance ) {
+if(shouldStartInstance) {
     app.quit()
 }
 
@@ -66,18 +61,18 @@ function createWindow() {
     let height = 800
 
     win = new BrowserWindow({
-        icon: pathjoin(__dirname, '..', 'app-icon.png'),
+        icon: pathjoin(__dirname, 'app-icon.png'),
         width,
         height,
         minWidth: width,
         minHeight: height,
         show: false, // wait when ready : prevents white flickering
-        // backgroundColor: '#fff',
+        //backgroundColor: '#fff',
 
         webPreferences: {
             nodeIntegration: false,
             // contextIsolation: true,
-            preload: pathjoin(__dirname, 'browser-preload.js'),
+            preload: 'electron-preload.js',
         },
 
         // borderless frame
@@ -95,21 +90,23 @@ function createWindow() {
         win.setSheetOffset(50) // +titlebar height on mac
     }
 
-    win.loadURL(urlformat({
-        pathname: pathjoin(__dirname, '..', 'electron-bundle/index.html'),
-        protocol: 'file:',
-        slashes: true
-    }))
+    win.loadFile(pathjoin(__dirname, 'www/index.html'))
 
-    // Launch fullscreen with DevTools open, usage: npm run debug
-    if( debug ) {
+    // Launch fullscreen with DevTools open
+    if(debug) {
         win.webContents.openDevTools()
     }
 
     // Show window when page is ready
-    win.on('ready-to-show', () => {
+    win.once('ready-to-show', () => {
+        console.log('ready-to-show')
+        
         win.show()
         win.focus()
+    })
+
+    win.webContents.on('dom-ready', function() {
+        console.log('dom-ready')
     })
 
     win.on('closed', () => {
@@ -123,27 +120,11 @@ function createWindow() {
     win.on('unmaximize', () => {
         send('fullscreen-status-changed', false)
     })
-
-
-    // TODO drag onto
-    app.on('open-file', (event, filePath) => {
-        console.log(filePath)
-    })
 }
 
-app.on('ready', () => {
-    // register movies api custom protocol
-    registerMoviesapiProtocol()
+// create brower win + workaround for linux transparency
+app.on('ready', () => setTimeout(createWindow, 100)) // TODO disable on future version
 
-    // debug mode, set a global shortcut to reload the app
-    // debug && globalShortcut.register('Ctrl+W', () => {
-    //     win.webContents.reloadIgnoringCache()
-    //     win.focus()
-    // })
-
-    // create brower win + workaround for linux transparency
-    setTimeout(createWindow, 100)
-})
 
 app.on('window-all-closed', () => {
     if( platform !== 'darwin' ) { // macos stay in dock
@@ -151,10 +132,15 @@ app.on('window-all-closed', () => {
     }
 })
 
-app.on('activate', () => {
-    if( !win ) {
+app.on('activate', () => { // mac
+    if(!win) {
         createWindow()
     }
+})
+
+// TODO drag onto
+app.on('open-file', (event, filePath) => {
+    console.log(filePath)
 })
 
 process.on('uncaughtException', (error) => logger('uncaughtException', error))
