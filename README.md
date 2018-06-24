@@ -1,125 +1,89 @@
-
 # Simple Movie Collection cross-app
+(currently in beta and under heavy development)
 
-Available on Linux, Windows, Mac, Android.
+Simple application for managing your personnal movie collections.
+It can also import informations from TMDb.
 
-
-TODO : I really need to write this README :)
-
-
-
+Available on Linux, Windows & Android.
 
 
-bugs list :
-starrating : use </> fragments
-- preload: window.ipc => max events listeners exeed
-- title bar alignement (sur toute largeur, pas juste le width)
+<img src="media/screenshot-desktop.png" height="350"> <img src="media/screenshot-mobile.png" height="350">
 
 
-todo debugging (desktop) :
-----------------
 
+
+Debugging Desktop :
+-------------------
+
+```sh
 npm install
 
-npm run serve (keep terminal open)
+npm run serve   (keep terminal open)
 
-rpm run debug ( with vscode inspect )
+npm run debug   (or using vscode debug)
+```
 
-
-ENOSPC
+Linux: Error "ENOSPC" : (max watch files limit exeed)
+```sh
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+```
 
 
+Debugging Android :
+-------------------
 
-todo building desktop :
------------------------
+First install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28), then :
 
+```sh
+npm run bundle-android && ./android.sh test
+```
+
+It will compile, sign, launch the APK using ADB and finally show console Logs.
+
+
+Build Desktop :
+---------------
+
+```sh
 npm install
 
-npm run pack-linux64
+npm run build-linux32  (choose your arch)
+npm run build-linux64
+npm run build-win32
+npm run build-win64
+npm run build-mac
+```
 
->> ./release-builds/
+Release executable will be in `/release-builds/` folder
 
-missing libXss.so.1 >> dnf install libXScrnSaver
+Linux: missing `libXss.so.1` library > Install `libXScrnSaver` package
 
 
+Build Android :
+---------------
 
-todo building webview android :
--------------------------------
+(Same steps as debugging)
 
+```sh
 npm install
 
 npm run bundle-android && ./android.sh
+```
 
->> ./android/bin/simplemoviecollection.apk
-
-
-
-todo credits :
---------------
-
-https://github.com/ungoldman/electron-ipc-log
-
-http://www.latofonts.com/lato-free-fonts/
-
-https://github.com/GNOME/adwaita-icon-theme
-
-star rating
-https://codepen.io/mburnette/pen/eNNZbm
-
-android build tool
-https://medium.com/@authmane512/7260e1e22676
-
-todo attribution: ( about page ) 🐛
-
-https://www.themoviedb.org/about/logos-attribution
-"This product uses the TMDb API but is not endorsed or certified by TMDb."
+Release APK will be `/android/bin/simplemoviecollection.apk`
 
 
 
+Credits :
+---------
+
+[Lato Fonts](http://www.latofonts.com/lato-free-fonts/)
+[GNOME Adwaita Icons](https://github.com/GNOME/adwaita-icon-theme)
+[Star rating script](https://codepen.io/mburnette/pen/eNNZbm)
+[Electron IPC Logger](https://github.com/ungoldman/electron-ipc-log)
+[Android Build tool](https://medium.com/@authmane512/7260e1e22676)
 
 
+## License
 
-
-
-
-
-exports.createSnackbar = (() => {
-    let duration = 3000
-    let previous // previous snack
-
-    const onAnimationendEvent = (event, elapsed) => {
-        let target = event.target
-
-        if( event.animationName == 'snackbar-fadeout' ) {
-            // when the animation end, we remove self
-            target.remove()
-
-            if( previous === target ) {
-                previous = null
-            }
-        }
-    }
-
-    return (viewport, message) => {
-        if( previous ) {
-            // dismiss
-            previous.remove()
-        }
-
-        let snackbar = document.createElement('snackbar')
-        snackbar.innerText = message
-        snackbar.classList.add('is-visible')
-        
-        snackbar.addEventListener('animationend', onAnimationendEvent)
-        snackbar.addEventListener('webkitAnimationEnd', onAnimationendEvent)
-
-        let timeoutId = setTimeout(() => {
-            // dismiss
-            snackbar.classList.remove('is-visible');
-        }, duration)
-
-        previous = snackbar
-        viewport.appendChild(snackbar)
-    }
-})()
+[MIT License](LICENSE)
