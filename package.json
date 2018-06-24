@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "electron": "electron electron",
     "debug": "electron electron --inspect=12345 --debug-brk --debug",
-    "serve": "parcel serve application/index.html --out-file index --out-dir electron-bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
+    "serve": "parcel serve application/index-electron.html --out-file index --out-dir electron-bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
     "bundle-clean": "rm -rf ./electron-bundle && rm -rf ./android-bundle",
     "bundle-electron": "parcel build application/index-electron.html --out-file index --out-dir electron-bundle/ --public-url ./ --target browser --no-source-maps",
     "bundle-android": "parcel build application/index-android.html --out-file index --out-dir android-bundle/ --public-url ./ --target browser --no-source-maps",

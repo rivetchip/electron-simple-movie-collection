@@ -77,7 +77,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             // contextIsolation: true,
-            preload: 'electron-preload.js',
+            preload: pathjoin(__dirname, 'electron-preload.js'),
         },
 
         // borderless frame
