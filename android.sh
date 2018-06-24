@@ -4,7 +4,7 @@ set -e
 
 cd android
 
-SDK="/home/fox/Android/Sdk"
+SDK="/home/$USER/Android/Sdk"
 
 AAPT="$SDK/build-tools/28.0.0/aapt"
 DX="$SDK/build-tools/28.0.0/dx"
