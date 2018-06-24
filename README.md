@@ -77,11 +77,17 @@ Release APK will be `/android/bin/simplemoviecollection.apk`
 Credits :
 ---------
 
-[Lato Fonts](http://www.latofonts.com/lato-free-fonts/)
-[GNOME Adwaita Icons](https://github.com/GNOME/adwaita-icon-theme)
-[Star rating script](https://codepen.io/mburnette/pen/eNNZbm)
-[Electron IPC Logger](https://github.com/ungoldman/electron-ipc-log)
+[Lato Fonts](http://www.latofonts.com/lato-free-fonts/) - SIL Open Font License
+[GNOME Adwaita Icons](https://github.com/GNOME/adwaita-icon-theme) - GPL v2
+[Star rating script](https://codepen.io/mburnette/pen/eNNZbm) - MIT
+[Electron IPC Logger](https://github.com/ungoldman/electron-ipc-log) - ISC License
 [Android Build tool](https://medium.com/@authmane512/7260e1e22676)
+
+Icons :
+
+Godzilla made by [Freepik](https://www.flaticon.com/authors/freepik) from [www.flaticon.com](https://www.flaticon.com) is licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
+
+Clapperboard made by [Roundicons](https://www.flaticon.com/authors/roundicons) from [www.flaticon.com](https://www.flaticon.com) is licensed by [CC 3.0 BY](http://creativecommons.org/licenses/by/3.0/)
 
 
 ## License
