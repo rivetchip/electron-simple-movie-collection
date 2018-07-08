@@ -27,23 +27,17 @@ import {fetchmovie} from './moviesapi-protocol'
 
 
 var x = fetchmovie({source:'tmdb', lang:'fr', action:'search', keyword:'blade runner'})
-
 .then(r => {
-
     console.log(r)
+})
 
+var x = fetchmovie({source:'tmdb', lang:'en', action:'movie', keyword:78})
+.then(r => {
+    console.log(r)
 })
 
 
-/*
-fetch('moviesapi://tmdb-fr/movie/78')
-// fetch('moviesapi://tmdb-fr/search/blade runner')
-.then(response => response.text())
 
-.then(function(response) {
-    console.log(response)
-})
-*/
 
 // previewPanel index
 // send('get-product', productIndex)

@@ -1,5 +1,5 @@
 
-import {forEach, map, replace, urlstringify} from './utils'
+import {lookup, map, replace, urlstringify} from './utils'
 
 
 //// Application custom Protocol API
@@ -10,7 +10,7 @@ const apiProviders = {
         endpoint: 'api.themoviedb.org',
         version: 3,
         translations: ['fr', 'en'], // available languages
-        requestUrl: '/{version}/{actionUrl}', // https:// endpoint / action
+        requestUrl: '/{version}/{actionUrl}', // https://endpoint/action?params
 
         movieWebPage: 'https://www.themoviedb.org/movie/{sourceId}',
 
@@ -21,12 +21,12 @@ const apiProviders = {
         actions: {
             search: {
                 actionUrl: 'search/movie',
-                parameters: {
-                    query: '{keyword}'
+                parameters: { // more parameters
+                    query: '{keyword}',
                 },
                 transitions: { // fields transitions from api to app format
                     // format field : api field, callback
-                    sourceId: ['id'],
+                    sourceId: ['id'], // mandatory 'sourceId'
                     title: ['title'],
                     original: ['original_title'],
                     overview:['overview'],
@@ -39,7 +39,6 @@ const apiProviders = {
                     append_to_response: 'casts,keywords'
                 },
                 transitions: {
-                    // format field : api field, callback
                     sourceId: ['id'],
                     title: ['title'],
                     original: ['original_title'],
@@ -69,14 +68,9 @@ const apiProviders = {
         },
 
         isResponseSuccess(action, response) { // check if api request is success
-            if( response.success === false ) {
-                let code = response.status_code //tmdb
-                let message = response.status_message
+            let {success, status_code: errcode, status_message: errmessage} = response
 
-                return {code, message}
-            }
-
-            return true
+            return {success: success !== false, errcode, errmessage}
         },
 
         getResponseResult(action, response) { // get api response results
@@ -86,89 +80,66 @@ const apiProviders = {
 
 }
 
+
+
 /**
- * Convert datas received from the api to the application format
- * 
- * @param {String} provider tmdb
- * @param {String} action
- * @param {*} keyword
- * @param {String} language
- * @param {String} movieWebPage
+ * Transpile a single set of result
+ * @param {String} source
+ * @param {String} lang
+ * @param {Object} result
  * @param {Object} transitions
- * @param {Object|Array} results
+ * @param {String} movieWebPage
  */
-const moviesApiRequestTransition = ({providerConfig, action, keyword, lang, transitions, results}) => {
+function transpileResult({source, lang, result, transitions, movieWebPage}) {
 
-FIXME();
+    let transpileValue = (result) => (transition) => {
+        const [field, callback] = transition
 
+        let value = lookup(result, field)
 
-
-    const {movieWebPage} = providerConfig
-
-    if(!transitions){
-        throw new Error('moviesApiRequestTransition: transitions not found')
+        return callback ? callback(value) : value
     }
 
-    // convert a single set of result
+    let response = map(transitions, transpileValue(result))
 
-    const transpileResult = (result) => {
+    // add source infos
 
-        let response = {}
+    let {sourceId} = response
 
-        for( let key in transitions ) {
+    response.source = source
+    response.lang = lang
 
-            const [field, callback] = transitions[key]
-
-            let value = lookup(result, field)
-
-            if(callback) {
-                value = callback(value)
-            }
-
-            response[key] = value
-        }
-
-        // add source infos
-
-        if( !transitions ){
-            response.sourceId = null
-        }
-
-        response.source = provider
-
-        if(language){
-            response.language = language
-        }
-
-        if(response.sourceId && movieWebPage){
-            response.webPage = movieWebPage.replace('{sourceId}', response.sourceId);
-        }
-
-
-        return response
+    if(sourceId && movieWebPage) {
+        response.webPage = movieWebPage.replace('{sourceId}', sourceId);
     }
-
-
-    // if is multiple results -> return array results
-
-    if(isIterable(results)){
-
-        let response = []
-
-        for( let result of results ) {
-            response.push(transpileResult(result))
-        }
-
-        return response
-    }
-
-
-    // if is single result -> return single object
-
-    let response = transpileResult(results)
 
     return response
 }
+
+
+/**
+ * Convert datas received from the api to the application format
+ * 
+ * @param {String} source original provider
+ * @param {String} lang
+ * @param {Object} providerConfig
+ * @param {Object|Array} results
+ * @param {Object} transitions
+ */
+function fetchResponseTransition({source, lang, providerConfig, results, transitions}) {
+
+    const {movieWebPage} = providerConfig
+
+    // convert a single set of result ; if is multiple results -> return array results
+
+    const transpilerCurry = (options) => (result) => transpileResult({result, ...options})
+
+    const transpiler = transpilerCurry({source, lang, transitions, movieWebPage})
+
+
+    return isIterable(results) ? map(results, transpiler) : transpiler(results)
+}
+
 /**
  * Wrapper for the request() to make exclusive movies requests
  * 
@@ -177,29 +148,29 @@ FIXME();
  * @param {String} keyword 
  * @param {String} language
  */
-export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
+export async function fetchmovie({source, action, keyword, lang = 'fr'}) {
 
     const providerConfig = apiProviders[source]
 
     if(!providerConfig) {
-        throw new Error('Provider not found')
+        throw 'Provider not found'
     }
 
     // get provider configuration
 
-    let {apiKey, endpoint, version, requestUrl, actions, translations} = providerConfig
+    let {apiKey, endpoint, version, requestUrl, actions, translations, defaultParameters} = providerConfig
 
     if(!translations.includes(lang)) {
-        throw new Error('Language not found')
+        throw 'Language not found'
     }
 
     if(!actions[action]) {
-        throw new Error('Action not found')
+        throw 'Action not found'
     }
 
     // get current action configuration
 
-    let {actionUrl, parameters = {}} = actions[action]
+    let {actionUrl, parameters = {}, transitions} = actions[action]
 
     actionUrl = replace(actionUrl, {
         '{keyword}': keyword
@@ -213,7 +184,7 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
     // merge default params with params + replace placeholder values
 
     if(defaultParameters) {
-        parameters = Object.assign({}, defaultParameters, parameters || {})
+        parameters = {...defaultParameters, ...parameters}
     }
 
     parameters = map(parameters, (parameter) => replace(parameter, {
@@ -241,35 +212,20 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
 
     const {isResponseSuccess, getResponseResult} = providerConfig
 
-    let isSuccess = isResponseSuccess(action, response)
+    let {success, errcode, errmessage} = isResponseSuccess(action, response)
 
-    if(isSuccess !== true){
-        let {code, message} = isSuccess
-
-        throw new Error('Response error: '+code+', '+message)
+    if(!success){
+        throw 'Response success error: ' + errcode + ', ' + errmessage
     }
 
     let results = getResponseResult(action, response) // single or multiple results
+    // TODO tmdb pagination
 
 
-    return moviesApiRequestTransition({
-        providerConfig,
-        results,
-        action,
-        keyword,
-        lang,
-    })
+    return fetchResponseTransition({source, lang, providerConfig, results, transitions})
 }
 
-/**
- * Convert dot-notation to the real object
- * 
- * @param {Object} context 
- * @param {String} token 
- */
-function lookup(context, token) {
-    return token.split('.').reduce((accumulator, value) => accumulator[value], context);
-}
+
 
 /**
  * Check if we can loop thru the object
@@ -293,11 +249,6 @@ function convertText(value) {
 }
 
 function convertNamedArray(values) {
-
-    if( !Array.isArray(values) ) {
-        return []
-    }
-
     return values.map((value) => value.name)
 }
 
@@ -307,19 +258,12 @@ function convertNamedVaue(value) {
 
 function convertDirector(crews) {
 
-    if( !Array.isArray(crews) ) {
-        return []
-    }
+    let director = crews.find((crew) => crew.job == 'Director')
 
-    return crews.find((crew) => crew.job == 'Director')
+    return director.name
 }
 
 function convertActorsRoles(casts) {
-
-    if( !Array.isArray(casts) ) {
-        return []
-    }
-
     return casts.map((cast) => [cast.name, cast.character])
 }
 
