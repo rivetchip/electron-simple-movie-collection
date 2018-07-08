@@ -1,5 +1,14 @@
 
 /**
+ * Convert dot-notation to the real object
+ * @param {Object} context 
+ * @param {String} token 
+ */
+export function lookup(context, token) {
+    return token.split('.').reduce((accumulator, value) => accumulator[value], context);
+}
+
+/**
  * Loop over an onject
  * @param {Object} object 
  * @param {Function} iteratee 
