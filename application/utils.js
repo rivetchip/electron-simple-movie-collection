@@ -124,3 +124,17 @@ export function urlstringify(object) {
 }
 
 
+/**
+ * Trim first & last characters of a string
+ * @param {String} string 
+ * @param {String} character 
+ */
+export function trimchar(string, character) {
+
+    const first = [...string].findIndex(char => char !== character)
+
+    const last = [...string].reverse().findIndex(char => char !== character)
+
+    return string.substring(first, string.length - last)
+}
+

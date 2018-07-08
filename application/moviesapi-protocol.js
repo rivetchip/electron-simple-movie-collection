@@ -187,7 +187,7 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
 
     // get provider configuration
 
-    let {apiKey, endpoint, version, requestUrl, actions, translations, defaultParameters} = providerConfig
+    let {apiKey, endpoint, version, requestUrl, actions, translations} = providerConfig
 
     if(!translations.includes(lang)) {
         throw new Error('Language not found')
@@ -199,7 +199,7 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
 
     // get current action configuration
 
-    let {actionUrl, parameters} = actions[action]
+    let {actionUrl, parameters = {}} = actions[action]
 
     actionUrl = replace(actionUrl, {
         '{keyword}': keyword
@@ -261,77 +261,6 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
     })
 }
 
-
-
-/**
- * Wrapper for the request() to make exclusive movies requests
- * 
- * @param {String} provider
- * @param {String} action 
- * @param {*} keyword 
- * @param {String} language
- */
-export const fetchmoxxxxvie = async (request) => {
-
-    let [fullProvider, action, keyword] = request.split('/', )
-
-
-console.log(request.split('/', 3))
-
-
-    //let response = await moviesApiRequest({provider, action, keyword, language})
-
-
-
-
-
-
-
-    const protocolHandler = (request, callback) => {
-
-        // moviesapi://tmdb-fr/search/blade runner
-
-        let {hostname, pathname: queryString, query} = urlparse(request.url)
-
-        let [provider, language] = hostname.split('-', 2) // tmdb-fr
-
-        queryString = trimchar(decodeURIComponent(queryString), '/') // /search/blade%20runner
-
-        // get actions from url
-
-        let [action, keyword] = queryString.split('/', 2) // search/blade runner
-        // let slashIndex = queryString.indexOf('/')
-        // let action = queryString.substr(0, slashIndex);
-        // let keyword = queryString.substr(slashIndex+1)
-
-        // send the request back to the client
-
-        let mimeType = 'application/json'
-        let charset = 'utf8'
-
-        moviesapiRequest(provider, language, action, keyword)
-
-        .then((response) => callback({
-            data: JSON.stringify(response), mimeType, charset
-        }))
-
-        .catch((error) => callback({
-            data: JSON.stringify({error: error.message || error}), mimeType, charset
-        }))
-    }
-
-    const completionHandler = (error) => {
-        error && logger('MoviesapiProtocol', error)
-    }
-
-
-    protocol.registerStringProtocol('moviesapi', protocolHandler, completionHandler)
-}
-
-
-
-
-
 /**
  * Convert dot-notation to the real object
  * 
@@ -339,19 +268,7 @@ console.log(request.split('/', 3))
  * @param {String} token 
  */
 function lookup(context, token) {
-
-    for( let key of token.split('.') ) {
-
-        context = context[key]
-
-        if(context == null) {
-            return null
-        }
-    }
-
-    return context
-
-    // return token.split('.').reduce((accumulator, value) => accumulator[value], context);
+    return token.split('.').reduce((accumulator, value) => accumulator[value], context);
 }
 
 /**
@@ -361,16 +278,6 @@ function lookup(context, token) {
  */
 function isIterable(object) {
     return object != null && typeof object[Symbol.iterator] === 'function'
-}
-
-// trim first & last characters of a string
-function trimchar(string, character) {
-
-    const first = [...string].findIndex(char => char !== character)
-
-    const last = [...string].reverse().findIndex(char => char !== character)
-
-    return string.substring(first, string.length - last)
 }
 
 
