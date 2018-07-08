@@ -99,7 +99,11 @@ const apiProviders = {
  */
 const moviesApiRequestTransition = ({providerConfig, action, keyword, lang, transitions, results}) => {
 
-    const {transitions, movieWebPage} = providerConfig
+FIXME();
+
+
+
+    const {movieWebPage} = providerConfig
 
     if(!transitions){
         throw new Error('moviesApiRequestTransition: transitions not found')
@@ -175,8 +179,6 @@ const moviesApiRequestTransition = ({providerConfig, action, keyword, lang, tran
  */
 export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
 
-    // check current provider name exist
-
     const providerConfig = apiProviders[source]
 
     if(!providerConfig) {
@@ -199,35 +201,26 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
 
     let {actionUrl, parameters} = actions[action]
 
-    // replace action url placeholders
-
     actionUrl = replace(actionUrl, {
         '{keyword}': keyword
     })
-
-    // request uri = api url + action url
 
     requestUrl = replace(requestUrl, {
         '{version}': version,
         '{actionUrl}': actionUrl
     })
 
-    // merge default params with params
+    // merge default params with params + replace placeholder values
 
     if(defaultParameters) {
         parameters = Object.assign({}, defaultParameters, parameters || {})
     }
-
-    // if parameters set, replace placeholder values
 
     parameters = map(parameters, (parameter) => replace(parameter, {
         '{keyword}': keyword,
         '{apiKey}': apiKey,
         '{lang}': lang
     }))
-
-
-    // encode some parameters
 
     requestUrl += '?'+urlstringify(parameters)
 
@@ -237,12 +230,12 @@ export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
         headers: {
             'User-Agent': 'Mozilla/5.0',
             'Accept': 'application/json',
-            'Accept-Language': lang //'fr,fr-FR,en-US,en'
+            'Accept-Language': lang
         },
         mode: 'cors',
         cache: 'default'
     })
-    .then(response => response.json())
+    .then((response) => response.json())
 
     // check is the response is success
 

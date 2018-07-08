@@ -299,7 +299,8 @@ receive('notification', (event, message) => {
 
 const updateOnlineStatus = (event) => {
     let status =  navigator.onLine ? 'online' : 'offline'
-    return ipc('online-status-changed', {status})
+
+    let onlineStatusWindow = status ; //TODO
 }
 
 addEventListener('online', updateOnlineStatus)

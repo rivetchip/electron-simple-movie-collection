@@ -37,8 +37,6 @@ if(debug) {
 // app.disableHardwareAcceleration()
 
 let win
-let onlineStatusWindow
-
 
 
 
@@ -110,9 +108,9 @@ function createWindow() {
         win.focus()
     })
 
-    win.webContents.on('dom-ready', function() {
+    /*win.webContents.on('dom-ready', function() {
         console.log('dom-ready')
-    })
+    })*/
 
     win.on('closed', () => {
         win = null
@@ -347,12 +345,6 @@ const onSaveFileCatalogStorage = (filename) => {
 
 
 // client api
-
-receive('online-status-changed', (reply, reject, {status}) => {
-    logger('event:online-status-changed: '+status)
-
-    onlineStatusWindow = status
-})
 
 receive('application-close', () => {
     win.close()
