@@ -20,14 +20,19 @@ import {ProductPanelEmpty, ProductPanelPreview, ProductPanelPublication} from '.
 
 import {AppStatusbar} from './components/app-statusbar'
 
-// console.log(process);
+
+
+import {fetchmovie} from './moviesapi-protocol'
 
 
 
+var x = fetchmovie({source:'tmdb', lang:'fr', action:'search', keyword:'blade runner'})
 
+.then(r => {
 
+    console.log(r)
 
-
+})
 
 
 /*

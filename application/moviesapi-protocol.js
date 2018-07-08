@@ -1,40 +1,26 @@
 
-/*
-const package = require('../package.json')
-
-// Electron flow
-
-const {protocol} = require('electron')
-
-const {request: httpsrequest} = require('https')
-const {parse: urlparse} = require('url')
-
-const {stringify: urlstringify} = require('querystring')
-
-// Application fow
-
-const {logger} = require('./logger')
-*/
+import {forEach, map, replace, urlstringify} from './utils'
 
 
 //// Application custom Protocol API
 
 const apiProviders = {
     tmdb : {
-        key: 'e7c537c8a509f6d4b6975b3ff7bd5dbf',
+        apiKey: 'e7c537c8a509f6d4b6975b3ff7bd5dbf',
         endpoint: 'api.themoviedb.org',
         version: 3,
+        translations: ['fr', 'en'], // available languages
         requestUrl: '/{version}/{actionUrl}', // https:// endpoint / action
 
         movieWebPage: 'https://www.themoviedb.org/movie/{sourceId}',
 
         defaultParameters: { // default parameters added to each request
             api_key: '{apiKey}',
-            language: '{language}'
+            language: '{lang}'
         },
         actions: {
             search: {
-                requestUrl: 'search/movie',
+                actionUrl: 'search/movie',
                 parameters: {
                     query: '{keyword}'
                 },
@@ -48,7 +34,7 @@ const apiProviders = {
                 },
             },
             movie: {
-                requestUrl: 'movie/{keyword}',
+                actionUrl: 'movie/{keyword}',
                 parameters: {
                     append_to_response: 'casts,keywords'
                 },
@@ -100,40 +86,6 @@ const apiProviders = {
 
 }
 
-
-/**
- * HTTPS external request
- * @param {array} options 
- */
-function request(options) {
-
-    return new Promise((resolve, reject) => {
-
-        httpsrequest(options, (response) => {
-            response.setEncoding('utf8')
-
-            let statusCode = response.statusCode
-            let headers = response.headers
-
-            let body = ''
-    
-            response.on('data', (chunk) => {
-                body += chunk
-            })
-
-            response.on('end', () => {
-                resolve({statusCode, headers, body})
-            })
-        })
-
-        .on('error', (error) => {
-            reject(error.message || error)
-        })
-
-        .end()
-    })
-}
-
 /**
  * Convert datas received from the api to the application format
  * 
@@ -145,12 +97,12 @@ function request(options) {
  * @param {Object} transitions
  * @param {Object|Array} results
  */
-const moviesapiRequestTransition = ({provider, action, keyword, language, movieWebPage, transitions, results}) => {
+const moviesApiRequestTransition = ({providerConfig, action, keyword, lang, transitions, results}) => {
 
-    // get transitions of the current action
+    const {transitions, movieWebPage} = providerConfig
 
     if(!transitions){
-        throw new Error('moviesapiRequestTransition: transitions not found')
+        throw new Error('moviesApiRequestTransition: transitions not found')
     }
 
     // convert a single set of result
@@ -213,54 +165,52 @@ const moviesapiRequestTransition = ({provider, action, keyword, language, movieW
 
     return response
 }
-
 /**
  * Wrapper for the request() to make exclusive movies requests
  * 
- * @param {String} provider
- * @param {String} language
+ * @param {String} source provider
  * @param {String} action 
- * @param {*} keyword 
+ * @param {String} keyword 
+ * @param {String} language
  */
-const moviesapiRequest = (provider, language, action, keyword) => {
-
-    let requestUrl // full url ( api request uri / action ?querystring )
-    let queryString // query string (action parameters)
-
+export const fetchmovie = async ({source, action, keyword, lang = 'fr'}) => {
 
     // check current provider name exist
 
-    const providerConfiguration = apiProviders[provider]
+    const providerConfig = apiProviders[source]
 
-    if(!providerConfiguration) {
-        throw new Error('moviesapiRequest: provider not found')
+    if(!providerConfig) {
+        throw new Error('Provider not found')
     }
 
     // get provider configuration
 
-    let {key: apiKey, endpoint, version, movieWebPage, requestUrl: apiRequestUrl, actions, defaultParameters} = providerConfiguration
+    let {apiKey, endpoint, version, requestUrl, actions, translations, defaultParameters} = providerConfig
 
-    // check current action exist
+    if(!translations.includes(lang)) {
+        throw new Error('Language not found')
+    }
 
     if(!actions[action]) {
-        throw new Error('moviesapiRequest: action not found')
+        throw new Error('Action not found')
     }
 
     // get current action configuration
 
-    let {requestUrl: actionUrl, parameters, transitions} = actions[action]
-
+    let {actionUrl, parameters} = actions[action]
 
     // replace action url placeholders
 
-    actionUrl = actionUrl.replace('{keyword}', keyword)
+    actionUrl = replace(actionUrl, {
+        '{keyword}': keyword
+    })
 
     // request uri = api url + action url
 
-    requestUrl = apiRequestUrl
-    .replace('{version}', version)
-    .replace('{actionUrl}', actionUrl)
-
+    requestUrl = replace(requestUrl, {
+        '{version}': version,
+        '{actionUrl}': actionUrl
+    })
 
     // merge default params with params
 
@@ -270,70 +220,79 @@ const moviesapiRequest = (provider, language, action, keyword) => {
 
     // if parameters set, replace placeholder values
 
-    let hasParameters = false
-
-    for(const index in parameters) {
-        let parameter = parameters[index]
-
-        parameters[index] = parameter
-        .replace('{keyword}', keyword)
-        .replace('{apiKey}', apiKey)
-        .replace('{language}', language)
-
-        hasParameters = true
-    }
-
-    // finally encode parameters
-
-    if(hasParameters) {
-
-        // set the full, final request url
-
-        queryString = '?'+urlstringify(parameters)
-
-        requestUrl += queryString
-    }
+    parameters = map(parameters, (parameter) => replace(parameter, {
+        '{keyword}': keyword,
+        '{apiKey}': apiKey,
+        '{lang}': lang
+    }))
 
 
-    // send the formated request to the api
+    // encode some parameters
 
-    return request({
-        host: endpoint,
-        path: requestUrl,
+    requestUrl += '?'+urlstringify(parameters)
+
+    // do the request & get the response
+
+    const response = await fetch('https://'+endpoint+requestUrl, {
         headers: {
             'User-Agent': 'Mozilla/5.0',
             'Accept': 'application/json',
-            'Accept-Language': language //'fr,fr-FR,en-US,en'
-        }
+            'Accept-Language': lang //'fr,fr-FR,en-US,en'
+        },
+        mode: 'cors',
+        cache: 'default'
     })
-    .then(({statusCode, headers, body}) => JSON.parse(body))
-    .then((response) => {
+    .then(response => response.json())
 
-        const {isResponseSuccess, getResponseResult} = providerConfiguration
+    // check is the response is success
 
-        // check is the response is success
+    const {isResponseSuccess, getResponseResult} = providerConfig
 
-        var isSuccess = isResponseSuccess(action, response)
+    let isSuccess = isResponseSuccess(action, response)
 
-        if(isSuccess !== true){
-            let {code, message} = isSuccess
+    if(isSuccess !== true){
+        let {code, message} = isSuccess
 
-            throw new Error('moviesapiRequest: '+code+'-'+message)
-        }
-    
-        return getResponseResult(action, response) // single or multiple results
+        throw new Error('Response error: '+code+', '+message)
+    }
+
+    let results = getResponseResult(action, response) // single or multiple results
+
+
+    return moviesApiRequestTransition({
+        providerConfig,
+        results,
+        action,
+        keyword,
+        lang,
     })
-
-    // send the results to the transition
-
-    .then((results) => moviesapiRequestTransition({provider, action, keyword, language, movieWebPage, transitions, results}))
 }
 
 
+
 /**
- * Register Eletron custom protocol
+ * Wrapper for the request() to make exclusive movies requests
+ * 
+ * @param {String} provider
+ * @param {String} action 
+ * @param {*} keyword 
+ * @param {String} language
  */
-function registerMoviesapiProtocol() {
+export const fetchmoxxxxvie = async (request) => {
+
+    let [fullProvider, action, keyword] = request.split('/', )
+
+
+console.log(request.split('/', 3))
+
+
+    //let response = await moviesApiRequest({provider, action, keyword, language})
+
+
+
+
+
+
 
     const protocolHandler = (request, callback) => {
 
@@ -376,7 +335,6 @@ function registerMoviesapiProtocol() {
     protocol.registerStringProtocol('moviesapi', protocolHandler, completionHandler)
 }
 
-exports.registerMoviesapiProtocol = registerMoviesapiProtocol
 
 
 
@@ -435,17 +393,12 @@ function convertText(value) {
 }
 
 function convertNamedArray(values) {
-    let response = []
 
     if( !Array.isArray(values) ) {
         return []
     }
 
-    for( var value of values ) {
-        response.push(value.name)
-    }
-
-    return response
+    return values.map((value) => value.name)
 }
 
 function convertNamedVaue(value) {
@@ -458,15 +411,7 @@ function convertDirector(crews) {
         return []
     }
 
-    for( let crew of crews ) {
-
-        if(crew.job == 'Director') { // TODO multiple directors ?
-            // get director name; usually the first
-            return crew.name
-        }
-    }
-
-    return ''
+    return crews.find((crew) => crew.job == 'Director')
 }
 
 function convertActorsRoles(casts) {
@@ -475,17 +420,7 @@ function convertActorsRoles(casts) {
         return []
     }
 
-    let response = []
-
-    for( let cast of casts ) {
-        //[actor, role]
-
-        response.push([
-            cast.name, cast.character
-        ])
-    }
-
-    return response
+    return casts.map((cast) => [cast.name, cast.character])
 }
 
 function convertRating(value) {
