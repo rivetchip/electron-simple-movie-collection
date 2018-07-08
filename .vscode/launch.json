@@ -25,16 +25,13 @@
             "name": "Electron Debug",
             "cwd": "${workspaceRoot}",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "program": "${workspaceFolder}/application/index.js",
+            "program": "${workspaceFolder}/electron/index.js",
             "protocol": "inspector",
             "args" : [
                 ".",
                 "--debug",
             ],
-            "windows": {
-                "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
-                "console": "integratedTerminal"
-            }
+            "console": "integratedTerminal"
         },
         {
             "type": "node",
