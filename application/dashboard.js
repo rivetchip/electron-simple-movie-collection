@@ -25,7 +25,7 @@ import {AppStatusbar} from './components/app-statusbar'
 import {fetchmovie} from './moviesapi-protocol'
 
 
-
+/*
 var x = fetchmovie({source:'tmdb', lang:'fr', action:'search', keyword:'blade runner'})
 .then(r => {
     console.log(r)
@@ -35,7 +35,7 @@ var x = fetchmovie({source:'tmdb', lang:'en', action:'movie', keyword:78})
 .then(r => {
     console.log(r)
 })
-
+*/
 
 
 
@@ -74,9 +74,9 @@ const state = { // initial state
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
     ],
 
-    productIndex: null, // current select product
-    product: null, // current product values
-    products: null,
+    movieIndex: null, // current select product
+    movie: null, // current product values
+    collection: null,
 
     draftIndex: null, // draft product index / null if new
     draft: null, // curent edit product
@@ -117,7 +117,7 @@ var actions = {
     },
 
     onToolbarNewProduct: () => {
-        return {draftIndex: null, draft: {}, location: 'publication'}
+        return {draftIndex: null, draft: null, location: 'publication'}
     },
 
     // radio provider change
@@ -130,31 +130,35 @@ var actions = {
         // we receive a new Maped array [id, {product}] collection of simple products
         return {
             location: null,
-            productIndex: null,
-            product: null,
-            products: collection
+            movieIndex: null,
+            movie: null,
+            collection
         }
     },
 
 
-    showProductPreview: ({index, product}) => {
+    showProductPreview: ({index, movie}) => {
         console.log('showProductPreview', index)
 
-        return {productIndex: index, product, isHamburgerOpen: false, location: 'preview'}
+        return {movieIndex: index, movie, isHamburgerOpen: false, location: 'preview'}
     },
 
     // set the selected ; then open the preview
-    onProductClick: ({index}) => async ({productIndex}, {showProductPreview}) => {
+    onProductClick: ({index}) => async ({movieIndex}, {showProductPreview}) => {
         console.log('onProductClick', index)
 
-        if(productIndex != index ) {
-            showProductPreview(await ipc('product', {index})) // {index, product}
+
+
+
+//TODO FIXME showProductPreview
+        if(movieIndex != index ) {
+            showProductPreview(await ipc('movie', {index})) // {index, product}
         }
     },
 
     // search event when using the search box on the sidebar
 
-    onSearch: ({keyword, keyCode}) => ({products}, actions) => {
+    onSearch: ({keyword, keyCode}) => ({collection}, actions) => {
         console.log('onSearch', keyword)
 
         // if escape : show all products
