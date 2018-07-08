@@ -11,6 +11,24 @@ window.ipc max call exeed
 
 
 
+
+
+
+
+currying
+
+    let replacer = (options) => (string) => replace(string, options)
+
+    var toreplace = replacer({ // 1
+        name:'john'
+    })
+
+var string = toreplace('hello name') // 2
+var string2 = toreplace('hello name !')
+
+
+
+
 exports.createSnackbar = (() => {
     let duration = 3000
     let previous // previous snack
