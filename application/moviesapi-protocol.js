@@ -51,7 +51,7 @@ const apiProviders = {
                     genres: ['genres', convertNamedArray],
                     actors: ['casts.cast', convertActorsRoles],
                     ratingPress: ['vote_average', convertRating],
-                    serie: ['belongs_to_collection', convertNamedVaue],
+                    serie: ['belongs_to_collection', convertNamedValue],
                     companies: ['production_companies', convertNamedArray],
                     keywords: ['keywords.keywords', convertNamedArray],
                 }
@@ -81,64 +81,6 @@ const apiProviders = {
 }
 
 
-
-/**
- * Transpile a single set of result
- * @param {String} source
- * @param {String} lang
- * @param {Object} result
- * @param {Object} transitions
- * @param {String} movieWebPage
- */
-function transpileResult({source, lang, result, transitions, movieWebPage}) {
-
-    let transpileValue = (result) => (transition) => {
-        const [field, callback] = transition
-
-        let value = lookup(result, field)
-
-        return callback ? callback(value) : value
-    }
-
-    let response = map(transitions, transpileValue(result))
-
-    // add source infos
-
-    let {sourceId} = response
-
-    response.source = source
-    response.lang = lang
-
-    if(sourceId && movieWebPage) {
-        response.webPage = movieWebPage.replace('{sourceId}', sourceId);
-    }
-
-    return response
-}
-
-
-/**
- * Convert datas received from the api to the application format
- * 
- * @param {String} source original provider
- * @param {String} lang
- * @param {Object} providerConfig
- * @param {Object|Array} results
- * @param {Object} transitions
- */
-function fetchResponseTransition({source, lang, providerConfig, results, transitions}) {
-
-    const {movieWebPage} = providerConfig
-
-    // convert a single set of result ; if is multiple results -> return array results
-
-    const transpilerCurry = (options) => (result) => transpileResult({result, ...options})
-
-    const transpiler = transpilerCurry({source, lang, transitions, movieWebPage})
-
-
-    return isIterable(results) ? map(results, transpiler) : transpiler(results)
-}
 
 /**
  * Wrapper for the request() to make exclusive movies requests
@@ -222,7 +164,64 @@ export async function fetchmovie({source, action, keyword, lang = 'fr'}) {
     // TODO tmdb pagination
 
 
-    return fetchResponseTransition({source, lang, providerConfig, results, transitions})
+    return transformFetchResponse({source, lang, providerConfig, results, transitions})
+}
+
+
+/**
+ * Convert datas received from the api to the application format
+ * 
+ * @param {String} source original provider
+ * @param {String} lang
+ * @param {Object} providerConfig
+ * @param {Object|Array} results
+ * @param {Object} transitions
+ */
+function transformFetchResponse({source, lang, providerConfig, results, transitions}) {
+
+    const {movieWebPage} = providerConfig
+
+    // convert a single set of result ; if is multiple results -> return array results
+
+    const transpiler = (result) => transformResultSet({source, lang, transitions, movieWebPage, result})
+
+    return isIterable(results) ? map(results, transpiler) : transpiler(results)
+}
+
+
+/**
+ * Transpile a single set of result
+ * 
+ * @param {String} source
+ * @param {String} lang
+ * @param {Object} result
+ * @param {Object} transitions
+ * @param {String} movieWebPage
+ */
+function transformResultSet({source, lang, result, transitions, movieWebPage}) {
+
+    let transpiler = (result) => (transition) => { // transform single value
+        const [field, callback] = transition
+
+        let value = lookup(result, field)
+
+        return callback ? callback(value) : value
+    }
+
+    let response = map(transitions, transpiler(result))
+
+    // add source infos
+
+    let {sourceId} = response
+
+    response.source = source
+    response.lang = lang
+
+    if(sourceId && movieWebPage) {
+        response.webPage = movieWebPage.replace('{sourceId}', sourceId);
+    }
+
+    return response
 }
 
 
@@ -252,7 +251,7 @@ function convertNamedArray(values) {
     return values.map((value) => value.name)
 }
 
-function convertNamedVaue(value) {
+function convertNamedValue(value) {
     return value.name || ''
 }
 
