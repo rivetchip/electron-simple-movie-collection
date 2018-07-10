@@ -1,14 +1,10 @@
 
-import { h, app as hyperapp } from '../hyperapp'
-
-
-
-export const ProductPanelEmpty = () => (
+export const ComponentPanelWelcome = () => (
     <div>vide</div>
 )
 
 
-export const ProductPanelPreview = ({ title, dateReleased, rating, poster, director, duration, countries, genres, actors, description }) => (
+export const ComponentPanelPreview = ({ title, dateReleased, rating, poster, director, duration, countries, genres, actors, description }) => (
 
     <product-preview>
 
@@ -64,7 +60,7 @@ export const ProductPanelPreview = ({ title, dateReleased, rating, poster, direc
 
 
 
-export const ProductPanelPublication = ({  }) => (
+export const ComponentPanelPublication = ({  }) => (
 
     <div class="publicationx" />
 

@@ -11,8 +11,8 @@
 import { h, app as hyperapp } from './hyperapp'
 
 // components
-import {AppTitlebar} from './components/app-titlebar'
-import {AppToolbar} from './components/app-toolbar'
+import {ComponentAppTitlebar} from './components/app-titlebar'
+import {ComponentAppToolbar} from './components/app-toolbar'
 
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
@@ -214,14 +214,14 @@ const view = (state, actions) => {
         state.isHamburgerOpen && 'is-hamburger-open'
     ].filter(c => !!c).join(' ')}>
 
-        <AppTitlebar
+        <ComponentAppTitlebar
             title={state.appTitle}
             onClose={actions.onAppClose}
             onMinimize={actions.onAppMinimize}
             onMaximize={actions.onAppMaximize}
         />
 
-        <AppToolbar
+        <ComponentAppToolbar
             buttons={[
                 {
                     name: 'Menu',
