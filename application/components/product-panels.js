@@ -85,60 +85,19 @@ export const StarsRating = ({ name, rating, count = 5, disabled = false }) => (
         />
         <label title="Non-noté" aria-label="No rating" class="stars-rating-none" for="rating-none"></label>
 
-        <input
-            id={name+'-1'}
-            class="stars-rating-check"
-            checked={rating == 1}
-            value={1}
-            name={name}
-            type="radio"
-            disabled={disabled}
-        />
-        <label for={name+'-1'} aria-label={'1 star'} class="stars-rating-star"></label>
-
-        <input
-            id={name+'-2'}
-            class="stars-rating-check"
-            checked={rating == 2}
-            value={2}
-            name={name}
-            type="radio"
-            disabled={disabled}
-        />
-        <label for={name+'-2'} aria-label={'2 star'} class="stars-rating-star"></label>
-
-        <input
-            id={name+'-3'}
-            class="stars-rating-check"
-            checked={rating == 3}
-            value={3}
-            name={name}
-            type="radio"
-            disabled={disabled}
-        />
-        <label for={name+'-3'} aria-label={'3 star'} class="stars-rating-star"></label>
-
-        <input
-            id={name+'-4'}
-            class="stars-rating-check"
-            checked={rating == 4}
-            value={4}
-            name={name}
-            type="radio"
-            disabled={disabled}
-        />
-        <label for={name+'-4'} aria-label={'4 star'} class="stars-rating-star"></label>
-
-        <input
-            id={name+'-5'}
-            class="stars-rating-check"
-            checked={rating == 5}
-            value={5}
-            name={name}
-            type="radio"
-            disabled={disabled}
-        />
-        <label for={name+'-5'} aria-label={'5 star'} class="stars-rating-star"></label>
+        {Array.from({length: count}, (v, key) => [
+            <input
+                key={key}
+                id={name+'-'+(key+1)}
+                class="stars-rating-check"
+                checked={rating == (key+1)}
+                value={key}
+                name={name}
+                type="radio"
+                disabled={disabled}
+            />,
+            <label for={name+'-'+(key+1)} aria-label={(key+1)+' star'} class="stars-rating-star"></label>
+        ])}
 
     </div>
 
