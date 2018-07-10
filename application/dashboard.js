@@ -66,7 +66,7 @@ const state = { // initial state
 
     appTitle: 'Movie Collection',
 
-    location: null, // current publication or preview mode
+    location: 'welcome', // preview publication ; current publication or preview mode
 
     providerIndex: 1, // french
     providers: [
@@ -116,7 +116,7 @@ var actions = {
         ipc('save-collection-dialog')
     },
 
-    onToolbarNewProduct: () => {
+    onToolbarNew: () => {
         return {draftIndex: null, draft: null, location: 'publication'}
     },
 
@@ -205,42 +205,51 @@ var actions = {
 
 
 
-const view = ({appTitle, isMobile, isFullscreen, isHamburgerOpen, location, providerIndex, providers, productIndex, product, products}, actions) => {
-
-    let productPanel
-
-    if(location == 'preview') {
-        productPanel = <ProductPanelPreview {...product} />
-    }
-    else if(location == 'publication') {
-        productPanel = <ProductPanelPublication {...product} />
-    }
-    else {
-        productPanel = <ProductPanelEmpty />
-    }
+const view = (state, actions) => {
 
     return (<app className={[
         'viewport',
-        isMobile && 'is-mobile',
-        isFullscreen || isMobile && 'is-fullscreen',
-        isHamburgerOpen && 'is-hamburger-open'
+        state.isMobile && 'is-mobile',
+        state.isFullscreen || state.isMobile && 'is-fullscreen',
+        state.isHamburgerOpen && 'is-hamburger-open'
     ].filter(c => !!c).join(' ')}>
 
         <AppTitlebar
-            title={appTitle}
+            title={state.appTitle}
             onClose={actions.onAppClose}
             onMinimize={actions.onAppMinimize}
             onMaximize={actions.onAppMaximize}
         />
 
         <AppToolbar
-            onHamburger={actions.onToolbarHamburger}
-            onOpen={actions.onToolbarOpen}
-            onSave={actions.onToolbarSave}
-            onNewProduct={actions.onToolbarNewProduct}
-
-            providerIndex={providerIndex}
-            providers={providers}
+            buttons={[
+                {
+                    name: 'Menu',
+                    class: 'hamburger',
+                    onclick: actions.onToolbarHamburger
+                },
+                {
+                    class: 'open',
+                    name: 'Ouvrir',
+                    title: 'Ouvrir un fichier',
+                    onclick: actions.onToolbarOpen
+                    
+                },
+                {
+                    class: 'save',
+                    name: 'Enregistrer',
+                    title: 'Enregistrer la liste courante',
+                    onclick: actions.onToolbarSave
+                },
+                {
+                    class: 'new',
+                    name: 'Ajouter un film',
+                    title: 'Ajouter un film',
+                    onclick: actions.onToolbarNew,
+                },
+            ]}
+            providers={state.providers}
+            providerIndex={state.providerIndex}
             onProviderChange={actions.onProviderChange}
         />
 
@@ -248,14 +257,12 @@ const view = ({appTitle, isMobile, isFullscreen, isHamburgerOpen, location, prov
 
             <app-sidebar>
 
-                {/* TODO check if products to do onSearch() event */}
-
                 <SearchToolbar
                     onSearch={actions.onSearch}
                 />
                 <ProductItems
-                    productIndex={productIndex}
-                    products={products}
+                    productIndex={state.productIndex}
+                    products={state.products}
                     onProductClick={actions.onProductClick}
                     onProductFavorite={actions.onProductFavorite}
                 />
@@ -263,13 +270,15 @@ const view = ({appTitle, isMobile, isFullscreen, isHamburgerOpen, location, prov
             </app-sidebar>
 
             <product-panel>
-                {productPanel}
+                { state.location == 'welcome' && <ProductPanelEmpty /> }
+                { state.location == 'preview' && <ProductPanelPreview {...state.product} /> }
+                { state.location == 'publication' && <ProductPanelPublication {...state.product} /> }
             </product-panel>
 
         </app-layout>
 
         <AppStatusbar
-            productCount={(products && products.length) || 0}
+            productCount={(state.products && state.products.length) || 0}
         />
 
     </app>)

@@ -322,7 +322,7 @@ app-toolbar button.open {
 app-toolbar button.save {
     background-image: url(imgs/icon-save.svg);
 }
-app-toolbar button.new-product {
+app-toolbar button.new {
     background-image: url(imgs/icon-new-product.svg);
 }
 app-toolbar button:hover {
