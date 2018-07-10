@@ -1,9 +1,9 @@
 
-import { h, app as hyperapp } from '../hyperapp'
+import { h } from '../hyperapp'
 
 
 
-export const AppTitlebar = ({title, onClose, onMinimize, onMaximize}) => (
+export const ComponentAppTitlebar = ({title, onClose, onMinimize, onMaximize}) => (
 
     <app-titlebar>
 

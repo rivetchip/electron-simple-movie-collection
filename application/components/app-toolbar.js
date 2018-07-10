@@ -1,5 +1,7 @@
 
-export const AppToolbar = ({buttons, providers, providerIndex, onProviderChange}) => (
+import { h } from '../hyperapp'
+
+export const ComponentAppToolbar = ({buttons, providers, providerIndex, onProviderChange}) => (
 
     <app-toolbar>
 
