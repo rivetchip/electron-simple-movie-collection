@@ -16,7 +16,7 @@ import {ComponentAppToolbar} from './components/app-toolbar'
 
 import {SearchToolbar, ProductItems} from './components/app-sidebar'
 
-import {ProductPanelEmpty, ProductPanelPreview, ProductPanelPublication} from './components/product-panels'
+import {ComponentPanelWelcome, ComponentPanelPreview, ComponentPanelPublication} from './components/product-panels'
 
 import {AppStatusbar} from './components/app-statusbar'
 
@@ -76,7 +76,7 @@ const state = { // initial state
 
     movieIndex: null, // current select product
     movie: null, // current product values
-    collection: null,
+    collection: [],
 
     draftIndex: null, // draft product index / null if new
     draft: null, // curent edit product
@@ -129,7 +129,7 @@ var actions = {
     onReceiveCollection: ({collection}) => {
         // we receive a new Maped array [id, {product}] collection of simple products
         return {
-            location: null,
+            location: 'welcome',
             movieIndex: null,
             movie: null,
             collection
@@ -270,15 +270,16 @@ const view = (state, actions) => {
             </app-sidebar>
 
             <product-panel>
-                { state.location == 'welcome' && <ProductPanelEmpty /> }
-                { state.location == 'preview' && <ProductPanelPreview {...state.product} /> }
-                { state.location == 'publication' && <ProductPanelPublication {...state.product} /> }
+                { state.location == 'welcome' && <ComponentPanelWelcome /> }
+                { state.location == 'preview' && <ComponentPanelPreview {...state.product} /> }
+                { state.location == 'publication' && <ComponentPanelPublication {...state.product} /> }
             </product-panel>
 
         </app-layout>
 
         <AppStatusbar
-            productCount={(state.products && state.products.length) || 0}
+            status={state.products.length + ' films'}
+            filters={}
         />
 
     </app>)

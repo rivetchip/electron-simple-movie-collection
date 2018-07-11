@@ -3,10 +3,10 @@ import { h, app as hyperapp } from '../hyperapp'
 
 
 
-export const AppStatusbar = ({productCount}) => (
+export const AppStatusbar = ({status, filters}) => (
     <app-statusbar>
 
-        {productCount} films
+        {status}
 
         <app-filters>
         </app-filters>
