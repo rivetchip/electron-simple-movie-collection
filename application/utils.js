@@ -125,6 +125,7 @@ export function urlstringify(object) {
     let escape = encodeURIComponent
     let params = []
 
+        //TODO use map()
     forEach(object, (value, key) => {
         params.push(key + '=' + escape(value))
     })
