@@ -1,5 +1,5 @@
 
-import {lookup, map, replace, urlstringify} from './utils'
+import {lookup, map, replace, urlstringify} from './helpers'
 
 
 //// Application custom Protocol API
