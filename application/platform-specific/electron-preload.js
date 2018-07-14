@@ -1,9 +1,9 @@
 'use strict';
 
-const electron = require('electron')
-const {remote, ipcRenderer, webFrame} = electron
+// const electron = require('electron')
+// const {remote, ipcRenderer, webFrame} = electron
 
-const fs = require('fs')
+// const fs = require('fs')
 
 
 
@@ -16,12 +16,12 @@ const fs = require('fs')
 
 // set custom scheme handled by chrome as privileged for fetch
 
-webFrame.registerURLSchemeAsPrivileged('moviesapi', {
-    secure: true, // do not trigger mixed content warning
-    bypassCSP: false, // bypass content
-    allowServiceWorkers: false,
-    supportFetchAPI: true
-})
+// webFrame.registerURLSchemeAsPrivileged('moviesapi', {
+//     secure: true, // do not trigger mixed content warning
+//     bypassCSP: false, // bypass content
+//     allowServiceWorkers: false,
+//     supportFetchAPI: true
+// })
 
 // IPC main/renderer communication OLD DEPRECATED TODO use ipc()
 

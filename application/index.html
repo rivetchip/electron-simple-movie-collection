@@ -10,8 +10,19 @@
     <link rel="stylesheet" type="text/css" href="style.css">
 
     <script type="text/javascript">
-        const appPlatform = 'desktop'
-        const appDevice = 'electron'
+        if(typeof _ElectronBridge !== 'undefined') {
+            const appPlatform = 'desktop'
+            const appDevice = 'electron'
+        }
+        else if(typeof _AndroidBridge !== 'undefined') {
+            const appPlatform = 'mobile'
+            const appDevice = 'android'
+        }
+        else {
+            const appPlatform = null
+            const appDevice = null
+        }
+        console.log(appPlatform)
     </script>
 </head>
 <body>
