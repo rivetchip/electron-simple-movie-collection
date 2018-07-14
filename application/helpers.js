@@ -13,7 +13,7 @@ export function lookup(context, token) {
  * @param {Object} object 
  * @param {Function} iteratee 
  */
-function objectEach(object, iteratee) { // lodash
+function eachObject(object, iteratee) { // lodash
     object = Object(object)
 
     return Object.keys(object).forEach((key) => iteratee(object[key], key))
@@ -24,7 +24,7 @@ function objectEach(object, iteratee) { // lodash
  * @param {Array} array 
  * @param {Function} iteratee 
  */
-function arrayEach(array, iteratee) { // lodash
+function eachArray(array, iteratee) { // lodash
     return array.forEach((value, key) => iteratee(value, key))
 }
 
@@ -34,7 +34,7 @@ function arrayEach(array, iteratee) { // lodash
  * @param {Function} iteratee 
  */
 export function forEach(collection, iteratee) {
-    const func = Array.isArray(collection) ? arrayEach : objectEach
+    const func = Array.isArray(collection) ? eachArray : eachObject
 
     return func(collection, iteratee)
 }
@@ -44,7 +44,7 @@ export function forEach(collection, iteratee) {
  * @param {Object} object 
  * @param {Function} iteratee 
  */
-function objectMap(object, iteratee) { // lodash
+function mapObject(object, iteratee) { // lodash
     object = Object(object)
 
     const result = {}
@@ -53,6 +53,11 @@ function objectMap(object, iteratee) { // lodash
         result[key] = iteratee(object[key], key)
     })
     return result
+
+    // as array of objects
+    // return Object.keys(object).map((key) => {
+    //     return iteratee(key, object[key]);
+    // });
 }
 
 /**
@@ -60,7 +65,7 @@ function objectMap(object, iteratee) { // lodash
  * @param {Array} array 
  * @param {Function} iteratee 
  */
-function arrayMap(array, iteratee) { // lodash
+function mapArray(array, iteratee) { // lodash
     return array.map(iteratee)
 }
 
@@ -70,7 +75,7 @@ function arrayMap(array, iteratee) { // lodash
  * @param {Function} iteratee 
  */
 export function map(collection, iteratee) {
-    const func = Array.isArray(collection) ? arrayMap : objectMap
+    const func = Array.isArray(collection) ? mapArray : mapObject
 
     return func(collection, iteratee)
 }
@@ -94,7 +99,7 @@ export function replace(string, replaces) {
  * Check if object is empty
  * @param {Object} object 
  */
-function objectIsEmpty(object) {
+function isEmptyObject(object) {
     return !Object.keys(object).length
 }
 
@@ -102,7 +107,7 @@ function objectIsEmpty(object) {
  * Check if parameter can be empty
  * @param {any} value 
  */
-function genericIsEmpty(value) {
+function isEmptyGeneric(value) {
     return !value.length
 }
 
@@ -111,10 +116,51 @@ function genericIsEmpty(value) {
  * @param {Object|Array} value 
  */
 export function isEmpty(value) { // lodash
-    const func = Array.isArray(value) ? genericIsEmpty : objectIsEmpty
+    const func = Array.isArray(value) ? isEmptyGeneric : isEmptyObject
 
     return func(value)
 }
+
+/**
+ * Filter object properties based on predicate
+ * @param {Object} object 
+ * @param {Function} predicate 
+ */
+function filterObject(object, predicate) {
+    object = Object(object)
+
+    const result = {}
+
+    Object.keys(object).forEach((key) => {
+        const value = object[key]
+        if(predicate(value, key, object)) {
+            result[key] = value
+        }
+    })
+    return result
+}
+
+/**
+ * Filter an array based on its values
+ * @param {Array} array 
+ * @param {Function} predicate 
+ */
+function filterArray(array, predicate) {
+    return array.filter(predicate)
+}
+
+/**
+ * Filter a collection based on ts properties
+ * @param {Object|Array} collection 
+ * @param {Function} predicate 
+ */
+export function filter(collection, predicate) {
+    const func = Array.isArray(collection) ? filterArray : filterObject
+
+    return func(collection, predicate)
+}
+
+
 
 /**
  * Return a query string based on an object {key: value}
