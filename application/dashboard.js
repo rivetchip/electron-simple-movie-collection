@@ -14,15 +14,17 @@ import { h, app as hyperapp } from './hyperapp'
 import {ComponentAppTitlebar} from './components/app-titlebar'
 import {ComponentAppToolbar} from './components/app-toolbar'
 
-import {SearchToolbar, ProductItems} from './components/app-sidebar'
+import {ComponentSidebarSearch, ComponentSidebarMovies} from './components/app-sidebar'
 
 import {ComponentPanelWelcome, ComponentPanelPreview, ComponentPanelPublication} from './components/product-panels'
 
 import {AppStatusbar} from './components/app-statusbar'
 
+import {lookup, map, filter, urlstringify} from './helpers'
 
 
-import {fetchmovie} from './moviesapi-protocol'
+
+// import {fetchmovie} from './moviesapi-protocol'
 
 
 /*
@@ -74,12 +76,23 @@ const state = { // initial state
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
     ],
 
-    movieIndex: null, // current select product
-    movie: null, // current product values
-    collection: [],
+    movieIndex: null, // current select movie
+    movie: null, // current movie values
+    collection: {
+        '123456': {
+            title: 'aaa1', favorite:true
+        },
+        '789456': {
+            title: 'aaa2', favorite:false
+        },
+        '753357': {
+            title: 'aaa3', favorite:true
+        },
+    },
+    sidebarCollection: {}, // active movies on the left
 
-    draftIndex: null, // draft product index / null if new
-    draft: null, // curent edit product
+    draftIndex: null, // draft movie index / null if new
+    draft: null, // curent edit movie
 }
 
 var actions = {
@@ -129,66 +142,55 @@ var actions = {
     onReceiveCollection: ({collection}) => {
         // we receive a new Maped array [id, {product}] collection of simple products
         return {
+            collection,
             location: 'welcome',
             movieIndex: null,
             movie: null,
-            collection
+            sidebarCollection: collection
         }
     },
 
 
-    showProductPreview: ({index, movie}) => {
-        console.log('showProductPreview', index)
+    openPanelPreview: ({index}) => (state, actions) => {
+        console.log('openPanelPreview', index)
 
-        return {movieIndex: index, movie, isHamburgerOpen: false, location: 'preview'}
+        let movie = state.collection[index]
+
+        if(movie) {// TODO better
+            return {movieIndex: index, movie, isHamburgerOpen: false, location: 'preview'}
+        }
     },
 
     // set the selected ; then open the preview
-    onProductClick: ({index}) => async ({movieIndex}, {showProductPreview}) => {
-        console.log('onProductClick', index)
+    onSidebarClick: ({index}) => async (state, actions) => {
+        console.log('onSidebarClick', index)
 
-
-
-
-//TODO FIXME showProductPreview
-        if(movieIndex != index ) {
-            showProductPreview(await ipc('movie', {index})) // {index, product}
-        }
+        return actions.openPanelPreview({index})
     },
 
-    // search event when using the search box on the sidebar
-
-    onSearch: ({keyword, keyCode}) => ({collection}, actions) => {
+    // filter collection based on keyword search
+    // TODO is escape : contains("") aslways true
+    onSearch: ({keyword}) => (state, actions) => {
         console.log('onSearch', keyword)
 
-        // if escape : show all products
-        let showEverything = keyCode == 'Escape'
-
-        // hide all products based on keyword ; or if escape : show the all
 
         let lowerCase = (text) => text.toLowerCase()
 
         let matchText = (text, keyword) => text.includes(keyword)
 
-        let mapHiddenOnTitle = ({format = lowerCase, match = matchText}) => (product) => {
-            
-            product.hidden = !match(format(product.title), keyword)
-            
-            return product
+
+        let containsCurry = ({match, format}) => (text, keyword) => {
+            return match(format(text), keyword)
         }
 
-        let mapShowOnTitle = () => (product) => {
-            product.hidden = false;
-            return product
-        }
+        let contains = containsCurry({match: matchText, format: lowerCase})
 
-        let productMapFn = showEverything ? mapShowOnTitle() : mapHiddenOnTitle({format: lowerCase, match: matchText})
-
-
-        return {products: products.map(productMapFn)}
+        return {sidebarCollection: filter(state.collection, (movie, index) => {
+            return contains(movie.title, keyword)
+        })}
     },
     
-    onProductFavorite: ({index}) => ({products}, actions) => {
+    onSidebarFavorite: ({index}) => ({products}, actions) => {
         console.log('onProductFavorite', index)
 
 
@@ -257,29 +259,39 @@ const view = (state, actions) => {
 
             <app-sidebar>
 
-                <SearchToolbar
+                <ComponentSidebarSearch
                     onSearch={actions.onSearch}
                 />
-                <ProductItems
-                    productIndex={state.productIndex}
-                    products={state.products}
-                    onProductClick={actions.onProductClick}
-                    onProductFavorite={actions.onProductFavorite}
+                <ComponentSidebarMovies
+                    movieIndex={state.movieIndex}
+                    collection={state.sidebarCollection}
+                    onClick={actions.onSidebarClick}
+                    onFavorite={actions.onSidebarFavorite}
                 />
 
             </app-sidebar>
 
             <product-panel>
-                { state.location == 'welcome' && <ComponentPanelWelcome /> }
-                { state.location == 'preview' && <ComponentPanelPreview {...state.product} /> }
-                { state.location == 'publication' && <ComponentPanelPublication {...state.product} /> }
+                { state.location == 'welcome' && <ComponentPanelWelcome
+                    />
+                }
+                
+                { state.location == 'preview' && <ComponentPanelPreview
+                    movieIndex={state.movieIndex}
+                    {...state.movie} />
+                }
+
+                { state.location == 'publication' && <ComponentPanelPublication
+                    movieIndex={state.movieIndex}
+                    {...state.movie} />
+                }
             </product-panel>
 
         </app-layout>
 
         <AppStatusbar
-            status={state.products.length + ' films'}
-            filters={}
+            status={Object.keys(state.collection).length + ' films'}
+            filters={'empty'}
         />
 
     </app>)
