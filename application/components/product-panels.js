@@ -1,4 +1,7 @@
 
+import { h } from '../hyperapp'
+
+
 export const ComponentPanelWelcome = () => (
     <div>vide</div>
 )
