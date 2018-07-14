@@ -1,5 +1,5 @@
 
-import { h, app as hyperapp } from '../hyperapp'
+import { h } from '../hyperapp'
 
 
 
