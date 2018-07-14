@@ -1,40 +1,22 @@
 
-import { h, app as hyperapp } from '../hyperapp'
+import { h } from '../hyperapp'
 
 
 
-export const SearchToolbar = ({ onSearch }) => (
+export const ComponentSidebarSearch = ({onSearch}) => (
 
     <search-toolbar>
         <input
-            onkeyup={event => onSearch({event, keyword: event.target.value, keyCode: event.code})}
-            className="search-input"
             type="search"
+            className="search-input"
             placeholder="Recherche"
+            oninput={event => onSearch({keyword: event.target.value})}
         />
     </search-toolbar>
 
 )
 
-export const ProductItems = ({productIndex, products, onProductClick, onProductFavorite}) => (
-
-    <product-items>
-
-    {products && products.map(({title, favorite, hidden}, index) => (
-        !hidden && (<ProductItem
-            index={index}
-            title={title}
-            selected={productIndex == index}
-            favorite={favorite}
-            onClick={onProductClick}
-            onFavorite={onProductFavorite}
-        />)
-    ))}
-
-    </product-items>
-)
-
-export const ProductItem = ({ index, title, selected, favorite, onClick, onFavorite }) => (
+ const ComponentSidebarMovie = ({ index, title, selected, favorite, onClick, onFavorite }) => (
 
     <product-item
         key={index}
@@ -50,5 +32,23 @@ export const ProductItem = ({ index, title, selected, favorite, onClick, onFavor
         )}
 
     </product-item>
+)
+
+export const ComponentSidebarMovies = ({movieIndex, collection, onClick, onFavorite}) => (
+
+    <product-items>
+
+    {Object.entries(collection).map(([index, movie]) => (
+        <ComponentSidebarMovie
+            index={index}
+            title={movie.title}
+            selected={movieIndex == index}
+            favorite={movie.favorite}
+            onClick={onClick}
+            onFavorite={onFavorite}
+        />
+    ))}
+
+    </product-items>
 )
 
