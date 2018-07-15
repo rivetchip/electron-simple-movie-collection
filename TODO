@@ -20,6 +20,11 @@ dont use document.body on render
 https://codepen.io/ismamz/pen/ppGMWM?editors=1010
 
 
+parcel : node_modules/process/browser.js possibilité de le désactiver ??
+https://github.com/parcel-bundler/parcel/blob/0ac4e297adf95cff78de361fc4867fd412ec3b60/src/assets/JSAsset.js#L133
+
+
+
 
 
 currying
