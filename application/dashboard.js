@@ -2,6 +2,9 @@
 'use strict';
 
 import { h, app as hyperapp } from './hyperapp'
+import devtools from 'hyperapp-devtools'
+
+const {appPlatform, appDevice} = process
 
 // app components
 import {ComponentAppTitlebar} from './components/app-titlebar'
@@ -15,14 +18,21 @@ import ElectronBridge from './platform-specific/electron-preload'
 import AndroidBridge from './platform-specific/android-preload'
 
 if(appPlatform == 'desktop' && appDevice == 'electron') {
-    const {onOpenCatalog, saveCatalog} = ElectronBridge
+    // const {onOpenCatalog, saveCatalog} = ElectronBridge
 }
 if(appPlatform == 'mobile' && appDevice == 'android') {
-    const {onOpenCatalog, saveCatalog} = AndroidBridge
+    // const {onOpenCatalog, saveCatalog} = AndroidBridge
 }
 
 // helpers
 import {lookup, map, filter, urlstringify} from './helpers'
+
+// disable eval
+window.eval = global.eval = () => {throw 'no eval'}
+
+
+// console.log(window.process, process)
+
 
 
 
@@ -80,17 +90,7 @@ const state = { // initial state
 
     movieIndex: null, // current select movie
     movie: null, // current movie values
-    collection: {
-        '123456': {
-            title: 'aaa1', favorite:true
-        },
-        '789456': {
-            title: 'aaa2', favorite:false
-        },
-        '753357': {
-            title: 'aaa3', favorite:true
-        },
-    },
+    collection: {},
     sidebarCollection: {}, // active movies on the left
 
     draftIndex: null, // draft movie index / null if new
@@ -123,11 +123,16 @@ var actions = {
         return {isHamburgerOpen: !isHamburgerOpen}
     },
 
-    onToolbarOpen: () => async (state, {onReceiveCollection}) => {
-        onReceiveCollection(await ipc('open-collection-dialog')) // {collection[index, {product}]}
+    onToolbarOpen: () => async (state, actions) => {
+        return actions.onReceiveCollection(await ipc('open-collection-dialog'))
     },
 
     onToolbarSave: () => {
+
+        
+        
+        
+        
         ipc('save-collection-dialog')
     },
 
@@ -140,15 +145,21 @@ var actions = {
         return {providerIndex: index}
     },
 
-    // empty the previous collection ; when the collection has been opened
     onReceiveCollection: ({collection}) => {
-        // we receive a new Maped array [id, {product}] collection of simple products
+        
+        console.log(collection)
+
+        const {version, metadata, options, collection: movies} = collection
+
+
+
         return {
-            collection,
+            version, metadata, options,
+            collection: movies,
             location: 'welcome',
             movieIndex: null,
             movie: null,
-            sidebarCollection: collection
+            sidebarCollection: movies
         }
     },
 
@@ -298,21 +309,21 @@ const view = (state, actions) => {
 }
 
 
-
-const app = hyperapp(state, actions, view, document.body)
+devtools(hyperapp)(state, actions, view, document.body)
+// const app = hyperapp(state, actions, view, document.body)
 
 
 
 // events
 
-receive('fullscreen-status-changed', (event, status) => {
-    return app.onAppFullscreen({status})
-})
+// receive('fullscreen-status-changed', (event, status) => {
+//     return app.onAppFullscreen({status})
+// })
 
 // receive a notification from the main app
-receive('notification', (event, message) => {
-    //createSnackbar(viewport, message)
-})
+// receive('notification', (event, message) => {
+//     //createSnackbar(viewport, message)
+// })
 
 
 
