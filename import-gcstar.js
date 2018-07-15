@@ -10,9 +10,11 @@ const {JSDOM: jsdom} = require('jsdom')
 
 let [nodeExec, script, sourceFile, destinationFile = 'simplemovie.json'] = process.argv
 
-console.log('===== Import from GCStar/GCfilms =====')
+console.log('=====')
+console.log('Import from GCStar/GCfilms (may not work on all collections)')
 
 if(!sourceFile) {
+    console.log('=====')
     console.log('Missing sourceFile argument')
     console.log('Usage:')
     console.log('$ ./import-gcstar.js source.gcs  [destination.json]')
