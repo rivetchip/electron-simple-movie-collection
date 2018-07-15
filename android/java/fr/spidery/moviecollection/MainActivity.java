@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
 
         List<String> permissions = asList(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
             // Manifest.permission.ACCESS_NETWORK_STATE,
             // Manifest.permission.INTERNET
         );
