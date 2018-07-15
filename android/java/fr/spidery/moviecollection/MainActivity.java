@@ -70,8 +70,8 @@ public class MainActivity extends Activity {
         List<String> permissions = asList(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-            Manifest.permission.INTERNET
+            // Manifest.permission.ACCESS_NETWORK_STATE,
+            // Manifest.permission.INTERNET
         );
 
         List<String> permissionsNeeded = new ArrayList<>();
@@ -124,7 +124,7 @@ public class MainActivity extends Activity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                     builder.setTitle("Permission required");
-                    builder.setMessage("Permission to access the SDCARD is required to access the movie catalog.");
+                    builder.setMessage("SDCard permission is required to access the collection.");
 
                     // pass arguments to dialog
                     final List<String> xpermissionsNeeded = permissionsNeeded;
@@ -191,8 +191,8 @@ public class MainActivity extends Activity {
                 });
                 webView.setWebChromeClient(new WebChromeClient() {
                     public boolean onConsoleMessage(ConsoleMessage cm) {
-                    Log.d("CONSOLE", cm.message() + " -- From line " + cm.lineNumber() + " of " + cm.sourceId());
-                    return true;
+                        Log.d("CONSOLE", cm.message() + " -- From line " + cm.lineNumber() + " of " + cm.sourceId());
+                        return true;
                     }
                 });
 
@@ -209,7 +209,7 @@ public class MainActivity extends Activity {
                 //black bg
                 webView.setBackgroundColor(0);
 
-                webView.addJavascriptInterface(this, "Android");
+                webView.addJavascriptInterface(this, "_AndroidBridge");
 
                 webView.loadUrl(url);
             }
@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
 
             File catalogFolder = new File(sdcard + entrypoint); //storage/emulated/0
             File catalogPoster = new File(sdcard + entrypoint, "posters/");
-            File catalogFile = new File(sdcard + entrypoint, "catalog.json");
+            File catalogFile = new File(sdcard + entrypoint, "moviecollection.json");
 
             if (!catalogFolder.exists() && !catalogFolder.mkdirs()) {
                 Log.e("CONSOLE", "catalogFolder not created");
