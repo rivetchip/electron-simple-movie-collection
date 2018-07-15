@@ -93,36 +93,56 @@ async function app({sourceFile, destinationFile}) {
     return converted
 }
 
-function convertDateReleased(date) {
-    date = String(date)
-    
-    date = date.replace(/\//gi, '-')
-
-    if(date.length == 4) {//year
-        date += '-01-01' // january
-    }
-
-    let format = new Date(date.replace( /(\d{2})-(\d{2})-(\d{4})/, "$2/$1/$3"))
-
-    if(format == 'Invalid Date') {
-        // console.log('convertDateReleased skip', {date})
-        return null
-    }
-
-    return [format.getYear(), format.getMonth(), format.getDay()].join('-')
+function str_pad(n) {
+    return String('00' + n).slice(-2)
 }
 
-function convertSimpleDate(date) {
-    date = String(date)
+function convertDate(date) {
+    return [
+        date.getFullYear(),
+        str_pad(date.getMonth()),
+        str_pad(date.getDay())
+    ].join('-')
+}
 
-    let format = new Date(date.replace( /(\d{2})\/(\d{2})\/(\d{4})/, "$2/$1/$3"))
+function convertDateReleased(format) {
+    format = String(format).replace(/\//gi, '-')
 
-    if(format == 'Invalid Date') {
-        // console.log('convertSimpleDate skip', {date})
+    if(format.length == 4) {
+        return format // year
+    }
+
+    let date = new Date(format) // try withotu regex first
+
+    if(date == 'Invalid Date') {
+
+        let regexcomma = /(\d{4})-(\d{2})-(\d{2})/gi //2014-03-26
+        let regexslash = /(\d{2})-(\d{2})-(\d{4})/gi //29/10/2013
+
+        if(regexcomma.test(format)) {
+            format = format.replace(regexcomma, "$2/$3/$1") //month/day/year
+            date = new Date(format)
+        }
+        if(regexslash.test(format)) {
+            format = format.replace(regexslash, "$2/$1/$3")
+            date = new Date(format)
+        }
+    }
+
+    if(date == 'Invalid Date') {
+        console.log('convertDateReleased skip', {format})
         return null
     }
 
-    return format
+    return convertDate(date)
+}
+
+function convertSimpleDate(format) {
+    format = String(format).replace(/\//gi, '-')
+
+    let [day, month, year] = format.split('-')
+
+    return [year, str_pad(month), str_pad(day)].join('-')
 }
 
 function convertPoster(image) {
