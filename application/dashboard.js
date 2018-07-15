@@ -97,6 +97,18 @@ const state = { // initial state
     draft: null, // curent edit movie
 }
 
+
+
+// import {version, metadata, options, collection as movies} from './___.json'
+
+// state.collection = movies;
+// state.sidebarCollection = movies;
+// state.isMobile = true;
+
+
+
+
+
 var actions = {
 
     // Application titlebar
@@ -191,7 +203,7 @@ var actions = {
         let matchText = (text, keyword) => text.includes(keyword)
 
         let containsCurry = ({match, format}) => (text, keyword) => {
-            return match(format(text), keyword)
+            return match(format(text), format(keyword))
         }
 
         let contains = containsCurry({match: matchText, format: lowerCase})
