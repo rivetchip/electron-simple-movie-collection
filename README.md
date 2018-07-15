@@ -1,11 +1,11 @@
 # Simple Movie Collection cross-app
 (currently in beta and under heavy development)
 
-Simple application for managing your personnal movie collections.
-It can also import informations from TMDb.
+Simple application for managing your personnal movie collections. Can also fetch informations from TMDb.
 
 Available on Linux, Windows & Android.
 
+-> To import your current GCStar/GCFilms collection, look at the import section.
 
 <img src="media/screenshot-desktop.png" height="350"> <img src="media/screenshot-mobile.png" height="350">
 
@@ -20,7 +20,7 @@ npm install
 
 npm run serve   (keep terminal open)
 
-npm run debug   (or using vscode debug)
+npm run electron   (or using vscode "npm debug")
 ```
 
 Linux: Error "ENOSPC" : (max watch files limit exeed)
@@ -32,13 +32,15 @@ echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo s
 Debugging Android :
 -------------------
 
-First install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28), then :
+First install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28)
 
 ```sh
-npm run bundle-android && ./android.sh test
+npm run serve   (keep terminal open)
+
+./android.sh test
 ```
 
-It will compile, sign, launch the APK using ADB and finally show console Logs.
+It will compile, sign, launch the APK using ADB and show console logs.
 
 
 Build Desktop :
@@ -51,7 +53,7 @@ npm run build-linux32  (choose your arch)
 npm run build-linux64
 npm run build-win32
 npm run build-win64
-npm run build-mac
+npm run build-mac  (not tested!)
 ```
 
 Release executable will be in `/release-builds/` folder
@@ -62,15 +64,46 @@ Linux: missing `libXss.so.1` library > Install `libXScrnSaver` package
 Build Android :
 ---------------
 
-(Same steps as debugging)
-
 ```sh
-npm install
-
-npm run bundle-android && ./android.sh
+npm run bundle && ./android.sh
 ```
 
 Release APK will be `/android/bin/simplemoviecollection.apk`
+
+
+
+Import from GCStar/GCFilms
+--------------------------
+
+Install nodejs package and run :
+
+```sh
+./import-gcstar.js mycollection.gcs  [destination.json]
+```
+
+[x] Then copy all your posters inside a "/posters/" folder, the hierarchy must look like this :
+
+- your-collection.json
+- posters/
+    - superposter.jpg
+    - superposter2.jpg
+    - etc...
+
+
+[x] How to use the imported collection to Android :
+
+- copy the file to your sdcard : `/Android/data/fr.spidery.moviecollection/moviecollection.json`
+- copy all the posters inside `/Android/data/fr.spidery.moviecollection/posters/`
+
+/!\ On Android, the document's name __must be__ `moviecollection.json`
+
+the hierarchy must look like this :
+
+- /Android/data/fr.spidery.moviecollection/
+    - moviecollection.json
+    - posters/
+        - superposter.jpg
+        - superposter2.jpg
 
 
 
@@ -78,9 +111,13 @@ Credits :
 ---------
 
 [Lato Fonts](http://www.latofonts.com/lato-free-fonts/) - SIL Open Font License
+
 [GNOME Adwaita Icons](https://github.com/GNOME/adwaita-icon-theme) - GPL v2
+
 [Star rating script](https://codepen.io/mburnette/pen/eNNZbm) - MIT
+
 [Electron IPC Logger](https://github.com/ungoldman/electron-ipc-log) - ISC License
+
 [Android Build tool](https://medium.com/@authmane512/7260e1e22676)
 
 Icons :
@@ -93,3 +130,4 @@ Clapperboard made by [Roundicons](https://www.flaticon.com/authors/roundicons) f
 ## License
 
 [MIT License](LICENSE)
+
