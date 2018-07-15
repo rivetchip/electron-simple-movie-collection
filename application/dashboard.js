@@ -1,25 +1,27 @@
 /** @jsx h */
 'use strict';
 
-//TODO cordova
-// window.send = ( channel, args ) => {}
-// window.receive = ( channel, listener ) => {}
-// window.ipc = (channel, args) => {}
-
-
-
 import { h, app as hyperapp } from './hyperapp'
 
-// components
+// app components
 import {ComponentAppTitlebar} from './components/app-titlebar'
 import {ComponentAppToolbar} from './components/app-toolbar'
-
 import {ComponentSidebarSearch, ComponentSidebarMovies} from './components/app-sidebar'
-
 import {ComponentPanelWelcome, ComponentPanelPreview, ComponentPanelPublication} from './components/product-panels'
+import {ComponentAppStatusbar} from './components/app-statusbar'
 
-import {AppStatusbar} from './components/app-statusbar'
+// platform specifics javascript bridges
+import ElectronBridge from './platform-specific/electron-preload'
+import AndroidBridge from './platform-specific/android-preload'
 
+if(appPlatform == 'desktop' && appDevice == 'electron') {
+    const {onOpenCatalog, saveCatalog} = ElectronBridge
+}
+if(appPlatform == 'mobile' && appDevice == 'android') {
+    const {onOpenCatalog, saveCatalog} = AndroidBridge
+}
+
+// helpers
 import {lookup, map, filter, urlstringify} from './helpers'
 
 
@@ -173,11 +175,9 @@ var actions = {
     onSearch: ({keyword}) => (state, actions) => {
         console.log('onSearch', keyword)
 
-
         let lowerCase = (text) => text.toLowerCase()
 
         let matchText = (text, keyword) => text.includes(keyword)
-
 
         let containsCurry = ({match, format}) => (text, keyword) => {
             return match(format(text), keyword)
@@ -289,7 +289,7 @@ const view = (state, actions) => {
 
         </app-layout>
 
-        <AppStatusbar
+        <ComponentAppStatusbar
             status={Object.keys(state.collection).length + ' films'}
             filters={'empty'}
         />
