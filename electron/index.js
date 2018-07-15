@@ -35,28 +35,8 @@ if(debug) {
 }
 
 // app.disableHardwareAcceleration()
-
+console.log(process.env)
 let win
-
-
-
-// Someone tried to run a second instance, we should focus our window
-const shouldStartInstance = app.makeSingleInstance((commandLine, workingDirectory) => {
-    if( win ){
-        if( !win.isVisible() ) {
-            win.show()
-        }
-        if( win.isMinimized() ) {
-            win.restore()
-        }
-        win.focus()
-    }
-    return true
-})
-
-if(shouldStartInstance) {
-    app.quit()
-}
 
 function createWindow() {
 
@@ -75,7 +55,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             // contextIsolation: true,
-            preload: pathjoin(__dirname, 'electron-preload.js'),
+            // preload: pathjoin(__dirname, 'electron-preload.js'),
         },
 
         // borderless frame
