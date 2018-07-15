@@ -3,7 +3,7 @@ import { h } from '../hyperapp'
 
 
 
-export const AppStatusbar = ({status, filters}) => (
+export const ComponentAppStatusbar = ({status, filters}) => (
     <app-statusbar>
 
         {status}
