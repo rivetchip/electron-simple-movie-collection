@@ -5,13 +5,13 @@ const {platform, argv} = process
 
 const {app, BrowserWindow, ipcMain, dialog} = require('electron')
 
-if(platform == 'linux') {
-    //--enable-transparent-visuals --disable-gpu
-    app.disableHardwareAcceleration() // transparency and fire win.ready-show
-}
-
 const {join: pathjoin} = require('path')
-const fs = require('fs')
+const {
+    access: fsaccess,
+    readFile: fsreadFile,
+    writeFile: fswriteFile,
+    constants: fsconstants
+} = require('fs')
 
 // Application fow
 const {logger} = require('./logger')
@@ -21,6 +21,11 @@ const userDataPath = app.getPath('userData')
 const userSettingsFilename = pathjoin(userDataPath, 'settings.json');
 
 const debug = argv.includes('--debug')
+
+if(platform == 'linux') {
+    //--enable-transparent-visuals --disable-gpu
+    app.disableHardwareAcceleration() // transparency and fire win.ready-show
+}
 
 if(debug) {
     const electronIpcLog = require('./electron-ipc-log')
@@ -35,7 +40,7 @@ if(debug) {
 }
 
 // app.disableHardwareAcceleration()
-console.log(process.env)
+
 let win
 
 function createWindow() {
@@ -55,7 +60,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             // contextIsolation: true,
-            // preload: pathjoin(__dirname, 'electron-preload.js'),
+            preload: pathjoin(__dirname, 'preload.js'),
         },
 
         // borderless frame
@@ -135,12 +140,7 @@ process.on('unhandledRejection', (error) => logger('unhandledRejection', error))
 
 
 
-//// Application events flow
 
-
-let catalogStorage = {} // content of the collection, options & others stuffs
-
-let catalogStorageFilename // current opened file
 
 
 /**
@@ -173,57 +173,111 @@ const send = (channel, args) => {
 }
 
 
+
+
+
 /**
  * Using async, await, with error handling
  * return [error, resolve datas]
  * 
  * @param {Promise} promise 
  */
-const to = (promise) => {
+function to(promise) {
     return promise.then((response) => {
        return [null, response];
     })
     .catch(error => [error]);
  }
 
-const fileExist = (filename) => {
+function fileExist(filename) {
     return new Promise((resolve, reject) => {
-        fs.access(filename, fs.F_OK, (error) => {
+        fsaccess(filename, fsconstants.F_OK, (error) => {
             return error ? reject(error) : resolve(data)
         })
     })
 }
 
-const readFile = (filename) => {
+function readFile(filename) {
     return new Promise((resolve, reject) => {
-        fs.readFile(filename, 'utf8', (error, data) => {
+        fsreadFile(filename, 'utf8', (error, data) => {
             return error ? reject(error) : resolve(data)
         })
     })
 }
 
-const writeFile = (filename, content) => {
+function writeFile(filename, content) {
     return new Promise((resolve, reject) => {
-        fs.writeFile(filename, content, 'utf8', (error) => {
+        fswriteFile(filename, content, 'utf8', (error) => {
             return error ? reject(error) : resolve()
         })
     })
 }
 
-
-//set the catalog storage filename
-const setCatalogStorageFilename = (filename) => {
-    catalogStorageFilename = filename
+function showOpenDialog(options) {
+    return new Promise((resolve, reject) => {
+        dialog.showOpenDialog(options, (filenames) => {
+            return filenames ? resolve(filenames) : reject('showOpenDialog: no file set')
+        })
+    })
 }
 
-const getCatalogStorageFilename = () => {
-    return catalogStorageFilename
+function showSaveDialog(options) {
+    return new Promise((resolve, reject) => {
+        dialog.showSaveDialog(options, (filename) => {
+            return filename ? resolve(filename) : reject('showSaveDialog: no file set')
+        })
+    })
 }
 
-// empty the catalog storage
-const emptyCatalogStorage = () => {
-    catalogStorage = {}
+function showErrorBox (title, content) {
+    dialog.showErrorBox(title, content)
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//// Application events flow
+
+let storageFilename // current opened file
+
+
+
+
+
+
+
 
 // const the collection from the content of a file or anything ; and get the colection
 const setCatalogStorageFrom = (content) => {
@@ -243,71 +297,16 @@ const setCatalogStorageFrom = (content) => {
     catalogStorage = storage
 }
 
-// return the collection of all products
-const getCatalogStorageCollection = () => {
-    return catalogStorage.collection
-}
-
-// get a single product
-const getCatalogStorageProduct = (index) => {
-
-    let product = catalogStorage.collection[index]
-
-    return product 
-}
-
-// construct file for when we want to save it to a file or other
-// TODO : if save when there is no movies : options, version are not set
-const getCatalogStorageForSaving = () => {
-    let content = catalogStorage
-
-    return content
-}
-
-// return a simple collection of products
-const getProductsSimpleFrom = (collection) => {
-
-    let products = []
-
-    collection.forEach((product) => {
-        // [index, {product}] ; foreach.index = real index
-
-        products.push({
-            title: product.title,
-            favorite: product.favorite,
-            // poster: product.poster
-        })
-    })
-
-    return products
-}
 
 
-const showOpenDialog = (options) => {
-    return new Promise((resolve, reject) => {
-        dialog.showOpenDialog(options, (filenames) => {
-            return filenames ? resolve(filenames) : reject('showOpenDialog: no file set')
-        })
-    })
-}
 
-const showSaveDialog = (options) => {
-    return new Promise((resolve, reject) => {
-        dialog.showSaveDialog(options, (filename) => {
-            return filename ? resolve(filename) : reject('showSaveDialog: no file set')
-        })
-    })
 
-    dialog.showSaveDialog()
-}
 
-const showErrorBox = (title, content) => {
-    dialog.showErrorBox(title, content)
-}
+
 
 
 // read a file collection ; and return a simple collection of products
-const onReadFileCatalogStorage = (filename) => {
+const onReadStorageFilename = (filename) => {
     return readFile(filename).then((content) => JSON.parse(content))
 }
 
@@ -360,28 +359,13 @@ receive('open-collection-dialog', async (reply) => {
 
     let filename = filePaths[0] // get first file
 
-    let [errorRead, content] = await to(onReadFileCatalogStorage(filename))
+    let [errorRead, collection] = await to(onReadStorageFilename(filename))
 
     if(errorRead){
         showErrorBox('Cannot open file', errorRead.message || errorRead)
 
         return logger(errorRead)
     }
-
-    // set the catalog content
-
-    setCatalogStorageFrom(content)
-
-    // get the current collection, as an array [id, {product}]
-
-    const collectionMap = getCatalogStorageCollection()
-
-    const collection = getProductsSimpleFrom(collectionMap)
-
-
-    // set the collection from the read file
-
-    setCatalogStorageFilename(filename)
 
     // then send it back to the client
 
@@ -435,26 +419,6 @@ receive('save-collection-dialog', async (reply) => {
 
     return onSaveCollection(newfilename)
 })
-
-
-
-receive('product', (reply, reject, {index}) => {
-
-    // return a single product from the collection
-    let product = getCatalogStorageProduct(index)
-
-    if( product ) {
-        return reply({index, product})
-    }
-
-    // TODO : if multiple not found product : multiple events on IPC renderer
-
-    return showErrorBox('Cannot get product', '')
-})
-
-
-
-
 
 
 
