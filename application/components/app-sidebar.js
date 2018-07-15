@@ -20,7 +20,9 @@ export const ComponentSidebarSearch = ({onSearch}) => (
 
     <product-item
         key={index}
-        className={selected && 'is-selected'}
+        className={[
+            selected && 'is-selected'
+        ].filter(c => !!c).join(' ')}
         onclick={event => onClick({index})}
     >
         <div class="title">{title}</div>
