@@ -8,3 +8,4 @@ android/bin/
 android/classes.dex
 android/mykey.keystore
 android/keystorepass
+android/res/mipmap-*
