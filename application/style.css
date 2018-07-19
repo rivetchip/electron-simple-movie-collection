@@ -87,8 +87,6 @@ html, body, .viewport {
     outline: none;
     border: 0;
     box-sizing: border-box;
-    transition: 200ms ease-out;
-    transition-property: opacity, background-color, border-color;
 }
 a {
     color: #fff;
@@ -188,7 +186,8 @@ app-titlebar button {
     background: transparent no-repeat center;
     background-size: 16px;
     margin-right: 5px;
-    box-shadow: none;
+
+    transition: all 200ms ease;
 }
 app-titlebar button:last-of-type {
     margin-right: 0;
@@ -210,72 +209,6 @@ app-titlebar button.menu {
     background-image: url(imgs/window-menu.svg);
 }
 
-app-titlebar .popover {
-    display: none;
-
-    position: absolute;
-    right: 0;
-    top: 105%;
-    z-index: 9;
-
-    padding: 15px;
-    min-width: 200px;
-
-    border-radius: 4px;
-    background-color: #33393b;
-    border: 1px solid #1b1f20;
-    box-shadow: 0 1px 3px #0003;
-}
-app-titlebar .popover-item {
-    display: block;
-    cursor: pointer;
-
-    padding: 8px 15px;
-    border-radius: 4px;
-    margin-bottom: 2px,
-}
-app-titlebar .popover-item:last-child {
-    margin-bottom: 0;
-}
-app-titlebar .popover-item:hover {
-    background-color: #3f4649;
-}
-
-
-app-titlebar .popover::after {
-    content: '';
-    position: absolute;
-
-    width: 10px;
-    height: 10px;
-    margin: 0;
-    border-style: solid;
-    border-width: 1px 0 0 1px;
-    border-color: #1b1f20 transparent transparent #1b1f20;
-    background: inherit;
-    position: absolute;
-    top: -6px;
-    right: 16px;
-    transform: rotate(45deg);
-    -webkit-transform: rotate(45deg);
-}
-
-app-titlebar .toggle-popover:focus + .popover {
-    display: block;
-}
-
-
-
-
-
-.tooltip:focus span,
-.tooltip:hover span {
-    visibility: visible;
-}
-
-
-
-
 
 app-toolbar { /* toolbar with main icons */
     user-select: none;
@@ -289,7 +222,6 @@ app-toolbar { /* toolbar with main icons */
 
     padding: 5px;
     background-color: #2c3133;
-    /* 33393b */
 }
 app-toolbar button {
     display: inline-block;
@@ -306,6 +238,8 @@ app-toolbar button {
     background-repeat: no-repeat;
     background-size: 24px;
     background-color: transparent;
+
+    transition: all 200ms ease;
 }
 app-toolbar button:last-of-type {
     margin-right: 0;
@@ -842,7 +776,6 @@ snackbar.is-visible {
     app-toolbar button:not(.hamburger) {
         text-indent: -9999px;/*hide text*/
         white-space: nowrap;
-        overflow: hidden;
         background-position: center;
 
         padding: 0 20px;
@@ -855,17 +788,25 @@ snackbar.is-visible {
     app-sidebar {
         width: 100%;
         height: 100%;
-        transition: all 200ms ease-in;
         border-right: 0;
 
         position: absolute;
         left: 0;
-        transform: translateX(-100%);/*move to left*/
-    }
-    .is-hamburger-open app-sidebar {
-        transform: translateX(0);
     }
 
+
+    product-panel {
+        width: 100%;
+        z-index: 1;
+
+        transition: all 300ms ease-out;
+    }
+
+    .is-hamburger-open product-panel {
+        opacity: 0; /*invisible pendant l'animation, mais cliquable*/
+        transform: scale(0.85);
+        visibility: hidden;
+    }
 
 
 
