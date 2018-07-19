@@ -19,14 +19,6 @@ export const ComponentAppTitlebar = ({title, onClose, onMinimize, onMaximize}) =
             {title}
         </div>
 
-        {/* <app-controls>
-            <button class="menu toggle-popover"></button>
-            <popover class="popover">
-                <span class="popover-item import">Importer</span>
-                <span class="popover-item about">À propos</span>
-            </popover>
-        </app-controls> */}
-
     </app-titlebar>
 )
 
