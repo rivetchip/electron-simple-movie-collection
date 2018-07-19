@@ -4,7 +4,7 @@ release-builds/
 .cache
 bundle/
 android/obj/
-android/bin/
+android/apk/
 android/classes.dex
 android/mykey.keystore
 android/keystorepass

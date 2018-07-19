@@ -32,7 +32,11 @@ echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo s
 Debugging Android :
 -------------------
 
-First install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28)
+Install latest JDK/OpenJDK package `java-1.8.0-openjdk-devel`
+
+Install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28)
+
+Inkscape command-line must also be on PATH in order to create mipmaps from SVGs
 
 ```sh
 npm run serve   (keep terminal open)
@@ -40,7 +44,7 @@ npm run serve   (keep terminal open)
 ./android.sh test
 ```
 
-It will compile, sign, launch the APK using ADB and show console logs.
+It will create mimaps (if needed), compile, sign, launch the APK using ADB and show console logs.
 
 
 Build Desktop :
@@ -64,11 +68,13 @@ Linux: missing `libXss.so.1` library > Install `libXScrnSaver` package
 Build Android :
 ---------------
 
+Report to "Debugging Android" section for requirements.
+
 ```sh
 npm run bundle && ./android.sh
 ```
 
-Release APK will be `/android/bin/simplemoviecollection.apk`
+Release APK will be `/android/apk/simplemoviecollection.apk`
 
 
 
@@ -78,7 +84,7 @@ Import from GCStar/GCFilms
 Install nodejs package and run :
 
 ```sh
-./import-gcstar.js mycollection.gcs  [destination.json]
+node ./import-gcstar.js mycollection.gcs  [destination.json]
 ```
 
 [x] Then copy all your posters inside a "/posters/" folder, the hierarchy must look like this :
@@ -90,7 +96,7 @@ Install nodejs package and run :
     - etc...
 
 
-[x] How to use the imported collection to Android :
+[x] How to use the converted collection to Android :
 
 - copy the file to your sdcard : `/Android/data/fr.spidery.moviecollection/moviecollection.json`
 - copy all the posters inside `/Android/data/fr.spidery.moviecollection/posters/`
