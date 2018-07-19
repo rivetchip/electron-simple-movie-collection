@@ -2,9 +2,8 @@
 'use strict';
 
 import { h, app as hyperapp } from './hyperapp'
-import devtools from 'hyperapp-devtools'
 
-const {appPlatform, appDevice} = process
+const {appPlatform, appDevice} = window.process
 
 // app components
 import {ComponentAppTitlebar} from './components/app-titlebar'
@@ -23,7 +22,7 @@ if(appPlatform == 'desktop' && appDevice == 'electron') {
 if(appPlatform == 'mobile' && appDevice == 'android') {
     // const {onOpenCatalog, saveCatalog} = AndroidBridge
 }
-
+console.log(window.process)
 // helpers
 import {lookup, map, filter, urlstringify} from './helpers'
 
@@ -321,8 +320,7 @@ const view = (state, actions) => {
 }
 
 
-devtools(hyperapp)(state, actions, view, document.body)
-// const app = hyperapp(state, actions, view, document.body)
+const app = hyperapp(state, actions, view, document.body)
 
 
 
