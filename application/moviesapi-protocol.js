@@ -1,3 +1,4 @@
+'use strict';
 
 import {lookup, map, replace, urlstringify} from './helpers'
 
@@ -88,7 +89,7 @@ const apiProviders = {
  * @param {String} source provider
  * @param {String} action 
  * @param {String} keyword 
- * @param {String} language
+ * @param {String} lang
  */
 export async function fetchmovie({source, action, keyword, lang = 'fr'}) {
 
@@ -217,7 +218,7 @@ function transformResultSet({source, lang, result, transitions, movieWebPage}) {
     response.source = source
     response.lang = lang
 
-    if(sourceId && movieWebPage) {
+    if(sourceId && movieWebPage) { // TODO
         response.webPage = movieWebPage.replace('{sourceId}', sourceId);
     }
 
