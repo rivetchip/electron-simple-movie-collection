@@ -11,6 +11,7 @@
     "debug": "electron electron --inspect=12345 --debug-brk --debug",
     "serve": "parcel serve application/index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
     "bundle-clean": "rm -rf ./bundle",
+    "electron-make-icon": "inkscape --export-area-page --file media/monster-icon-round.svg --export-png electron/app-icon.png --export-width 128 --export-height 128",
     "bundle": "parcel build application/index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --no-source-maps",
     "build-clean": "rm -rf ./release-builds/*",
     "build-electron": "npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
