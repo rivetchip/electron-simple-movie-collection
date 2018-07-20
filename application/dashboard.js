@@ -3,8 +3,6 @@
 
 import { h, app as hyperapp } from './hyperapp'
 
-const {appPlatform, appDevice} = window.process
-
 // app components
 import {ComponentAppTitlebar} from './components/app-titlebar'
 import {ComponentAppToolbar} from './components/app-toolbar'
@@ -13,16 +11,19 @@ import {ComponentPanelWelcome, ComponentPanelPreview, ComponentPanelPublication}
 import {ComponentAppStatusbar} from './components/app-statusbar'
 
 // platform specifics javascript bridges
-import ElectronBridge from './platform-specific/electron-preload'
-import AndroidBridge from './platform-specific/android-preload'
+import {ElectronBridge, AndroidBridge} from './platform-specific'
 
-if(appPlatform == 'desktop' && appDevice == 'electron') {
-    // const {onOpenCatalog, saveCatalog} = ElectronBridge
+if(typeof ElectronInterface !== 'undefined') {
+    const {openCollection, saveCollection, getPoster, savePoster} = ElectronBridge(ElectronInterface)
+
+    const appPlatform = 'desktop'
 }
-if(appPlatform == 'mobile' && appDevice == 'android') {
-    // const {onOpenCatalog, saveCatalog} = AndroidBridge
+else if(typeof AndroidInterface !== 'undefined') {
+    const {openCollection, saveCollection, getPoster, savePoster} = AndroidBridge(AndroidInterface)
+
+    const appPlatform = 'mobile'
 }
-console.log(window.process)
+
 // helpers
 import {lookup, map, filter, urlstringify} from './helpers'
 
@@ -30,10 +31,10 @@ import {lookup, map, filter, urlstringify} from './helpers'
 window.eval = global.eval = () => {throw 'no eval'}
 
 
-// console.log(window.process, process)
 
 
 
+console.log(appPlatform)
 
 // import {fetchmovie} from './moviesapi-protocol'
 
