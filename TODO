@@ -34,6 +34,21 @@ https://dl.google.com/android/repository/build-tools_r28.0.1-linux.zip
 
 
 
+    const defaults = {
+        version: 1,
+        options: {},
+        collection: [] // Map
+    }
+
+    const storage = Object.assign({}, defaults, content) // shallow merge
+
+
+
+
+
+
+
+
 currying
 
     let replacer = (options) => (string) => replace(string, options)
