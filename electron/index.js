@@ -10,7 +10,7 @@ const userDataPath = app.getPath('userData')
 const userSettingsFilename = pathjoin(userDataPath, 'settings.json');
 
 const debug = argv.includes('--debug')
-app.commandLine.appendSwitch('--enable-sandbox')
+
 if(platform == 'linux') {
     //--enable-transparent-visuals --disable-gpu
     app.disableHardwareAcceleration() // transparency and fire win.ready-show
@@ -36,9 +36,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             // contextIsolation: true,
-            preload: pathjoin(__dirname, 'preload.js'),
-            sandbox: true
-
+            preload: pathjoin(__dirname, 'preload.js')
         },
 
         // borderless frame
