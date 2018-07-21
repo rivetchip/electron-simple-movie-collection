@@ -94,6 +94,7 @@ function to(promise) {
 async function fileExist(filename) {
     return new Promise((resolve, reject) => {
         fsaccess(filename, fsconstants.F_OK, (error) => {
+            //FIXME check error for parser
             return error ? reject(error) : resolve(data)
         })
     })
@@ -102,6 +103,7 @@ async function fileExist(filename) {
 async function readFile(filename, parser) {
     return new Promise((resolve, reject) => {
         fsreadFile(filename, 'utf8', (error, content) => {
+            //FIXME check error for parser
             return error ? reject(error) : resolve(parser && parser(content) || content)
         })
     })

@@ -32,6 +32,6 @@
     "electron": "^2.0.5",
     "electron-packager": "^11.2.0",
     "jsdom": "^11.11.0",
-    "parcel-bundler": "^1.9.6"
+    "parcel-bundler": "^1.9.7"
   }
 }
