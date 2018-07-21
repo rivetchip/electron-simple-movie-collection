@@ -347,12 +347,12 @@ search-toolbar .search-input {
 
     border: 1px solid transparent;
     border-radius: 50px;
-
+    transition: all 200ms ease;
     background: #2b3032 url(imgs/icon-search.svg) no-repeat 12px center;
     background-size: 16px;
 }
 search-toolbar .search-input:focus {
-    border-color: #215d9c;
+    border-color: #1abc9c;
 }
 
 
@@ -415,6 +415,7 @@ product-item { /* single title item */
     line-height: 1.5;
 
     cursor: pointer;
+    transition: all 200ms ease;
     animation: inFromRight 0.3s;
 }
 product-item:hover {
@@ -777,8 +778,6 @@ snackbar.is-visible {
         text-indent: -9999px;/*hide text*/
         white-space: nowrap;
         background-position: center;
-
-        padding: 0 20px;
     }
 
     #providers {
