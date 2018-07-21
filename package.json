@@ -8,7 +8,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "electron": "electron electron/index.js",
-    "debug": "electron electron --inspect=12345 --debug-brk --debug",
+    "debug": "electron electron/index.js --inspect=12345 --debug-brk --debug",
     "serve": "parcel serve application/index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
     "bundle-clean": "rm -rf ./bundle",
     "electron-make-icon": "inkscape --export-area-page --file media/monster-icon-round.svg --export-png electron/app-icon.png --export-width 128 --export-height 128",

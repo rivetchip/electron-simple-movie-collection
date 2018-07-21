@@ -10,22 +10,23 @@ import {ComponentSidebarSearch, ComponentSidebarMovies} from './components/app-s
 import {ComponentPanelWelcome, ComponentPanelPreview, ComponentPanelPublication} from './components/product-panels'
 import {ComponentAppStatusbar} from './components/app-statusbar'
 
-// platform specifics javascript bridges
-import {ElectronBridge, AndroidBridge} from './platform-specific'
-
-if(typeof ElectronInterface !== 'undefined') {
-    const {openCollection, saveCollection, getPoster, savePoster} = ElectronBridge(ElectronInterface)
-
-    const appPlatform = 'desktop'
-}
-else if(typeof AndroidInterface !== 'undefined') {
-    const {openCollection, saveCollection, getPoster, savePoster} = AndroidBridge(AndroidInterface)
-
-    const appPlatform = 'mobile'
-}
-
 // helpers
 import {lookup, map, filter, urlstringify} from './helpers'
+
+// platform specifics javascript bridges & interfaces
+let bridge
+
+import {ElectronBridge, AndroidBridge} from './platform-specific'
+
+if('ElectronInterface' in window) {
+    bridge = ElectronBridge(window.ElectronInterface)
+}
+if('AndroidInterface' in window) {
+    bridge = AndroidBridge(window.AndroidInterface)
+}
+
+const {appPlatform} = bridge
+
 
 // disable eval
 window.eval = global.eval = () => {throw 'no eval'}
@@ -34,7 +35,6 @@ window.eval = global.eval = () => {throw 'no eval'}
 
 
 
-console.log(appPlatform)
 
 // import {fetchmovie} from './moviesapi-protocol'
 
@@ -74,8 +74,8 @@ function identity(v) {
 
 const state = { // initial state
     isLoading: false,
-    isFullscreen: false,
     isHamburgerOpen: false,
+    isFullscreen: appPlatform == 'mobile',
     isMobile: appPlatform == 'mobile',
 
     appTitle: 'Movie Collection',
@@ -88,10 +88,12 @@ const state = { // initial state
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
     ],
 
+    metadata: {}, // version, dates, etc
+
     movieIndex: null, // current select movie
     movie: null, // current movie values
     collection: {},
-    sidebarCollection: {}, // active movies on the left
+    sidebarCollection: [], // active movies on the left
 
     draftIndex: null, // draft movie index / null if new
     draft: null, // curent edit movie
@@ -114,13 +116,13 @@ var actions = {
     // Application titlebar
 
     onAppClose: () => {
-        ipc('application-close')
+        return bridge.applicationClose()
     },
     onAppMinimize: () => {
-        ipc('application-minimize')
+        return bridge.applicationMinimize()
     },
     onAppMaximize: () => {
-        ipc('application-maximize')
+        return bridge.applicationMaximize()
     },
 
     // when user click fullscreen on the main app
@@ -136,7 +138,7 @@ var actions = {
     },
 
     onToolbarOpen: () => async (state, actions) => {
-        return actions.onReceiveCollection(await ipc('open-collection-dialog'))
+        return actions.onReceiveCollection(await bridge.openCollection())
     },
 
     onToolbarSave: () => {
@@ -145,7 +147,6 @@ var actions = {
         
         
         
-        ipc('save-collection-dialog')
     },
 
     onToolbarNew: () => {
@@ -157,21 +158,17 @@ var actions = {
         return {providerIndex: index}
     },
 
-    onReceiveCollection: ({collection}) => {
-        
+    onReceiveCollection: (collection) => {
         console.log(collection)
-
+        
         const {version, metadata, options, collection: movies} = collection
-
-
 
         return {
             version, metadata, options,
-            collection: movies,
+            collection: movies, sidebarCollection: Object.keys(movies),
             location: 'welcome',
             movieIndex: null,
             movie: null,
-            sidebarCollection: movies
         }
     },
 
@@ -208,9 +205,9 @@ var actions = {
 
         let contains = containsCurry({match: matchText, format: lowerCase})
 
-        return {sidebarCollection: filter(state.collection, (movie, index) => {
-            return contains(movie.title, keyword)
-        })}
+        return {sidebarCollection: Object.keys(
+            filter(state.collection, (movie) => contains(movie.title, keyword))
+        )}
     },
     
     onSidebarFavorite: ({index}) => ({products}, actions) => {
@@ -235,7 +232,7 @@ const view = (state, actions) => {
     return (<app className={[
         'viewport',
         state.isMobile && 'is-mobile',
-        state.isFullscreen || state.isMobile && 'is-fullscreen',
+        state.isFullscreen && 'is-fullscreen',
         state.isHamburgerOpen && 'is-hamburger-open'
     ].filter(c => !!c).join(' ')}>
 
@@ -287,7 +284,8 @@ const view = (state, actions) => {
                 />
                 <ComponentSidebarMovies
                     movieIndex={state.movieIndex}
-                    collection={state.sidebarCollection}
+                    collection={state.collection}
+                    sidebarCollection={state.sidebarCollection}
                     onClick={actions.onSidebarClick}
                     onFavorite={actions.onSidebarFavorite}
                 />
