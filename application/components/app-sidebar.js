@@ -36,16 +36,16 @@ export const ComponentSidebarSearch = ({onSearch}) => (
     </product-item>
 )
 
-export const ComponentSidebarMovies = ({movieIndex, collection, onClick, onFavorite}) => (
+export const ComponentSidebarMovies = ({movieIndex, sidebarCollection, collection, onClick, onFavorite}) => (
 
     <product-items>
 
-    {Object.entries(collection).map(([index, movie]) => (
+    {sidebarCollection.map((index) => (
         <ComponentSidebarMovie
             index={index}
-            title={movie.title}
             selected={movieIndex == index}
-            favorite={movie.favorite}
+            title={collection[index].title}
+            favorite={collection[index].favorite}
             onClick={onClick}
             onFavorite={onFavorite}
         />
