@@ -18,15 +18,6 @@ https://codepen.io/ismamz/pen/ppGMWM?editors=1010
 
 
 
-    const defaults = {
-        version: 1,
-        options: {},
-        collection: [] // Map
-    }
-
-    const storage = Object.assign({}, defaults, content) // shallow merge
-
-
 
 
 

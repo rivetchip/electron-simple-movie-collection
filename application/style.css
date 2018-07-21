@@ -246,7 +246,7 @@ app-toolbar button:last-of-type {
 }
 
 
-app-toolbar button.hamburger /*☰*/ {
+app-toolbar button.hamburger {
     display: none;/*responsive*/
     background-image: url(imgs/window-menu.svg);
 }

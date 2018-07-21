@@ -93,7 +93,7 @@ const state = { // initial state
     movieIndex: null, // current select movie
     movie: null, // current movie values
     collection: {},
-    sidebarCollection: [], // active movies on the left
+    activeCollection: [], // active movies on sidebar
 
     draftIndex: null, // draft movie index / null if new
     draft: null, // curent edit movie
@@ -133,20 +133,50 @@ var actions = {
 
     // Application toolbar
 
-    onToolbarHamburger: () => ({isHamburgerOpen}) => { // ham click
-        return {isHamburgerOpen: !isHamburgerOpen}
+    onToolbarHamburger: () => (state) => { // ham click
+        return {isHamburgerOpen: !state.isHamburgerOpen}
     },
 
     onToolbarOpen: () => async (state, actions) => {
-        return actions.onReceiveCollection(await bridge.openCollection())
+        
+        bridge.openCollection().then((storage) => {
+            actions.onReceiveCollection(storage)
+        })
+        .catch((error) => {
+            console.log('openCollection',error)
+        })
     },
 
-    onToolbarSave: () => {
+    onReceiveCollection: (storage) => {
+        const {version, metadata, collection: movies} = storage
 
-        
-        
-        
-        
+        return {
+            version, metadata,
+            collection: movies,
+            activeCollection: Object.keys(movies),
+            location: 'welcome',
+            movieIndex: null,
+            movie: null,
+        }
+    },
+
+    onToolbarSave: () => async (state, actions) => {
+
+        const defaults = {
+            version: 1,
+            metadata: {},
+            collection: {}
+        }
+
+        const storage = Object.assign({}, defaults, {  // shallow merge
+            version: state.version,
+            metadata: state.metadata,
+            collection: state.collection
+        })
+
+        bridge.saveCollection(storage).catch((error) => {
+            console.log('saveCollection',error)
+        })
     },
 
     onToolbarNew: () => {
@@ -158,19 +188,7 @@ var actions = {
         return {providerIndex: index}
     },
 
-    onReceiveCollection: (collection) => {
-        console.log(collection)
-        
-        const {version, metadata, options, collection: movies} = collection
 
-        return {
-            version, metadata, options,
-            collection: movies, sidebarCollection: Object.keys(movies),
-            location: 'welcome',
-            movieIndex: null,
-            movie: null,
-        }
-    },
 
 
     openPanelPreview: ({index}) => (state, actions) => {
@@ -205,7 +223,7 @@ var actions = {
 
         let contains = containsCurry({match: matchText, format: lowerCase})
 
-        return {sidebarCollection: Object.keys(
+        return {activeCollection: Object.keys(
             filter(state.collection, (movie) => contains(movie.title, keyword))
         )}
     },
@@ -285,7 +303,7 @@ const view = (state, actions) => {
                 <ComponentSidebarMovies
                     movieIndex={state.movieIndex}
                     collection={state.collection}
-                    sidebarCollection={state.sidebarCollection}
+                    activeCollection={state.activeCollection}
                     onClick={actions.onSidebarClick}
                     onFavorite={actions.onSidebarFavorite}
                 />

@@ -6,15 +6,13 @@ const {dialog} = remote
 
 const remoteWindow = remote.getCurrentWindow()
 
-const {join: pathjoin} = require('path')
-const {
-    access: fsaccess,
-    readFile: fsreadFile,
-    writeFile: fswriteFile,
-    constants: fsconstants
-} = require('fs')
+const {dirname} = require('path')
+const {readFile: fsreadFile, writeFile: fswriteFile} = require('fs')
 
-let storageFilename // current opened file
+
+const state = {
+    storageFilename: null // current opened file
+}
 
 const bridge = {  // native bridge
 
@@ -38,40 +36,42 @@ const bridge = {  // native bridge
             ]
         })
 
+        state.storageFilename = filename // reinit
+
         return readFile(filename, JSON.parse)
     },
 
     async saveCollection(storage) {
-        let filename = await showSaveDialog({
-            properties: ['openFile'],
-            filters: [
-                {name: 'Movie Collection', extensions: ['json']}
-            ]
-        })
+        let filename = state.storageFilename
+
+        if(!filename) { // no file set, prompt
+           filename = await showSaveDialog({
+                properties: ['openFile'],
+                filters: [
+                    {name: 'Movie Collection', extensions: ['json']}
+                ]
+            })
+
+            state.storageFilename = filename
+        }
 
         return writeFile(filename, storage, JSON.stringify)
-
-        // no file set, prompt todo
-
-        if(storageFilename) {
-            
-        }
     },
 
     async getPoster(filename) {
+        let folder = dirname(storageFilename) + '/posters/'
 
+        return readFile(folder + filename)
     },
 
     async savePoster(filename, content) {
-        
+        let folder = dirname(storageFilename) + '/posters/'
+
+        return writeFile(folder + filename, content)
     }
 }
 
 window['ElectronInterface'] = bridge
-
-
-// bridge.openCollection
-
 
 
 
@@ -89,14 +89,6 @@ function to(promise) {
         return [null, response];
     })
     .catch(error => [error]);
-}
-
-async function fileExist(filename) {
-    return new Promise((resolve, reject) => {
-        fsaccess(filename, fsconstants.F_OK, (error) => {
-            return error ? reject(error) : resolve(true)
-        })
-    })
 }
 
 async function readFile(filename, parser) {
@@ -128,7 +120,7 @@ async function writeFile(filename, content, parser) {
 async function showOpenDialog(options) {
     return new Promise((resolve, reject) => {
         dialog.showOpenDialog(options, (filenames) => {
-            return filenames ? resolve(filenames[0]) : reject()
+            return filenames ? resolve(filenames[0]) : reject(false)
         })
     })
 }
@@ -136,7 +128,7 @@ async function showOpenDialog(options) {
 async function showSaveDialog(options) {
     return new Promise((resolve, reject) => {
         dialog.showSaveDialog(options, (filename) => {
-            return filename ? resolve(filename) : reject()
+            return filename ? resolve(filename) : reject(false)
         })
     })
 }

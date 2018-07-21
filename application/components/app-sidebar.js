@@ -25,7 +25,7 @@ export const ComponentSidebarSearch = ({onSearch}) => (
         ].filter(c => !!c).join(' ')}
         onclick={event => onClick({index})}
     >
-        <div class="title">{title}</div>
+        {title}
 
         {favorite && (
             <div class="favorite" onclick={event => onFavorite({index})}>
@@ -36,11 +36,11 @@ export const ComponentSidebarSearch = ({onSearch}) => (
     </product-item>
 )
 
-export const ComponentSidebarMovies = ({movieIndex, sidebarCollection, collection, onClick, onFavorite}) => (
+export const ComponentSidebarMovies = ({movieIndex, activeCollection, collection, onClick, onFavorite}) => (
 
     <product-items>
 
-    {sidebarCollection.map((index) => (
+    {activeCollection.map((index) => (
         <ComponentSidebarMovie
             index={index}
             selected={movieIndex == index}

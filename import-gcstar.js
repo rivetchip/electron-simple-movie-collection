@@ -42,7 +42,6 @@ async function app({sourceFile, destinationFile}) {
             created: new Date(),
             source: 'GCfilms'
         },
-        options: {},
         collection : {}
     }
 
