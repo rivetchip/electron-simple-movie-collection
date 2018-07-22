@@ -205,9 +205,7 @@ app-titlebar button.maximize {
 app-titlebar button.close {
     background-image: url(imgs/window-close.svg);
 }
-app-titlebar button.menu {
-    background-image: url(imgs/window-menu.svg);
-}
+
 
 
 app-toolbar { /* toolbar with main icons */
@@ -245,10 +243,9 @@ app-toolbar button:last-of-type {
     margin-right: 0;
 }
 
-
 app-toolbar button.hamburger {
     display: none;/*responsive*/
-    background-image: url(imgs/window-menu.svg);
+    background-image: url(imgs/emblem-grid.svg);
 }
 app-toolbar button.open {
     background-image: url(imgs/icon-open.svg);
@@ -259,13 +256,13 @@ app-toolbar button.save {
 app-toolbar button.new {
     background-image: url(imgs/icon-new-product.svg);
 }
+
 app-toolbar button:hover {
     background-color: #1abc9c;
 }
 
+
 /* providers list*/
-
-
 
 #providers {
     display: flex;
