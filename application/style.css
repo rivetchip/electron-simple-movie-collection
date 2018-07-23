@@ -544,8 +544,6 @@ product-publication { /* right panel for editing product stuffs */
 
     padding: 25px;
     overflow-y: auto;
-
-    background-color: #232729;
 }
 
 product-publication .publication-header {
