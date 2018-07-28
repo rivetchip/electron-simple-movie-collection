@@ -7,8 +7,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
+import android.content.Intent;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
@@ -17,15 +19,15 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-
+import java.util.ArrayList;
 import static java.util.Arrays.asList;
 
 
@@ -38,21 +40,18 @@ public class MainActivity extends Activity {
 
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle previousState) {
+        super.onCreate(previousState);
 
-        if (this.onCheckAndRequestPermissions(this)) {
-            webAppInterface = new WebAppInterface(this, "file:///android_asset/www/index.html", savedInstanceState);
-        }
+        List<String> permissions = asList(
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+            Manifest.permission.INTERNET
+        );
 
-        //checkAndRequestPermissions
-        //onRequestPermissionsResult
-        //onLaunchWebview
-    }
-
-    public class ActivityWebAppInterface{
-        public void ActivityWebAppInterface(Bundle savedInstanceState) {
-            Context context = getApplicationContext();
+        if (checkAndRequestPermissions(this, permissions)) {
+            webAppInterface = new WebAppInterface(this, "file:///android_asset/www/index.html", previousState);
         }
     }
 
@@ -65,28 +64,29 @@ public class MainActivity extends Activity {
         }
     }
 
-    protected boolean onCheckAndRequestPermissions(Activity context) {
+    protected boolean checkAndRequestPermissions(Activity activity, List<String> permissions) {
 
-        List<String> permissions = asList(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE
-            // Manifest.permission.ACCESS_NETWORK_STATE,
-            // Manifest.permission.INTERNET
-        );
+        // Always return true for SDK < M, let the system deal with the permissions
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            Log.w("CONSOLE", "hasPermissions: API version < M, returning true by default");
+            return true;
+        }
 
         List<String> permissionsNeeded = new ArrayList<>();
 
         for (String perm: permissions) {
-            if( context.checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED ) {
+            if(activity.checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED) {
                 permissionsNeeded.add(perm);
             }
         }
-
         if (permissionsNeeded.isEmpty()) {
             return true;
         }
 
-        context.requestPermissions(permissionsNeeded.toArray(new String[permissionsNeeded.size()]), REQUEST_PERMISSIONS_MULTIPLE);
+        activity.requestPermissions(
+            permissionsNeeded.toArray(new String[permissionsNeeded.size()]),
+            REQUEST_PERMISSIONS_MULTIPLE
+        );
 
         return false;
     }
@@ -96,6 +96,7 @@ public class MainActivity extends Activity {
 
         switch (requestCode) {
             case REQUEST_PERMISSIONS_MULTIPLE: {
+
                 List<String> permissionsNeeded = new ArrayList<>();
 
                 for (String perm : permissions) {
@@ -105,125 +106,191 @@ public class MainActivity extends Activity {
                 }
 
                 if(permissionsNeeded.isEmpty()) {
-                    // launch webview
-
-
-                    //TODO
-
-                    return;
+                    // has all needed permissions
+                    restart(); return;
                 }
 
-                if (!permissionsNeeded.isEmpty()) {
-
-                    // Permission Denied
-                    Toast.makeText(this, "Please allow permissions for the app to work!", Toast.LENGTH_SHORT).show();
-
-                    //for (String perm : permissionsNeeded) {
-                    //Boolean showRationale = shouldShowRequestPermissionRationale();
-
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-                    builder.setTitle("Permission required");
-                    builder.setMessage("SDCard permission is required to access the collection.");
-
-                    // pass arguments to dialog
-                    final List<String> xpermissionsNeeded = permissionsNeeded;
-                    final Activity xparent = this;
-
-                    builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
-
-                        public void onClick(DialogInterface dialog, int id) {
-                            dialog.dismiss();
-
-                            // retry request last permissions
-                            xparent.requestPermissions(xpermissionsNeeded.toArray(new String[xpermissionsNeeded.size()]), REQUEST_PERMISSIONS_MULTIPLE);
-                        }
-                    });
-
-                    builder.setNegativeButton("Nope", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                        // close app
-                        finishAffinity();
-                        }
-                    });
-
-                    AlertDialog dialog = builder.create();
-                    dialog.show();
-                }
+                //permissions denied
+                AlertDialog dialog = this.createDialogRequestPermissions(this, permissionsNeeded);
+                dialog.show();
             }
         }
-
     }
+
+    protected AlertDialog createDialogRequestPermissions(final Activity activity, final List<String> permissions) {
+        
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        builder.setTitle("Permission required");
+        builder.setMessage("SDCard permission is required to access the collection.");
+
+        builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
+
+            public void onClick(DialogInterface dialog, int id) {
+                dialog.dismiss();
+
+                // retry request last permissions
+                activity.requestPermissions(
+                    permissions.toArray(new String[permissions.size()]),
+                    REQUEST_PERMISSIONS_MULTIPLE
+                );
+            }
+        });
+
+        builder.setNegativeButton("Quit", new DialogInterface.OnClickListener() {
+
+            public void onClick(DialogInterface dialog, int id) {
+                // close app
+                finishAffinity();
+            }
+        });
+
+        return builder.create();
+    }
+
+    public void restart() {
+        if (Build.VERSION.SDK_INT >= 11) {
+            recreate();
+        } else {
+            Intent intent = getIntent();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            finish();
+            overridePendingTransition(0, 0);
+
+            startActivity(intent);
+            overridePendingTransition(0, 0);
+        }
+    }
+
+
 
 
 
     public class WebAppInterface {
 
         protected final WebView webView;
-        protected boolean webAppLoaded = false;
-        protected boolean isOnline = false;
+        // protected boolean webAppLoaded = false;
+        // protected boolean isOnline = false;
 
+        // sdcard access
         protected final String sdcard;
 
+        // collection files
+        protected final File storageFolder;
+        protected final File storageFilename;
+        protected final File storagePosters;
 
-        public WebAppInterface(Activity context, String url, Bundle previousState) {
-            context.setContentView(R.layout.activity_main);
 
-            webView = context.findViewById(R.id.activity_webview);
+        public WebAppInterface(Activity activity, String url, Bundle previousState) {
+            
+            activity.setContentView(R.layout.activity_main);
 
-            sdcard = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
+            webView = activity.findViewById(R.id.activity_webview);
 
             if (previousState != null) {
                 webView.restoreState(previousState);
             }
-            else {
 
-                WebSettings webSettings = webView.getSettings();
+            WebSettings webSettings = webView.getSettings();
 
-                webView.setWebViewClient(new WebViewClient() {
-                    @Override
-                    public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                        int code = error.getErrorCode();
-                        String message = error.getDescription().toString();
+            //optional, for show console and alert
+            webView.setWebViewClient(new MyWebViewClient());
+            webView.setWebChromeClient(new MyWebChromeClient());
 
-                        Log.e("CONSOLE", "onReceivedError: " + code + " - " + message);
-                    }
-                });
-                webView.setWebChromeClient(new WebChromeClient() {
-                    public boolean onConsoleMessage(ConsoleMessage cm) {
-                        Log.d("CONSOLE", cm.message() + " -- From line " + cm.lineNumber() + " of " + cm.sourceId());
-                        return true;
-                    }
-                });
+            //encoding
+            webSettings.setDefaultTextEncodingName("utf-8");
 
-                //encoding
-                webSettings.setDefaultTextEncodingName("utf-8");
+            //engine
+            webSettings.setDomStorageEnabled(true);
+            webSettings.setAppCachePath(activity.getApplicationContext().getCacheDir().getAbsolutePath());
+            webSettings.setAppCacheEnabled(true);
 
-                //engine
-                webSettings.setDomStorageEnabled(true);
-                webSettings.setAppCachePath(context.getApplicationContext().getCacheDir().getAbsolutePath());
-                webSettings.setAppCacheEnabled(true);
+            webSettings.setJavaScriptEnabled(true);
 
-                webSettings.setJavaScriptEnabled(true);
+            //black bg
+            webView.setBackgroundColor(0);
 
-                //black bg
-                webView.setBackgroundColor(0);
+            webView.addJavascriptInterface(this, "AndroidInterface");
 
-                webView.addJavascriptInterface(this, "_AndroidBridge");
+            webView.loadUrl(url);
 
-                webView.loadUrl(url);
+
+            // create files and folder if not set
+    
+            sdcard = Environment.getExternalStorageDirectory().getAbsolutePath() + "/";
+
+            //state = Environment.getExternalStorageState()
+            String entrypoint = "Android/data/" + getPackageName();
+
+            storageFolder = new File(sdcard + entrypoint); //storage/emulated/0
+            storageFilename = new File(sdcard + entrypoint, "moviecollection.json");
+            storagePosters = new File(sdcard + entrypoint, "posters/");
+
+            if (!storageFolder.exists() && !storageFolder.mkdirs()) {
+                Log.e("CONSOLE", "storageFolder not created");
+            }
+            if (!storagePosters.exists() && !storagePosters.mkdirs()) {
+                Log.e("CONSOLE", "storagePosters not created");
             }
         }
 
-        public void saveState(Bundle bundle) {
-            webView.saveState(bundle);
+        protected class MyWebViewClient extends WebViewClient {
+
+            @Override
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                int code = error.getErrorCode();
+                String message = error.getDescription().toString();
+
+                Log.e("CONSOLE", "onReceivedError: " + code + " - " + message);
+            }
+        }
+
+        protected class MyWebChromeClient extends WebChromeClient {
+
+            @Override
+            public boolean onConsoleMessage(ConsoleMessage cm) {
+                Log.d("CONSOLE", cm.message() + " -- From line " + cm.lineNumber() + " of " + cm.sourceId());
+                return true;
+            }
+        }
+
+        public void saveState(Bundle outState) {
+            webView.saveState(outState);
+        }
+
+        // Checks if external storage is available for read and write
+        protected Boolean isExternalStorageWritable() {
+            return Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED;
+        }
+
+        @JavascriptInterface
+        public String openCollection() {
+
+            // TODO FIXME test it under JS
+            // throw new NullPointerException("demo");
+
+            if(storageFilename.exists()) {
+                // read content
+                return readFile(storageFilename); // or null
+            }
+
+            return null;
+        }
+
+        @JavascriptInterface
+        public Boolean saveCollection(String storage) {
+
+            if(storageFolder.exists()) {
+                return writeFile(storageFilename, storage); // or null
+            }
+
+            return false;
         }
 
         protected String readFile(File file) {
-            //Read text from file
-
-            try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                
                 StringBuilder text = new StringBuilder();
                 String line;
 
@@ -234,58 +301,32 @@ public class MainActivity extends Activity {
                 reader.close();
 
                 return text.toString();
-
             }
-            catch (IOException e) {}
+            catch (IOException e) {
+                Log.e("Exception", "readFile failed: " + e.toString());
+            }
 
             return null;
         }
 
-        protected boolean saveFile(File file) {
+        protected boolean writeFile(File file, String content) {
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+                
+                writer.write(content);
+                
+                writer.close();
 
+                return true;
+            }
+            catch (IOException e) {
+                Log.e("Exception", "writeFile failed: " + e.toString());
+            } 
 
             return false;
         }
 
-        // Checks if external storage is available for read and write
-        protected Boolean isExternalStorageWritable() {
-            return Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED;
-        }
-
-
-        @JavascriptInterface
-        public String openCatalogue() {
-            String content = null;
-
-            //state = Environment.getExternalStorageState()
-            String entrypoint = "Android/data/" + getPackageName();
-
-            File catalogFolder = new File(sdcard + entrypoint); //storage/emulated/0
-            File catalogPoster = new File(sdcard + entrypoint, "posters/");
-            File catalogFile = new File(sdcard + entrypoint, "moviecollection.json");
-
-            if (!catalogFolder.exists() && !catalogFolder.mkdirs()) {
-                Log.e("CONSOLE", "catalogFolder not created");
-            }
-            if (!catalogPoster.exists() && !catalogPoster.mkdirs()) {
-                Log.e("CONSOLE", "catalogPoster not created");
-            }
-
-            if(catalogFile.exists()) {
-                // read content
-                content = readFile(catalogFile); // or null
-            }
-
-            return content;
-        }
-
-        @JavascriptInterface
-        public Boolean saveCatalogue(String filename, String content) {
-
-
-            return false;
-        }
-
+        // TODO prefer org.json.JSONObject
         public void callJavaScript(String methodName, Object...params){
             boolean firstParam = true;
 
@@ -306,11 +347,15 @@ public class MainActivity extends Activity {
                 }
             }
 
-            stringBuilder.append(")}catch(error){console.log(error);}");
+            stringBuilder.append(")}catch(error){console.log('callJavaScript', error);}");
 
             Log.d("CONSOLE", "Calling javascript: " + stringBuilder.toString());
 
-            webView.loadUrl(stringBuilder.toString());
+            if (Build.VERSION.SDK_INT >= 19) {
+                webView.evaluateJavascript(stringBuilder.toString(), null);
+            } else {
+                webView.loadUrl(stringBuilder.toString());
+            }
         }
     }
 
