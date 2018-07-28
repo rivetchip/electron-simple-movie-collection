@@ -27,6 +27,11 @@ if('AndroidInterface' in window) {
 
 const {appPlatform} = bridge
 
+// app other utilities
+import {fetchmovie} from './moviesapi-protocol'
+
+
+
 
 // disable eval
 window.eval = global.eval = () => {throw 'no eval'}
@@ -36,7 +41,6 @@ window.eval = global.eval = () => {throw 'no eval'}
 
 
 
-// import {fetchmovie} from './moviesapi-protocol'
 
 
 /*
@@ -341,16 +345,26 @@ const app = hyperapp(state, actions, view, document.body)
 
 
 
-// events
 
-// receive('fullscreen-status-changed', (event, status) => {
-//     return app.onAppFullscreen({status})
+
+
+
+//android, open collection
+
+
+// bridge.openCollection(JSON.parse).then(r => {
+//     // console.log(r+"xx")
+//     app.onReceiveCollection(r)
+// })
+// .catch(error=> {
+//     console.log('ERRR'+error)
 // })
 
-// receive a notification from the main app
-// receive('notification', (event, message) => {
-//     //createSnackbar(viewport, message)
-// })
+
+
+
+
+
 
 
 
@@ -364,16 +378,3 @@ const updateOnlineStatus = (event) => {
 addEventListener('online', updateOnlineStatus)
 addEventListener('offline', updateOnlineStatus)
 
-
-
-
-
-
-
-
-
-
-//deviceready
-document.addEventListener('DOMContentLoaded', () => {
-
-})
