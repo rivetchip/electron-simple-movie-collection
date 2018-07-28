@@ -8,5 +8,6 @@ android/apk/
 android/classes.dex
 android/mykey.keystore
 android/keystorepass
+android/store-icon.png
 android/res/mipmap-*
 android/java/fr/spidery/moviecollection/R.java
