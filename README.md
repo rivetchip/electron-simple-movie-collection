@@ -46,6 +46,8 @@ npm run serve   (keep terminal open)
 
 It will create mimaps (if needed), compile, sign, launch the APK using ADB and show console logs.
 
+Watch out for Chrome versions when building different API (eg: Android 23 with Chrome 51 don't support async/await).
+
 
 Build Desktop :
 ---------------

@@ -24,7 +24,7 @@ export function AndroidBridge(bridge) {
 
         },
 
-        async openCollection(parser) {
+        async openCollection(parser) { // TODO if file not exist -> undefined
             let storage = bridge.openCollection()
 
             return parser(storage)

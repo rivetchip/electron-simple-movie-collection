@@ -147,7 +147,7 @@ var actions = {
             actions.onReceiveCollection(storage)
         })
         .catch((error) => {
-            console.log('openCollection',error)
+            console.log('openCollection<< '+error)
         })
     },
 

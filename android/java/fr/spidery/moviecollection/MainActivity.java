@@ -266,7 +266,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public String openCollection() {
 
-            // TODO FIXME test it under JS
             // throw new NullPointerException("demo");
 
             if(storageFilename.exists()) {
