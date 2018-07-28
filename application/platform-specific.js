@@ -24,11 +24,43 @@ export function AndroidBridge(android) {
 
         },
 
-        async openCollection() {
+        async openCollection(parser) {
 
         },
     
-        async saveCollection(storage) {
+        async saveCollection(storage, stringify) {
+
+        },
+    
+        async getPoster(filename) {
+    
+        },
+    
+        async savePoster(filename, content) {
+            
+        }
+    }
+}
+
+
+/**
+ * Params of the Browser native API bridge
+ * @param {Object} android 
+ */
+export function BrowserBridge(android) {
+    // transmute function in Java.@JavascriptInterface to promises
+    return {
+        appPlatform: 'browser',
+
+        applicationClose(status) {
+
+        },
+
+        async openCollection(parser) {
+
+        },
+    
+        async saveCollection(storage, stringify) {
 
         },
     

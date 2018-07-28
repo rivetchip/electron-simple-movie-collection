@@ -28,7 +28,7 @@ const bridge = {  // native bridge
         remoteWindow.isMaximized() ? remoteWindow.unmaximize() : remoteWindow.maximize()
     },
 
-    async openCollection() {
+    async openCollection(parser) {
         let filename = await showOpenDialog({
             properties: ['openFile'],
             filters: [
@@ -38,10 +38,10 @@ const bridge = {  // native bridge
 
         state.storageFilename = filename // reinit
 
-        return readFile(filename, JSON.parse)
+        return readFile(filename, parser)
     },
 
-    async saveCollection(storage) {
+    async saveCollection(storage, stringify) {
         let filename = state.storageFilename
 
         if(!filename) { // no file set, prompt
@@ -55,7 +55,7 @@ const bridge = {  // native bridge
             state.storageFilename = filename
         }
 
-        return writeFile(filename, storage, JSON.stringify)
+        return writeFile(filename, storage, stringify)
     },
 
     async getPoster(filename) {
