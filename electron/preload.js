@@ -59,13 +59,13 @@ const bridge = {  // native bridge
     },
 
     async getPoster(filename) {
-        let folder = dirname(storageFilename) + '/posters/'
+        let folder = dirname(state.storageFilename) + '/posters/'
 
         return readFile(folder + filename)
     },
 
     async savePoster(filename, content) {
-        let folder = dirname(storageFilename) + '/posters/'
+        let folder = dirname(state.storageFilename) + '/posters/'
 
         return writeFile(folder + filename, content)
     }
