@@ -14,6 +14,7 @@ PLATFORM="$SDK/platforms/android-28/android.jar"
 
 
 echo "Cleaning..."
+mkdir -p apk
 rm -rf obj/*
 rm -rf apk/*
 rm -rf java/fr/spidery/moviecollection/R.java
