@@ -4,10 +4,10 @@
  * Params of the Electron native API bridge
  * @param {Object} electron 
  */
-export function ElectronBridge(electron) {
+export function ElectronBridge(bridge) {
     // don't need to transmute functions, already done in preload.js
     return {
-        appPlatform: 'dekstop', ...electron
+        appPlatform: 'dekstop', ...bridge
     }
 }
 
@@ -15,7 +15,7 @@ export function ElectronBridge(electron) {
  * Params of the Android native API bridge
  * @param {Object} android 
  */
-export function AndroidBridge(android) {
+export function AndroidBridge(bridge) {
     // transmute function in Java.@JavascriptInterface to promises
     return {
         appPlatform: 'mobile',
@@ -25,11 +25,15 @@ export function AndroidBridge(android) {
         },
 
         async openCollection(parser) {
+            let storage = bridge.openCollection()
 
+            return parser(storage)
         },
     
         async saveCollection(storage, stringify) {
+            let content = stringify(storage)
 
+            return bridge.saveCollection(content)
         },
     
         async getPoster(filename) {
