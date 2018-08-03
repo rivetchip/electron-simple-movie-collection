@@ -26,6 +26,12 @@
     url('fonts/lato-v14-latin-700.woff') format('woff');
 }
 
+/*
+primary 2c3133
+dark 232729
+accent 1abc9c
+*/
+
 html, body, .viewport {
     padding: 0;
     margin: 0;
