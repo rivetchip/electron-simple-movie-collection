@@ -273,9 +273,10 @@ public class MainActivity extends Activity {
         public String openCollection() {
 
             // throw new NullPointerException("demo");
+            // TODO
+
 
             if(storageFilename.exists()) {
-                // read content
                 return readFile(storageFilename); // or null
             }
 
@@ -291,6 +292,31 @@ public class MainActivity extends Activity {
 
             return false;
         }
+
+        @JavascriptInterface
+        public boolean getPoster(String posterName) {
+
+            if(storagePosters.exists()) {
+                File storagePoster = new File(storagePosters, posterName);
+
+                return readFile(storagePoster); // or null
+            }
+
+            return false;
+        }
+
+        @JavascriptInterface
+        public boolean savePoster(String posterName, String storage) {
+
+            if(storagePosters.exists()) {
+                File storagePoster = new File(storagePosters, posterName);
+
+                return writeFile(storagePoster); // or null
+            }
+
+            return false;
+        }
+
 
         protected String readFile(File file) {
             try {
@@ -366,6 +392,4 @@ public class MainActivity extends Activity {
 
 
 }
-
-
 
