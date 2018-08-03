@@ -14,24 +14,21 @@ import {ComponentAppStatusbar} from './components/app-statusbar'
 import {lookup, map, filter, urlstringify} from './helpers'
 
 // platform specifics javascript bridges & interfaces
-let bridge
+let $bridge
 
 import {ElectronBridge, AndroidBridge} from './platform-specific'
 
 if('ElectronInterface' in window) {
-    bridge = ElectronBridge(window.ElectronInterface)
+    $bridge = ElectronBridge(window.ElectronInterface)
 }
 if('AndroidInterface' in window) {
-    bridge = AndroidBridge(window.AndroidInterface)
+    $bridge = AndroidBridge(window.AndroidInterface)
 }
 
-const {appPlatform} = bridge
+const {platform: appPlatform} = $bridge
 
 // app other utilities
 import {fetchmovie} from './moviesapi-protocol'
-
-
-
 
 // disable eval
 window.eval = global.eval = () => {throw 'no eval'}
@@ -120,13 +117,13 @@ var actions = {
     // Application titlebar
 
     onAppClose: () => {
-        return bridge.applicationClose()
+        return $bridge.applicationClose()
     },
     onAppMinimize: () => {
-        return bridge.applicationMinimize()
+        return $bridge.applicationMinimize()
     },
     onAppMaximize: () => {
-        return bridge.applicationMaximize()
+        return $bridge.applicationMaximize()
     },
 
     // when user click fullscreen on the main app
@@ -143,7 +140,7 @@ var actions = {
 
     onToolbarOpen: () => async (state, actions) => {
         
-        bridge.openCollection(JSON.parse).then((storage) => {
+        $bridge.openCollection(JSON.parse).then((storage) => {
             actions.onReceiveCollection(storage)
         })
         .catch((error) => {
@@ -268,8 +265,8 @@ const view = (state, actions) => {
         <ComponentAppToolbar
             buttons={[
                 {
-                    name: 'Menu',
                     class: 'hamburger',
+                    name: 'Menu',
                     onclick: actions.onToolbarHamburger
                 },
                 {
@@ -277,7 +274,6 @@ const view = (state, actions) => {
                     name: 'Ouvrir',
                     title: 'Ouvrir un fichier',
                     onclick: actions.onToolbarOpen
-                    
                 },
                 {
                     class: 'save',

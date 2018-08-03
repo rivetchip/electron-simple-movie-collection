@@ -7,7 +7,7 @@
 export function ElectronBridge(bridge) {
     // don't need to transmute functions, already done in preload.js
     return {
-        appPlatform: 'dekstop', ...bridge
+        platform: 'dekstop', ...bridge
     }
 }
 
@@ -18,7 +18,7 @@ export function ElectronBridge(bridge) {
 export function AndroidBridge(bridge) {
     // transmute function in Java.@JavascriptInterface to promises
     return {
-        appPlatform: 'mobile',
+        platform: 'mobile',
 
         applicationClose(status) {
 
@@ -54,7 +54,7 @@ export function AndroidBridge(bridge) {
 export function BrowserBridge(android) {
     // transmute function in Java.@JavascriptInterface to promises
     return {
-        appPlatform: 'browser',
+        platform: 'browser',
 
         applicationClose(status) {
 
