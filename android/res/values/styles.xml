@@ -1,18 +1,18 @@
 <resources>
 
     <style name="AppTheme">
-        <item name="android:colorPrimary">#3F51B5</item>
-        <item name="android:colorPrimaryDark">#303F9F</item>
-        <item name="android:colorAccent">#FF4081</item>
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimary</item>
+        <item name="android:colorAccent">@color/colorPrimary</item>
     </style>
 
     <style name="AppTheme.NoActionBar">
         <item name="android:windowActionBar">false</item>
     	<item name="android:windowNoTitle">true</item>
 
-        <item name="android:colorPrimary">#3F51B5</item>
-        <item name="android:colorPrimaryDark">#303F9F</item>
-        <item name="android:colorAccent">#FF4081</item>
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimary</item>
+        <item name="android:colorAccent">@color/colorPrimary</item>
     </style>
 
 <!--
