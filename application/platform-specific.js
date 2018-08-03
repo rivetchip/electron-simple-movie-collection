@@ -25,7 +25,10 @@ export function AndroidBridge(bridge) {
         },
 
         async openCollection(parser) { // TODO if file not exist -> undefined
-            let storage = bridge.openCollection()
+            let storage = bridge.openCollection() // or null
+
+
+console.log('storage'+storage)
 
             return parser(storage)
         },
@@ -33,7 +36,7 @@ export function AndroidBridge(bridge) {
         async saveCollection(storage, stringify) {
             let content = stringify(storage)
 
-            return bridge.saveCollection(content)
+            return bridge.saveCollection(content) // or null
         },
     
         async getPoster(filename) {

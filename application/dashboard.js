@@ -139,13 +139,13 @@ var actions = {
     },
 
     onToolbarOpen: () => async (state, actions) => {
-        
-        $bridge.openCollection(JSON.parse).then((storage) => {
+        try {
+            let storage = await $bridge.openCollection(JSON.parse)
             actions.onReceiveCollection(storage)
-        })
-        .catch((error) => {
+        }
+        catch(error) {
             console.log('openCollection<< '+error)
-        })
+        }
     },
 
     onReceiveCollection: (storage) => {
@@ -175,9 +175,12 @@ var actions = {
             collection: state.collection
         })
 
-        bridge.saveCollection(storage, JSON.stringify).catch((error) => {
-            console.log('saveCollection',error)
-        })
+        try {
+            await $bridge.saveCollection(storage, JSON.stringify)
+        }
+        catch(error) {
+            console.log('saveCollection >> '+error)
+        }
     },
 
     onToolbarNew: () => {
