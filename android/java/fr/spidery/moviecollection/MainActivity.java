@@ -311,7 +311,7 @@ public class MainActivity extends Activity {
             if(storagePosters.exists()) {
                 File storagePoster = new File(storagePosters, posterName);
 
-                return writeFile(storagePoster); // or null
+                return writeFile(storagePoster, storage); // or null
             }
 
             return false;
