@@ -294,7 +294,7 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public boolean getPoster(String posterName) {
+        public String getPoster(String posterName) {
 
             if(storagePosters.exists()) {
                 File storagePoster = new File(storagePosters, posterName);
@@ -302,7 +302,7 @@ public class MainActivity extends Activity {
                 return readFile(storagePoster); // or null
             }
 
-            return false;
+            return null;
         }
 
         @JavascriptInterface
