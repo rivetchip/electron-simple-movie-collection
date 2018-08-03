@@ -130,6 +130,8 @@ public class MainActivity extends Activity {
         builder.setTitle("Permission required");
         builder.setMessage("SDCard permission is required to access the collection.");
 
+        builder.setCancelable(false);
+
         builder.setPositiveButton("Retry", new DialogInterface.OnClickListener() {
 
             public void onClick(DialogInterface dialog, int id) {
@@ -188,7 +190,7 @@ public class MainActivity extends Activity {
 
 
         public WebAppInterface(Activity activity, String url, Bundle previousState) {
-            
+
             activity.setContentView(R.layout.activity_main);
 
             webView = activity.findViewById(R.id.activity_webview);
@@ -272,15 +274,15 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public String openCollection() {
 
-            // throw new NullPointerException("demo");
-            // TODO
+            throw new NullPointerException("demo");
+            // TODO check if we can get the message to the bridge
 
 
-            if(storageFilename.exists()) {
-                return readFile(storageFilename); // or null
-            }
+            // if(storageFilename.exists()) {
+            //     return readFile(storageFilename); // or null
+            // }
 
-            return null;
+            // return null;
         }
 
         @JavascriptInterface
