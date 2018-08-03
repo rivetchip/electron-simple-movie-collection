@@ -14,7 +14,7 @@ import {ComponentAppStatusbar} from './components/app-statusbar'
 import {lookup, map, filter, urlstringify} from './helpers'
 
 // platform specifics javascript bridges & interfaces
-let $bridge
+let $bridge, appPlatform
 
 import {ElectronBridge, AndroidBridge} from './platform-specific'
 
@@ -25,7 +25,9 @@ if('AndroidInterface' in window) {
     $bridge = AndroidBridge(window.AndroidInterface)
 }
 
-const {platform: appPlatform} = $bridge
+if($bridge) {
+    appPlatform = $bridge.platform
+}
 
 // app other utilities
 import {fetchmovie} from './moviesapi-protocol'
