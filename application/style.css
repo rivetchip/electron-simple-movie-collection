@@ -127,10 +127,6 @@ input[type="search"]::-webkit-search-results-decoration { display: none; }
 
 /* window frame */
 
-/*
-$bg_color: #33393b
-$fg_color #eeeeec
-*/
 app-titlebar {
     -webkit-app-region: drag; /* electron frame */
     user-select: none;
@@ -419,10 +415,10 @@ product-item:hover {
     background-color: #34393b;
 }
 product-item.is-selected {
-    background-color: #215d9c;
+    background-color: #1abc9c;
 }
 product-item.is-selected:hover {
-    background-color: #356ca4;
+    background-color: #5abeaa;
 }
 
 product-item .favorite {
