@@ -95,11 +95,13 @@ public class MainActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
 
         switch (requestCode) {
+
             case REQUEST_PERMISSIONS_MULTIPLE: {
 
                 List<String> permissionsNeeded = new ArrayList<>();
 
                 for (String perm : permissions) {
+                    // TODO try shouldShowRequestPermissionRationale if "never ask again"
                     if (this.checkSelfPermission(perm) != PackageManager.PERMISSION_GRANTED) {
                         permissionsNeeded.add(perm);
                     }
@@ -113,6 +115,10 @@ public class MainActivity extends Activity {
                 //permissions denied
                 AlertDialog dialog = this.createDialogRequestPermissions(this, permissionsNeeded);
                 dialog.show();
+            }
+
+            default: {
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
             }
         }
     }
