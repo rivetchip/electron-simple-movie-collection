@@ -38,6 +38,37 @@ var string2 = toreplace('hello name !')
 
 
 
+
+BABELRC different env
+
+last 2 versions
+
+    "env": {
+        "android": {
+            "presets": [
+                ["env", {"targets": {"chrome": 50}, "useBuiltIns": true}]
+            ]
+        },
+        "electron": {
+            "presets": [
+                ["env", {"targets": {"chrome": 61}, "useBuiltIns": true}]
+            ]
+        }
+    }
+
+    "bundle-electron": "BABEL_ENV=electron npm run bundle",
+    "bundle-android": "BABEL_ENV=android npm run bundle",
+
+    "serve-android": "BABEL_ENV=android npm run serve",
+
+
+
+
+
+
+
+
+
 exports.createSnackbar = (() => {
     let duration = 3000
     let previous // previous snack

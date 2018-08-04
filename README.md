@@ -20,7 +20,7 @@ npm install
 
 npm run serve   (keep terminal open)
 
-npm run electron   (or using vscode "npm debug")
+npm run electron   (or using vscode "npm electron-debug")
 ```
 
 Linux: Error "ENOSPC" : (max watch files limit exeed)

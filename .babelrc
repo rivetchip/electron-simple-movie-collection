@@ -2,13 +2,14 @@
     "presets": [
         ["env", {
             "targets": {
-                "browsers": ["Chrome 59"]
+                "browsers": ["Chrome 50", "Chrome 61"]
             },
-            "modules": false
+            "modules": "commonjs",
+            "useBuiltIns": true
         }]
     ],
     "plugins": [
-        ["transform-react-jsx", {"pragma": "h"}],
+        ["transform-react-jsx", {"pragma": "h", "useBuiltIns": true}],
         ["transform-object-rest-spread", {"useBuiltIns": true}]
     ],
     "ignore": [
