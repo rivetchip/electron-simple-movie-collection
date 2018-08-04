@@ -3,7 +3,7 @@ import { h } from '../hyperapp'
 
 
 export const ComponentPanelWelcome = () => (
-    <div>vide</div>
+    <div>Welcome!</div>
 )
 
 
@@ -14,48 +14,72 @@ export const ComponentPanelPreview = ({ title, dateReleased, rating, poster, dir
         <div class="video-panels">
 
             <div class="video-details">
-                <div data-field="title" class="video-placeholder video-title">{title}</div>
-                <div data-field="dateReleased" class="video-panel-subtitle video-placeholder">{dateReleased}</div>
+                <div class="video-title">{title}</div>
+                <div class="video-panel-subtitle">{dateReleased}</div>
 
                 <div class="ratings-wrap">
                     <StarsRating name="rating" rating={rating} disabled={true} />
                 </div>
 
                 <div class="video-attributes">
-                    <div class="video-attribute video-director">
-                        <label>Réalisateur:</label>
-                        <div data-field="director" class="video-placeholder">{director}</div>
-                    </div>
-                    <div class="video-attribute video-duration">
-                        <label>Durée:</label>
-                        <div data-field="duration" class="video-placeholder">{duration} min.</div>
-                    </div>
-                    <div class="video-attribute video-countries">
-                        <label>Nationalité:</label>
-                        <div data-field="countries" class="video-placeholder">{countries}</div>
-                    </div>
-                    <div class="video-attribute video-genres">
-                        <label>Genres:</label>
-                        <div data-field="genres" class="video-placeholder">{genres}</div>
-                    </div>
-                    <div class="video-attribute video-actors">
-                        <label>Actors :</label>
-                        <div data-field="actors" class="video-placeholder">{actors}</div>
-                    </div>
+                    
+                    {director && 
+                        <div class="video-attribute video-director">
+                            <label>Réalisateur:</label>
+                            <div class="video-placeholder">{director}</div>
+                        </div>
+                    }
+
+                    {duration > 0 && 
+                        <div class="video-attribute video-duration">
+                            <label>Durée:</label>
+                            <div class="video-placeholder">{duration} min.</div>
+                        </div>
+                    }
+
+                    {(countries && countries.length > 0) && 
+                        <div class="video-attribute video-countries">
+                            <label>Nationalité:</label>
+                            <div class="video-placeholder">{countries.join(' / ')}</div>
+                        </div>
+                    }
+
+                    {(genres && genres.length > 0) && 
+                        <div class="video-attribute video-genres">
+                            <label>Genres:</label>
+                            <div class="video-placeholder">{genres.join(' / ')}</div>
+                        </div>
+                    }
+                    
+                    {(actors && actors.length > 0) && 
+                        <div class="video-attribute video-actors">
+                            <label>Actors :</label>
+                            <div class="video-placeholder">
+                                {actors.map(([actor, role]) => (
+                                    <div>
+                                        {actor} {role && '('+role+')'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    }
+
                 </div>
 
             </div>
 
-            <img data-field="poster" class="video-poster" src={poster} />
+            <img class="video-poster" src={poster} />
 
         </div>
 
-        <div class="video-overview">
-            <h3 class="video-panel-title">Synopsis</h3>
-            <div class="video-description">
-                {description}
+        {description && 
+            <div class="video-overview">
+                <h3 class="video-panel-title">Synopsis</h3>
+                <div class="video-description">
+                    {description}
+                </div>
             </div>
-        </div>
+        }
 
     </product-preview>
 
@@ -69,9 +93,6 @@ export const ComponentPanelPublication = ({  }) => (
 
 
 )
-
-
-//{[...Array(count)].map((i, x) => TODO with fragments
 
 export const StarsRating = ({ name, rating, count = 5, disabled = false }) => (
 
