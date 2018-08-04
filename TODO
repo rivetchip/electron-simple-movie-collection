@@ -7,8 +7,6 @@ attribution for tmdb: ( about page )
 https://www.themoviedb.org/about/logos-attribution
 "This product uses the TMDb API but is not endorsed or certified by TMDb."
 
-faire le mode edition
-
 dont use document.body on render
 
 https://codepen.io/ismamz/pen/ppGMWM?editors=1010
@@ -17,6 +15,12 @@ move poster on the left + auto heigh based on content
 
 ANDROID 23 -> Chrome 51 (default)
 
+SAUVEGARDE des posters : deux solutions 
+- tout enregistrer en base 64 -> ça fait environ 200/250Mo pour 1600 films (800x600 120ko jpg)
+- seulement enregistrer les movie temporaire en : poster: base64;xxqdqsddsdsddsqdsq
+et tester si ça sommence par 'base64;' on enregistre le file
+
+background-image: url(data:image/png;base64,
 
 
 
