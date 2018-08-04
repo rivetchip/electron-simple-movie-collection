@@ -6,6 +6,7 @@ bundle/
 android/obj/
 android/apk/
 android/classes.dex
+android/keystorepass
 android/mykey.keystore
 android/store-icon.png
 android/res/mipmap-*
