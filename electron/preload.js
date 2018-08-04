@@ -7,7 +7,10 @@ const {dialog} = remote
 const remoteWindow = remote.getCurrentWindow()
 
 const {dirname} = require('path')
-const {readFile: fsreadFile, writeFile: fswriteFile} = require('fs')
+const {
+    readFile: fsreadFile, createReadStream: fsCreateReadStream,
+    writeFile: fswriteFile, createWriteStream: fsCreateWriteStream
+} = require('fs')
 
 
 const state = {
@@ -38,7 +41,7 @@ const bridge = {  // native bridge
 
         state.storageFilename = filename // reinit
 
-        return readFile(filename, parser)
+        return parser(await readFile(filename))
     },
 
     async saveCollection(storage, stringify) {
@@ -55,7 +58,7 @@ const bridge = {  // native bridge
             state.storageFilename = filename
         }
 
-        return writeFile(filename, storage, stringify)
+        return writeFile(filename, stringify(storage))
     },
 
     async getPoster(filename) {
@@ -91,26 +94,16 @@ function to(promise) {
     .catch(error => [error]);
 }
 
-async function readFile(filename, parser) {
+async function readFile(filename) {
     return new Promise((resolve, reject) => {
         fsreadFile(filename, 'utf8', (error, content) => {
-            error && reject(error.message)
-            try {
-                resolve(parser ? parser(content) : content)
-            } catch(ex) {
-                reject(ex)
-            }
+            return error ? reject(error.message) : resolve(content)
         })
     })
 }
 
-async function writeFile(filename, content, parser) {
+async function writeFile(filename, content) {
     return new Promise((resolve, reject) => {
-        try {
-            content = parser ? parser(content) : content
-        } catch(ex) {
-            reject(ex)
-        }
         fswriteFile(filename, content, 'utf8', (error) => {
             return error ? reject(error.message) : resolve(true)
         })
