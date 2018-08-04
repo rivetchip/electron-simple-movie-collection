@@ -81,7 +81,10 @@ if [ ! -f mykey.keystore ]; then
 	echo "Generate Key..."
 	keytool -genkey -v -keystore mykey.keystore -keyalg RSA -keysize 2048 -validity 365 -alias app
 	
-	echo "Don't forget to add the password to the 'keystorepass' file."
+    touch keystorepass
+	echo "==> Don't forget to add the password to the 'android/keystorepass' file."
+    echo "[Press a key to continue]"
+    read a
 fi
 
 echo "Signing APK..."
