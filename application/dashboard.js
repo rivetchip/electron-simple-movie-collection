@@ -186,7 +186,7 @@ var actions = {
     },
 
     onToolbarNew: () => {
-        return {draftIndex: null, draft: null, location: 'publication'}
+        return {movieIndex: null, draftIndex: null, draft: null, location: 'publication'}
     },
 
     // radio provider change
