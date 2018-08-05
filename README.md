@@ -3,7 +3,7 @@
 
 Simple application for managing your personnal movie collection. Can also fetch informations from TMDb.
 
-Available on Linux, Windows & Android.
+Available on 🐧 Linux 💻 Windows 🤖 Android
 
 -> To import your current GCStar/GCFilms collection, look at the import section.
 
