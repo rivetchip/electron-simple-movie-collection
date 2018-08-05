@@ -1,7 +1,7 @@
-# Simple Movie Collection cross-app
+# Simple Movie Collection app
 (currently in beta and under heavy development)
 
-Simple application for managing your personnal movie collections. Can also fetch informations from TMDb.
+Simple application for managing your personnal movie collection. Can also fetch informations from TMDb.
 
 Available on Linux, Windows & Android.
 
@@ -20,7 +20,7 @@ npm install
 
 npm run serve   (keep terminal open)
 
-npm run electron   (or using vscode "npm electron-debug")
+npm run electron   (or using vscode "Electron Debug")
 ```
 
 Linux: Error "ENOSPC" : (max watch files limit exeed)
@@ -46,7 +46,8 @@ npm run serve   (keep terminal open)
 
 It will create mimaps (if needed), compile, sign, launch the APK using ADB and show console logs.
 
-Watch out for Chrome versions when building different API !! (eg: Android 23 with Chrome 51 don't support async/await).
+Watch-out for Chrome versions when building for different API -> add targets to `.babelrc`
+(eg: default Android 23 with Chrome 51 don't support async/await)
 
 
 Build Desktop :
@@ -64,7 +65,7 @@ npm run build-mac  (not tested!)
 
 Release executable will be in `/release-builds/` folder
 
-Linux: missing `libXss.so.1` library > Install `libXScrnSaver` package
+Linux: missing `libXss.so.1` library -> Install `libXScrnSaver` package
 
 
 Build Android :
