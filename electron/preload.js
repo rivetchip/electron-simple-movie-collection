@@ -41,7 +41,7 @@ const bridge = {  // native bridge
 
         state.storageFilename = filename // reinit
 
-        return parser(await readFile(filename))
+        return parser(await readFileStream(filename))
     },
 
     async saveCollection(storage, stringify) {
@@ -58,7 +58,7 @@ const bridge = {  // native bridge
             state.storageFilename = filename
         }
 
-        return writeFile(filename, stringify(storage))
+        return writeFileStream(filename, stringify(storage))
     },
 
     async getPoster(filename) {
@@ -107,6 +107,44 @@ async function writeFile(filename, content) {
         fswriteFile(filename, content, 'utf8', (error) => {
             return error ? reject(error.message) : resolve(true)
         })
+    })
+}
+
+async function readFileStream(filename) {
+    return new Promise((resolve, reject) => {
+        let content = ''
+        let stream = fsCreateReadStream(filename, {
+            flags: 'r',
+            encoding: 'utf8',
+            autoClose: true,
+            highWaterMark: 64 * 1024 //64kb
+        })
+        .on('data', (chunk) => {
+            content += chunk
+        })
+        .on('close', () => {
+            resolve(content)
+        })
+        .on('error', (error) => {
+            reject(error)
+        })
+    })
+}
+
+async function writeFileStream(filename, content) {
+    return new Promise((resolve, reject) => {
+        let stream = fsCreateWriteStream(filename, {
+            flags: 'w',
+            encoding: 'utf8',
+            autoClose: true
+        })
+        .on('close', () => {
+            resolve(true)
+        })
+        .on('error', (error) => {
+            reject(error)
+        })
+        .write(content) // TODO chunk string ?
     })
 }
 
@@ -172,7 +210,17 @@ async function showSaveDialog(options) {
 //     })
 // }
 
-
+// function chunks(string, chunkSize, callback) {
+//     while(string) {
+//         if(string.length > chunkSize) {
+//             callback(string.slice(0, chunkSize))
+//             string = string.substr(chunkSize)
+//         } else {
+//             callback(string)
+//             break
+//         }
+//     }
+// }
 
 
 
