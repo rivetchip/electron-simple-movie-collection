@@ -91,6 +91,7 @@ const state = { // initial state
         { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
     ],
 
+    version: 1,
     metadata: {}, // version, dates, etc
 
     movieIndex: null, // current select movie
@@ -176,6 +177,9 @@ var actions = {
             metadata: state.metadata,
             collection: state.collection
         })
+
+
+console.log(storage)
 
         try {
             await $bridge.saveCollection(storage, JSON.stringify)

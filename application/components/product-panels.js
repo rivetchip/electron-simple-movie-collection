@@ -70,6 +70,10 @@ export const ComponentPanelPreview = ({ title, dateReleased, rating, poster, dir
 
             <img class="video-poster" src={poster} />
 
+            {/* {poster && 
+                <div class="video-poster" style={{backgroundImage: 'url(' + poster + ')'}}></div>
+            } */}
+
         </div>
 
         {description && 
