@@ -29,9 +29,9 @@
     "asar": "^0.14.3",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
-    "electron": "^2.0.5",
+    "electron": "^2.0.6",
     "electron-packager": "^11.2.0",
-    "jsdom": "^11.11.0",
+    "jsdom": "^11.12.0",
     "parcel-bundler": "^1.9.7"
   }
 }
