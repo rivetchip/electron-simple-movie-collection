@@ -78,13 +78,6 @@ html, body, .viewport {
     border-radius: 0;
 }
 
-.is-hidden {
-    display: none;
-}
-.is-visible {
-    display: block;
-}
-
 
 /* reset */
 * {
