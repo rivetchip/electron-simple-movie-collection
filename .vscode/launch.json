@@ -8,7 +8,7 @@
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/electron/index.js",
             "args": ["--debug"],
-            "protocol": "legacy"
+            "protocol": "inspector"
             // "console": "internalConsole", inspector
             // "outputCapture": "std"
         },

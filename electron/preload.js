@@ -62,6 +62,9 @@ const bridge = {  // native bridge
     },
 
     async getPoster(filename) {
+
+// todo: string replace .. . / ~
+
         let folder = dirname(state.storageFilename) + '/posters/'
 
         return readFile(folder + filename)
