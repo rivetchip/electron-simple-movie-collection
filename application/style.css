@@ -190,6 +190,9 @@ app-titlebar button:last-of-type {
 app-titlebar button:hover {
     background-color: #1abc9c;
 }
+app-titlebar button:active {
+    background-color: #16a085;
+}
 
 app-titlebar button.minimize {
     background-image: url(imgs/window-minimize.svg);
@@ -255,6 +258,9 @@ app-toolbar button.new {
 app-toolbar button:hover {
     background-color: #1abc9c;
 }
+app-toolbar button:active {
+    background-color: #16a085;
+}
 
 
 /* providers list*/
@@ -285,6 +291,9 @@ app-toolbar button:hover {
 }
 .provider-switch:checked + .provider {
     background-color: #1abc9c;
+}
+.provider-switch:checked + .provider:hover {
+    background-color: #48c9b0;
 }
 
 
@@ -417,7 +426,10 @@ product-item.is-selected {
     background-color: #1abc9c;
 }
 product-item.is-selected:hover {
-    background-color: #5abeaa;
+    background-color: #48c9b0;
+}
+product-item.is-selected:active {
+    background-color: #16a085;
 }
 
 product-item .favorite {
