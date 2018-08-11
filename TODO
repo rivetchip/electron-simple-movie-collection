@@ -22,7 +22,11 @@ et tester si ça sommence par 'base64;' on enregistre le file
 
 background-image: url(data:image/png;base64,
 
+revoir les breakpoints (media) à cause du poster
 
+désactiver le screen orientation landscape sur android (ça reload l'activity)
+
+android : restart check for count, boucle infinie au cas où
 
 
 
