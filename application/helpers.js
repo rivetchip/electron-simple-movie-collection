@@ -193,3 +193,36 @@ export function trimchar(string, character) {
     return string.substring(first, string.length - last)
 }
 
+
+/**
+ * Generate RFC-4122 compliant random UUIDs using crypto API
+ */
+export function uuidv4() {
+
+    // WHATWG crypto RNG
+    let b = window.crypto.getRandomValues(new Uint8Array(16))
+
+    // Per 4.4, set bits for version and 'clock_seq_hi_and_reserved'
+    b[6] = (b[6] & 0x0f) | 0x40
+    b[8] = (b[8] & 0x3f) | 0x80
+
+    // Cache toString(16)
+    let hexBytes = []
+    for(let i = 0; i < 256; i++) {
+        hexBytes[i] = (i + 0x100).toString(16).substr(1)
+    }
+
+    // bytesToUuid: convert array of 16 byte values to UUID string format of the form:
+    // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+
+    return hexBytes[b[0]] + hexBytes[b[1]] + 
+      hexBytes[b[2]] + hexBytes[b[3]] + '-' +
+      hexBytes[b[4]] + hexBytes[b[5]] + '-' +
+      hexBytes[b[6]] + hexBytes[b[7]] + '-' +
+      hexBytes[b[8]] + hexBytes[b[9]] + '-' +
+      hexBytes[b[10]] + hexBytes[b[11]] + 
+      hexBytes[b[12]] + hexBytes[b[13]] +
+      hexBytes[b[14]] + hexBytes[b[15]]
+}
+
+
