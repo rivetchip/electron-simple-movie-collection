@@ -231,9 +231,9 @@ console.log(storage)
 
         // Replace item at index using native splice
 
-
-
-
+        return {collection: map(state.collection, (movie, hash) => {
+            return hash == movieHash ? {...movie, favorite: !movie.favorite} : movie
+        })}
     },
 };
 
