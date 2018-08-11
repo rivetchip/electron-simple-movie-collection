@@ -55,19 +55,6 @@ var x = fetchmovie({source:'tmdb', lang:'en', action:'movie', keyword:78})
 */
 
 
-
-// previewPanel index
-// send('get-product', productIndex)
-
-/*
-if( previousSelectedProduct ) {
-            previousSelectedProduct.classList.remove('is-selected')
-        }
-*/
-
-//openProductDisplay
-
-
 function identity(v) {
     return v
 }
@@ -83,23 +70,24 @@ const state = { // initial state
 
     appTitle: 'Movie Collection',
 
-    location: 'welcome', // preview publication ; current publication or preview mode
+    location: 'welcome', // preview publication
 
-    providerIndex: 1, // french
+    providerIndex: 1, // french FIXME use hash
     providers: [
-        { name: 'TMDb', identifier: 'tmdb', lang: 'en' },
-        { name: 'TMDb', identifier: 'tmdb', lang: 'fr' },
+        {name: 'TMDb', identifier: 'tmdb', lang: 'en'},
+        {name: 'TMDb', identifier: 'tmdb', lang: 'fr'},
     ],
 
     version: 1,
     metadata: {}, // version, dates, etc
 
-    movieIndex: null, // current select movie
-    movie: null, // current movie values
     collection: {},
     activeCollection: [], // active movies on sidebar
 
-    draftIndex: null, // draft movie index / null if new
+    movieHash: null, // current select movie
+    movie: null, // current movie values
+
+    draftHash: null, // draft movie id / null if new
     draft: null, // curent edit movie
 }
 
@@ -115,7 +103,7 @@ const state = { // initial state
 
 
 
-var actions = {
+const actions = {
 
     // Application titlebar
 
@@ -144,14 +132,14 @@ var actions = {
     onToolbarOpen: () => async (state, actions) => {
         try {
             let storage = await $bridge.openCollection(JSON.parse)
-            actions.onReceiveCollection(storage)
+            actions.onReceiveCollection({storage})
         }
         catch(error) {
             console.log('openCollection<< '+error)
         }
     },
 
-    onReceiveCollection: (storage) => {
+    onReceiveCollection: ({storage}) => {
         const {version, metadata, collection: movies} = storage
 
         return {
@@ -159,7 +147,7 @@ var actions = {
             collection: movies,
             activeCollection: Object.keys(movies),
             location: 'welcome',
-            movieIndex: null,
+            movieHash: null,
             movie: null,
         }
     },
@@ -190,7 +178,7 @@ console.log(storage)
     },
 
     onToolbarNew: () => {
-        return {movieIndex: null, draftIndex: null, draft: null, location: 'publication'}
+        return {movieHash: null, draftHash: null, draft: null, location: 'publication'}
     },
 
     // radio provider change
@@ -201,21 +189,21 @@ console.log(storage)
 
 
 
-    openPanelPreview: ({index}) => (state, actions) => {
-        console.log('openPanelPreview', index)
+    openPanelPreview: ({movieHash}) => (state, actions) => {
+        console.log('openPanelPreview', movieHash)
 
-        let movie = state.collection[index]
+        let movie = state.collection[movieHash]
 
         if(movie) {// TODO better
-            return {movieIndex: index, movie, isHamburgerOpen: false, location: 'preview'}
+            return {movieHash, movie, location: 'preview', isHamburgerOpen: false}
         }
     },
 
     // set the selected ; then open the preview
-    onSidebarClick: ({index}) => async (state, actions) => {
-        console.log('onSidebarClick', index)
+    onSidebarClick: ({movieHash}) => async (state, actions) => {
+        console.log('onSidebarClick', movieHash)
 
-        return actions.openPanelPreview({index})
+        return actions.openPanelPreview({movieHash})
     },
 
     // filter collection based on keyword search
@@ -238,16 +226,14 @@ console.log(storage)
         )}
     },
     
-    onSidebarFavorite: ({index}) => ({products}, actions) => {
-        console.log('onProductFavorite', index)
+    onSidebarFavorite: ({movieHash}) => (state, actions) => {
+        console.log('onProductFavorite', movieHash)
+
+        // Replace item at index using native splice
 
 
 
-        // products.push({ // TODO
-        //     title: 'qsd'
-        // })
 
-        return {products}
     },
 };
 
@@ -255,9 +241,9 @@ console.log(storage)
 
 
 
-const view = (state, actions) => {
+const view = (state, actions) => (
 
-    return (<app className={[
+    <app className={[
         'viewport',
         state.isMobile && 'is-mobile',
         state.isFullscreen && 'is-fullscreen',
@@ -310,7 +296,7 @@ const view = (state, actions) => {
                     onSearch={actions.onSearch}
                 />
                 <ComponentSidebarMovies
-                    movieIndex={state.movieIndex}
+                    movieHash={state.movieHash}
                     collection={state.collection}
                     activeCollection={state.activeCollection}
                     onClick={actions.onSidebarClick}
@@ -320,18 +306,23 @@ const view = (state, actions) => {
             </app-sidebar>
 
             <product-panel>
-                { state.location == 'welcome' && <ComponentPanelWelcome
-                    />
-                }
-                
-                { state.location == 'preview' && <ComponentPanelPreview
-                    movieIndex={state.movieIndex}
-                    {...state.movie} />
+                {state.location == 'welcome' &&
+                    <ComponentPanelWelcome />
                 }
 
-                { state.location == 'publication' && <ComponentPanelPublication
-                    movieIndex={state.movieIndex}
-                    {...state.movie} />
+                {state.location == 'preview' &&
+                    <ComponentPanelPreview
+                        movieHash={state.movieHash}
+                        movie={state.movie}
+                    />
+                }
+
+                {state.location == 'publication' &&
+                    <ComponentPanelPublication
+                        draftHash={state.draftHash}
+                        draft={state.draft}
+                        onFetchInformation={actions.onFetchInformation}
+                    />
                 }
             </product-panel>
 
@@ -342,8 +333,8 @@ const view = (state, actions) => {
             filters={'empty'}
         />
 
-    </app>)
-}
+    </app>
+)
 
 
 const app = hyperapp(state, actions, view, document.body)

@@ -5,7 +5,7 @@ export const ComponentAppToolbar = ({buttons, providers, providerIndex, onProvid
 
     <app-toolbar>
 
-        {buttons.map((button, index) => (
+        {buttons.map((button, key) => (
             <button class={button.class} onclick={event => button.onclick()} title={button.title}>
                 {button.name}
             </button>

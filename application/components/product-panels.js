@@ -7,52 +7,147 @@ export const ComponentPanelWelcome = () => (
 )
 
 
-export const ComponentPanelPreview = ({ title, dateReleased, rating, poster, director, duration, countries, genres, actors, description }) => (
+export const ComponentPanelPreview = ({ movieHash, movie }) => (
 
     <product-preview>
 
         <div class="video-panels">
 
             <div class="video-details">
-                <div class="video-title">{title}</div>
-                <div class="video-panel-subtitle">{dateReleased}</div>
+                <div class="video-title">{movie.title}</div>
+                <div class="video-panel-subtitle">{movie.dateReleased}</div>
 
                 <div class="ratings-wrap">
-                    <StarsRating name="rating" rating={rating} disabled={true} />
+                    <StarsRating name="rating" rating={movie.rating} disabled={true} />
                 </div>
 
                 <div class="video-attributes">
                     
-                    {director && 
-                        <div class="video-attribute video-director">
+                    {movie.director && 
+                        <div class="video-attribute">
+                            <label>Réalisateur:</label>
+                            <div class="video-placeholder">{movie.director}</div>
+                        </div>
+                    }
+
+                    {movie.duration > 0 && 
+                        <div class="video-attribute">
+                            <label>Durée:</label>
+                            <div class="video-placeholder">{movie.duration} min.</div>
+                        </div>
+                    }
+
+                    {(movie.countries && movie.countries.length > 0) && 
+                        <div class="video-attribute">
+                            <label>Nationalité:</label>
+                            <div class="video-placeholder">{movie.countries.join(' / ')}</div>
+                        </div>
+                    }
+
+                    {(movie.genres && movie.genres.length > 0) && 
+                        <div class="video-attribute">
+                            <label>Genres:</label>
+                            <div class="video-placeholder">{movie.genres.join(' / ')}</div>
+                        </div>
+                    }
+                    
+                    {(movie.actors && movie.actors.length > 0) && 
+                        <div class="video-attribute">
+                            <label>Actors :</label>
+                            <div class="video-placeholder">
+                                {movie.actors.map(([actor, role]) => (
+                                    <div>
+                                        {actor} {role && '('+role+')'}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+            <img class="video-poster" src={movie.poster} />
+
+            {/* {poster && 
+                <div class="video-poster" style={{backgroundImage: 'url(' + poster + ')'}}></div>
+            } */}
+
+        </div>
+
+        {movie.description && 
+            <div class="video-overview">
+                <h3 class="video-panel-title">Synopsis</h3>
+                <div class="video-description">
+                    {movie.description}
+                </div>
+            </div>
+        }
+
+    </product-preview>
+
+)
+
+
+
+export const ComponentPanelPublication = ({ draftHash, draft, onFetchInformation }) => (
+
+    <product-publication>
+
+        <div class="publication-header">
+            <input type="text" class="publication-input" placeholder="Titre principal" value={draft.title} />
+            
+            <button
+                class="publication-download"
+                onclick={event => onFetchInformation()}
+            >
+                Fetch informations
+            </button>
+        </div>
+
+        <div class="video-panels">
+
+            <div class="video-details">
+                <div class="video-title">{draft.title}</div>
+                <div class="video-panel-subtitle">{draft.dateReleased}</div>
+
+                <div class="ratings-wrap">
+                    <StarsRating name="rating" rating={draft.rating} disabled={true} />
+                </div>
+
+                <div class="video-attributes">
+                    
+                    {draft.director && 
+                        <div class="video-attribute">
                             <label>Réalisateur:</label>
                             <div class="video-placeholder">{director}</div>
                         </div>
                     }
 
-                    {duration > 0 && 
-                        <div class="video-attribute video-duration">
+                    {draft.duration > 0 && 
+                        <div class="video-attribute">
                             <label>Durée:</label>
                             <div class="video-placeholder">{duration} min.</div>
                         </div>
                     }
 
-                    {(countries && countries.length > 0) && 
-                        <div class="video-attribute video-countries">
+                    {(draft.countries && countries.length > 0) && 
+                        <div class="video-attribute">
                             <label>Nationalité:</label>
                             <div class="video-placeholder">{countries.join(' / ')}</div>
                         </div>
                     }
 
-                    {(genres && genres.length > 0) && 
-                        <div class="video-attribute video-genres">
+                    {(draft.genres && genres.length > 0) && 
+                        <div class="video-attribute">
                             <label>Genres:</label>
                             <div class="video-placeholder">{genres.join(' / ')}</div>
                         </div>
                     }
                     
-                    {(actors && actors.length > 0) && 
-                        <div class="video-attribute video-actors">
+                    {(draft.actors && actors.length > 0) && 
+                        <div class="video-attribute">
                             <label>Actors :</label>
                             <div class="video-placeholder">
                                 {actors.map(([actor, role]) => (
@@ -68,7 +163,7 @@ export const ComponentPanelPreview = ({ title, dateReleased, rating, poster, dir
 
             </div>
 
-            <img class="video-poster" src={poster} />
+            <img class="video-poster" src={draft.poster} />
 
             {/* {poster && 
                 <div class="video-poster" style={{backgroundImage: 'url(' + poster + ')'}}></div>
@@ -76,26 +171,18 @@ export const ComponentPanelPreview = ({ title, dateReleased, rating, poster, dir
 
         </div>
 
-        {description && 
-            <div class="video-overview">
-                <h3 class="video-panel-title">Synopsis</h3>
-                <div class="video-description">
-                    {description}
-                </div>
+        <div class="video-overview">
+            <h3 class="video-panel-title">Synopsis</h3>
+            <div class="video-description">
+                {draft.description}
             </div>
-        }
-
-    </product-preview>
-
-)
+        </div>
 
 
 
-export const ComponentPanelPublication = ({  }) => (
+    
 
-    <div class="publicationx" />
-
-
+    </product-publication>
 )
 
 export const StarsRating = ({ name, rating, count = 5, disabled = false }) => (

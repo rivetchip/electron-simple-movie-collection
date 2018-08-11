@@ -16,16 +16,16 @@ export const ComponentSidebarSearch = ({onSearch}) => (
 
 )
 
- const ComponentSidebarMovie = ({ index, title, selected, favorite, onClick, onFavorite }) => (
+ const ComponentSidebarMovie = ({ movieHash, title, selected, favorite, onClick, onFavorite }) => (
 
     <product-item
-        key={index}
+        key={movieHash}
         className={[
             selected && 'is-selected'
         ].filter(c => !!c).join(' ')}
 
-        onclick={event => onClick({index})}
-        ondblclick={event => onFavorite({index})}
+        onclick={event => onClick({movieHash})}
+        ondblclick={event => onFavorite({movieHash})}
     >
         {title}
 
@@ -36,16 +36,16 @@ export const ComponentSidebarSearch = ({onSearch}) => (
     </product-item>
 )
 
-export const ComponentSidebarMovies = ({movieIndex, activeCollection, collection, onClick, onFavorite}) => (
+export const ComponentSidebarMovies = ({movieHash, activeCollection, collection, onClick, onFavorite}) => (
 
     <product-items>
 
-    {activeCollection.map((index) => (
+    {activeCollection.map((hash) => (
         <ComponentSidebarMovie
-            index={index}
-            selected={movieIndex == index}
-            title={collection[index].title}
-            favorite={collection[index].favorite}
+            movieHash={hash}
+            selected={hash == movieHash}
+            title={collection[hash].title}
+            favorite={collection[hash].favorite}
             onClick={onClick}
             onFavorite={onFavorite}
         />
