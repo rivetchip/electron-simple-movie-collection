@@ -23,15 +23,15 @@ export const ComponentSidebarSearch = ({onSearch}) => (
         className={[
             selected && 'is-selected'
         ].filter(c => !!c).join(' ')}
+
         onclick={event => onClick({index})}
+        ondblclick={event => onFavorite({index})}
     >
         {title}
 
-        {favorite && (
-            <div class="favorite" onclick={event => onFavorite({index})}>
-            {/* TODO */}
-            </div>
-        )}
+        {favorite && <div class="favorite"></div>}
+
+        {/* TODO */}
 
     </product-item>
 )
