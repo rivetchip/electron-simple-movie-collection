@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Environment;
@@ -62,6 +63,13 @@ public class MainActivity extends Activity {
         if(webAppInterface != null) {
             webAppInterface.saveState(outState);
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        //FIXME: dont reload activity if orientation change
     }
 
     protected boolean checkAndRequestPermissions(Activity activity, List<String> permissions) {
