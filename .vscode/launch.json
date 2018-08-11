@@ -8,9 +8,9 @@
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/electron/index.js",
             "args": ["--debug"],
-            "protocol": "inspector"
-            // "console": "internalConsole", inspector
-            // "outputCapture": "std"
+            "protocol": "inspector",
+            "console": "internalConsole",
+            "outputCapture": "std"
         },
         {
             "type": "node",
