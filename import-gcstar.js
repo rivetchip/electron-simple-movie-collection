@@ -199,7 +199,7 @@ function convertFromDomItem(domitem, index) {
 
     const result = {
         title: domitem.getAttribute('title'),
-        original: domitem.getAttribute('original'),
+        originalTitle: domitem.getAttribute('original'),
         tagline: null,//slogan
         serie: domitem.getAttribute('serie'),
         duration: Number(domitem.getAttribute('time')),
@@ -246,7 +246,7 @@ function readFile(filename) {
 function writeFile(filename, content) {
     return new Promise((resolve, reject) => {
         fswriteFile(filename, content, 'utf8', (error) => {
-            return error ? reject(error) : resolve()
+            return error ? reject(error) : resolve(true)
         })
     })
 }

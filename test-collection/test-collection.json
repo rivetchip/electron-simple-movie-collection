@@ -6,7 +6,7 @@
 
         "123456789": {
             "title":"Kiki la petite sorcière",
-            "original":"Majo no takkyûbin / 魔女の宅急便",
+            "originalTitle":"Majo no takkyûbin / 魔女の宅急便",
             "tagline":"Majo no takkyûbin",
             "duration":102,
             "dateReleased":"2003-11-10",
@@ -44,7 +44,7 @@
         },
         "789456123": {
             "title":"La tortue rouge",
-            "original":"La tortue rouge",
+            "originalTitle":"La tortue rouge",
             "tagline":"La tortue rouge",
             "duration":80,
             "dateReleased":"2016-05-18",
@@ -74,7 +74,7 @@
         },
         "951487263": {
             "title":"Beetlejuice",
-            "original":"Beetlejuice",
+            "originalTitle":"Beetlejuice",
             "tagline":"Beetlejuice",
             "duration":92,
             "dateReleased":"1988-12-13",

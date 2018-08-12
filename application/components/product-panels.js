@@ -91,7 +91,7 @@ export const ComponentPanelPreview = ({ movieHash, movie }) => (
 
 
 
-export const ComponentPanelPublication = ({ draftHash, draft, onFetchInformation }) => (
+export const ComponentPanelPublication = ({ draftHash, draft, onFetchInformations }) => (
 
     <product-publication>
 
@@ -100,7 +100,7 @@ export const ComponentPanelPublication = ({ draftHash, draft, onFetchInformation
             
             <button
                 class="publication-download"
-                onclick={event => onFetchInformation()}
+                onclick={event => onFetchInformations()}
             >
                 Fetch informations
             </button>

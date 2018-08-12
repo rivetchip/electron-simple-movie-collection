@@ -233,6 +233,27 @@ const actions = {
             return hash == movieHash ? {...movie, favorite: !movie.favorite} : movie
         })}
     },
+
+
+    onFetchInformations: () => async (state, actions) => {
+        let provider = state.providers[state.providerHash]
+        let keyword = state.draft.originalTitle // on the panel header
+
+        let infos = await fetchmovie({
+            action: 'search',
+            keyword: keyword,
+            source: provider.identifier,
+            lang: provider.lang
+        })
+
+        console.log(infos)
+    },
+
+
+
+
+
+
 };
 
 
@@ -319,7 +340,7 @@ const view = (state, actions) => (
                     <ComponentPanelPublication
                         draftHash={state.draftHash}
                         draft={state.draft}
-                        onFetchInformation={actions.onFetchInformation}
+                        onFetchInformations={actions.onFetchInformations}
                     />
                 }
             </product-panel>
