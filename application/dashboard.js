@@ -72,7 +72,7 @@ const state = { // initial state
 
     location: 'welcome', // preview publication
 
-    providerIndex: 1, // french FIXME use hash
+    providerHash: 1, // french
     providers: [
         {name: 'TMDb', identifier: 'tmdb', lang: 'en'},
         {name: 'TMDb', identifier: 'tmdb', lang: 'fr'},
@@ -142,6 +142,7 @@ const actions = {
     onReceiveCollection: ({storage}) => {
         const {version, metadata, collection: movies} = storage
 
+        // reinit view
         return {
             version, metadata,
             collection: movies,
@@ -166,9 +167,6 @@ const actions = {
             collection: state.collection
         })
 
-
-console.log(storage)
-
         try {
             await $bridge.saveCollection(storage, JSON.stringify)
         }
@@ -182,8 +180,8 @@ console.log(storage)
     },
 
     // radio provider change
-    onProviderChange: ({index}) => {
-        return {providerIndex: index}
+    onProviderChange: ({providerHash}) => {
+        return {providerHash}
     },
 
 
@@ -284,7 +282,7 @@ const view = (state, actions) => (
                 },
             ]}
             providers={state.providers}
-            providerIndex={state.providerIndex}
+            providerHash={state.providerHash}
             onProviderChange={actions.onProviderChange}
         />
 

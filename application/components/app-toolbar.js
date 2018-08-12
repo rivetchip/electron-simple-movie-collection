@@ -1,7 +1,29 @@
 
 import { h } from '../hyperapp'
 
-export const ComponentAppToolbar = ({buttons, providers, providerIndex, onProviderChange}) => (
+
+
+const ComponentProvider = ({ providerHash, provider, isSelected, onchange }) => (
+
+    <div key={providerHash}>
+        <input
+            id={'provider-'+provider.identifier+'-'+provider.lang}
+            type="radio"
+            name="provider"
+            class="provider-switch"
+            checked={isSelected}
+            onchange={event => onchange({providerHash})}
+        />
+        <label for={'provider-'+provider.identifier+'-'+provider.lang} class="provider">
+            {provider.name}
+            <div class="provider-lang">
+                {provider.lang.toUpperCase()}
+            </div>
+        </label>
+    </div>
+)
+
+export const ComponentAppToolbar = ({buttons, providers, providerHash, onProviderChange}) => (
 
     <app-toolbar>
 
@@ -13,24 +35,17 @@ export const ComponentAppToolbar = ({buttons, providers, providerIndex, onProvid
 
         {providers && (
             <div id="providers">
-                {providers.map(({identifier, name, lang}, index) => (
-                    <div key={index}>
-                        <input
-                            id={'provider-'+identifier+'-'+lang}
-                            class="provider-switch" type="radio"
-                            name="provider" value={identifier+'-'+lang}
-                            checked={providerIndex == index}
-                            onchange={event => onProviderChange({index})}
-                        />
-                        <label for={'provider-'+identifier+'-'+lang} class="provider">
-                            {name} <div class="provider-lang">{lang.toUpperCase()}</div>
-                        </label>
-                    </div>
+                {providers.map((provider, hash) => (
+                    <ComponentProvider
+                        providerHash={hash}
+                        provider={provider}
+                        isSelected={providerHash == hash}
+                        onchange={onProviderChange}
+                    />
                 ))}
             </div>
         )}
 
     </app-toolbar>
-
 )
 

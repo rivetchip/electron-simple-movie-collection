@@ -3,7 +3,7 @@ import { h } from '../hyperapp'
 
 
 
-export const ComponentSidebarSearch = ({onSearch}) => (
+export const ComponentSidebarSearch = ({ onSearch }) => (
 
     <search-toolbar>
         <input
@@ -13,15 +13,14 @@ export const ComponentSidebarSearch = ({onSearch}) => (
             oninput={event => onSearch({keyword: event.target.value})}
         />
     </search-toolbar>
-
 )
 
- const ComponentSidebarMovie = ({ movieHash, title, selected, favorite, onClick, onFavorite }) => (
+const ComponentSidebarMovie = ({ movieHash, title, isSelected, favorite, onClick, onFavorite }) => (
 
     <product-item
         key={movieHash}
         className={[
-            selected && 'is-selected'
+            isSelected && 'is-selected'
         ].filter(c => !!c).join(' ')}
 
         onclick={event => onClick({movieHash})}
@@ -36,16 +35,16 @@ export const ComponentSidebarSearch = ({onSearch}) => (
     </product-item>
 )
 
-export const ComponentSidebarMovies = ({movieHash, activeCollection, collection, onClick, onFavorite}) => (
+export const ComponentSidebarMovies = ({ movieHash, activeCollection, collection, onClick, onFavorite }) => (
 
     <product-items>
 
     {activeCollection.map((hash) => (
         <ComponentSidebarMovie
             movieHash={hash}
-            selected={hash == movieHash}
             title={collection[hash].title}
             favorite={collection[hash].favorite}
+            isSelected={hash == movieHash}
             onClick={onClick}
             onFavorite={onFavorite}
         />
