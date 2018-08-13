@@ -91,6 +91,14 @@ echo "Signing APK..."
 $APKSIGNER sign --ks mykey.keystore --ks-pass file:keystorepass apk/simplemoviecollection.apk
 
 
+# options
+
+if [ "$1" == "install" ]; then
+	echo "Installing..."
+	adb install -r apk/simplemoviecollection.apk
+fi
+
+
 if [ "$1" == "test" ]; then
 	echo "Launching..."
 	adb install -r apk/simplemoviecollection.apk
@@ -100,10 +108,5 @@ if [ "$1" == "test" ]; then
 	adb logcat -v color -s "CONSOLE"
 	#adb logcat -v color --pid=`adb shell pidof -s fr.spidery.moviecollection`
 fi
-
-
-
-
-
 
 
