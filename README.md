@@ -41,7 +41,7 @@ Inkscape command-line must also be on PATH in order to create mipmaps from SVGs
 ```sh
 npm run serve   (keep terminal open)
 
-./android.sh test
+./android.sh test      (or just 'install' if you dont want to debug logs)
 ```
 
 It will create mimaps (if needed), compile, sign, launch the APK using ADB and show console logs.
