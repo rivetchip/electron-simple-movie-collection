@@ -217,7 +217,7 @@ public class MainActivity extends Activity {
             webSettings.setDefaultTextEncodingName("utf-8");
 
             //engine
-            webSettings.setDomStorageEnabled(true);
+            webSettings.setDomStorageEnabled(true); // TODO
             webSettings.setAppCachePath(activity.getApplicationContext().getCacheDir().getAbsolutePath());
             webSettings.setAppCacheEnabled(true);
 
