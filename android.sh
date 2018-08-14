@@ -31,7 +31,7 @@ ic_launcher_round=../media/monster-icon-round.svg
 inkscape_export_svg() {
     local "${@}"
 
-    echo Create $destination @ $size
+    echo "Create $destination @ $size"
     inkscape --export-area-page --file $source --export-png $destination --export-width $size --export-height $size
     # Area 0:0:512:512
 }
