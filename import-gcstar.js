@@ -214,7 +214,10 @@ function convertFromDomItem(domitem, index) {
             let cols = line.querySelectorAll('col')
             return [cols[0].textContent, cols[1].textContent] //[actor, role]
         }),
-        rating: convertRating(domitem.getAttribute('rating')),
+        rating: convertRating(
+            domitem.getAttribute('rating') > 0 ||
+            domitem.getAttribute('ratingpress')
+        ),
         ratingPress: convertRating(domitem.getAttribute('ratingpress')),
         dateCreated: convertSimpleDate(domitem.getAttribute('added')),
         dateModified: null,
