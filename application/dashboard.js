@@ -13,6 +13,9 @@ import {ComponentAppStatusbar} from './components/app-statusbar'
 // helpers
 import {lookup, map, filter, urlstringify} from './helpers'
 
+// app other utilities
+import {fetchmovie} from './moviesapi-protocol'
+
 // platform specifics javascript bridges & interfaces
 let $bridge, appPlatform
 
@@ -29,8 +32,7 @@ if($bridge) {
     appPlatform = $bridge.platform
 }
 
-// app other utilities
-import {fetchmovie} from './moviesapi-protocol'
+
 
 // disable eval
 window.eval = global.eval = () => {throw 'no eval'}
@@ -96,8 +98,9 @@ const state = { // initial state
 // import {version, metadata, options, collection as movies} from './___.json'
 
 // state.collection = movies;
-// state.sidebarCollection = movies;
+// state.activeCollection = Object.keys(movies);
 // state.isMobile = true;
+// state.isFullscreen = true;
 
 
 
