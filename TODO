@@ -31,7 +31,7 @@ android : restart check for count, boucle infinie au cas où
 font: Montserrat à la place de Lato
 
 
-
+h() function -> tagName, properties, children
 
 
 
