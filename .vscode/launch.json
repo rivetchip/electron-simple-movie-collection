@@ -7,10 +7,13 @@
             "name": "Electron Debug",
             "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
             "program": "${workspaceFolder}/electron/index.js",
-            "args": ["--debug"],
             "protocol": "inspector",
             "console": "internalConsole",
-            "outputCapture": "std"
+            "outputCapture": "std",
+            "sourceMaps": true,
+            "env": {
+                "NODE_ENV": "development"
+            }
         },
         {
             "type": "node",
@@ -21,7 +24,8 @@
             "port": 12345,
             "protocol": "inspector",
             "console": "internalConsole",
-            "outputCapture": "std"
+            "outputCapture": "std",
+            "sourceMaps": true,
         }
     ]
 }

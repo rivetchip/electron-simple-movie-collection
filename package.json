@@ -10,7 +10,7 @@
     "bundle-clean": "rm -rf ./bundle/*",
     "bundle": "NODE_ENV=production parcel build application/index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --no-source-maps",
     "electron": "electron electron/index.js",
-    "electron-debug": "electron electron/index.js --inspect=12345 --debug-brk --debug",
+    "electron-debug": "NODE_ENV=development electron electron/index.js --inspect-brk=12345",
     "build-clean": "rm -rf ./release-builds/*",
     "build-electron": "npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
     "pack-linux32": "electron-packager electron $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",

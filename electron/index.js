@@ -1,5 +1,5 @@
 // Electron flow
-const {platform, argv} = process
+const {platform, env} = process
 
 const {app, BrowserWindow} = require('electron')
 
@@ -9,7 +9,8 @@ const {join: pathjoin} = require('path')
 const userDataPath = app.getPath('userData')
 const userSettingsFilename = pathjoin(userDataPath, 'settings.json');
 
-const debug = argv.includes('--debug')
+const debug = env.NODE_ENV == 'development'
+
 
 if(platform == 'linux') {
     //--enable-transparent-visuals --disable-gpu
