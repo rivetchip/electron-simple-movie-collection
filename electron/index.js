@@ -36,6 +36,10 @@ function createWindow() {
 
         webPreferences: {
             nodeIntegration: false,
+            webgl: false,
+            webaudio: false,
+            plugins: false,
+            navigateOnDragDrop: false, // whether drag/drop linnk/file onto causes a navigation
             // contextIsolation: true,
             preload: pathjoin(__dirname, 'preload.js')
         },
@@ -59,7 +63,7 @@ function createWindow() {
 
     // Launch fullscreen with DevTools open
     if(debug) {
-        webView.webContents.openDevTools()
+        webView.webContents.openDevTools({mode: 'bottom'})
     }
 
     // Show window when page is ready
