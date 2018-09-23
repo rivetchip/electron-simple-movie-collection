@@ -3,18 +3,15 @@ sudo dnf install gtk3-devel gstreamer-devel clutter-devel webkitgtk3-devel libgd
 webkit2gtk3-devel
 
 gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` && ./main
+
+meson
 */
 
-
-#include <stdint.h>
 #include <stdlib.h>
-#include <string.h>
-
-// #include <glib.h>
+#include <glib.h>
 
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
-#include <JavaScriptCore/JavaScript.h>
 
 
 static void destroy_window_callback(
@@ -26,20 +23,19 @@ static gboolean close_webview_callback(
     GtkWidget* window
 );
 
-JSClassRef WebAppInterface();
-
-
-static void window_object_cleared_callback()
-
-{
-
-}
-
 
 
 int main(int argc, char* argv[]) {
 
     bool is_debug = argv[1] != NULL && strcmp(argv[1], "--debug") == 0;
+
+    if(is_debug) {
+        g_message("app:is_debug");
+    }
+
+    // get current application path
+    char cwd[256];
+    getcwd(cwd, sizeof(cwd));
 
     // Initialize GTK+
     gtk_init(&argc, &argv);
@@ -47,9 +43,15 @@ int main(int argc, char* argv[]) {
     // Create an 800x600 window that will contain the browser instance
     GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
+    // Link proxy extension to provide bridge javascript/Native API
+    char webextension_dir[256];
+    sprintf(webextension_dir, "%s/", cwd);
+
+    WebKitWebContext *webkit_context = webkit_web_context_get_default();
+    webkit_web_context_set_web_extensions_directory (webkit_context, webextension_dir);
+
     // Create a browser instance
     WebKitWebView *webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
-
 
     // Set GTK window options
     gtk_window_set_title(GTK_WINDOW(main_window), "Movie Collection");
@@ -74,9 +76,6 @@ int main(int argc, char* argv[]) {
         webkit_settings_set_enable_write_console_messages_to_stdout(websettings, true);
         webkit_settings_set_enable_developer_extras(websettings, true);
     // }
-
-    // connect the window object with custom classes to JavaScriptCore
-    g_signal_connect(G_OBJECT(webview), "window-object-cleared", G_CALLBACK(window_object_cleared_callback), NULL);
 
 
 
@@ -153,8 +152,6 @@ if(err != NULL) {
 
 
     // Load a web page into the browser instance
-    char cwd[256];
-    getcwd(cwd, sizeof(cwd));
 
     char webview_page[256];
     sprintf(webview_page, "file://%s/bundle/index.html", cwd);
@@ -184,110 +181,3 @@ static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window
 }
 
 
-
-
-JSObjectRef WebAppInterface_callAsConstructor(
-    JSContextRef context,
-    JSObjectRef constructor,
-    size_t argumentCount,
-    const JSValueRef arguments[],
-    JSValueRef* exception
-) {
-
-}
-
-void WebAppInterface_finalize(JSObjectRef object) {
-
-}
-
-JSValueRef WebAppInterface_openCollection(
-    JSContextRef context,
-    JSObjectRef function,
-    JSObjectRef object,
-    size_t argumentCount,
-    const JSValueRef arguments[],
-    JSValueRef* exception
-) {
-    JSStringRef response = JSStringCreateWithUTF8CString("{\"ok\":123}");
-
-    return JSValueMakeString(context, response);
-}
-
-JSClassRef WebAppInterface () {
-
-    JSClassDefinition classDefinition = kJSClassDefinitionEmpty;
-
-    static JSStaticFunction staticFunctions[] = {
-        { "openCollection", WebAppInterface_openCollection, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
-        // { "saveCollection", WebAppInterface_saveCollection, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
-        // { "getPoster", WebAppInterface_getPoster, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
-        // { "savePoster", WebAppInterface_savePoster, kJSPropertyAttributeReadOnly | kJSPropertyAttributeDontDelete },
-        { 0, 0, 0 }
-    };
-
-    classDefinition.className = "WebkitgtkInterface";
-    classDefinition.attributes = kJSClassAttributeNone;
-    classDefinition.staticFunctions = staticFunctions;
-    // classDefinition.staticValues = staticValues;
-    classDefinition.finalize = WebAppInterface_finalize;
-    // classDefinition.callAsConstructor = WebAppInterface_callAsConstructor;
-
-    JSClassRef bridge_class = JSClassCreate(&classDefinition);
-
-    return bridge_class;
-}
-
-
-
-
-/*
-
-
-static JSValueRef bridge_open_collection(
-    JSContextRef context,
-    JSObjectRef function,
-    JSObjectRef thisObject,
-    size_t argumentCount,
-    const JSValueRef arguments[],
-    JSValueRef *exception
-) {
-
-}
-
-static const JSStaticFunction bridge_staticfuncs[] =
-{
-    { "openCollection", bridge_open_collection, kJSPropertyAttributeReadOnly },
-    // { "saveCollection", battery_percentage_cb, kJSPropertyAttributeReadOnly },
-    // { "getPoster", battery_voltage_cb, kJSPropertyAttributeReadOnly },
-    // { "savePoster", battery_update_time_cb, kJSPropertyAttributeReadOnly },
-    { NULL, NULL, 0 }
-};
-
-static void battery_init_cb(JSContextRef context, JSObjectRef object) {
-
-}
-
-static const JSClassDefinition webview_bridge_def = {
-    0,                      // version
-    kJSClassAttributeNone,  // attributes
-    "WebkitgtkInterface",   // className
-    NULL,                   // parentClass
-    NULL,                   // staticValues
-    bridge_staticfuncs,     // staticFunctions
-    battery_init_cb,        // initialize
-    battery_destroy_cb,     // finalize
-    NULL,                   // hasProperty
-    NULL,                   // getProperty
-    NULL,                   // setProperty
-    NULL,                   // deleteProperty
-    NULL,                   // getPropertyNames
-    NULL,                   // callAsFunction
-    NULL,                   // callAsConstructor
-    NULL,                   // hasInstance  
-    NULL,                   // convertToType
-    NULL,                   // cachedPrototype
-};
-
-
-
-*/
