@@ -4,6 +4,7 @@
 
 JSClassRef WebAppInterface();
 
+
 static void window_object_cleared_callback(
     WebKitScriptWorld *world,
     WebKitWebPage *page,
@@ -11,6 +12,35 @@ static void window_object_cleared_callback(
     gpointer user_data
 ) {
     g_message("extension:window_object_cleared_callback");
+
+    // extend javascriptCore APi
+
+    JSCContext *jsc_context = webkit_frame_get_js_context_for_script_world(frame, world);
+    JSCValue *jsc_globalObject = jsc_context_get_global_object(jsc_context);
+
+// jsc_context_set_value(jsc_context, "WebkitgtkInterface", WebAppInterface());
+
+
+
+
+
+
+
+
+    // JSGlobalContextRef context = webkit_frame_get_javascript_context_for_script_world(frame, world);
+
+    // JSObjectRef globalObject = JSContextGetGlobalObject(context);
+
+	// JSObjectRef webAppInterfaceObject = JSObjectMake(context, WebAppInterface(), NULL);
+
+	// JSObjectSetProperty(
+    //     context, globalObject,
+    //     JSStringCreateWithUTF8CString("WebkitgtkInterface"),
+    //     webAppInterfaceObject,
+    //     kJSPropertyAttributeNone,
+    //     NULL
+    // );
+    //jsc_value_to_string
 }
 
 static void web_page_created_callback (
@@ -24,16 +54,31 @@ static void web_page_created_callback (
 
 G_MODULE_EXPORT void webkit_web_extension_initialize (WebKitWebExtension *extension) {
 
-    g_signal_connect(extension, "page-created", G_CALLBACK(web_page_created_callback), NULL);
-
-
     WebKitScriptWorld *webkit_world = webkit_script_world_get_default();
 
+
+    g_signal_connect(extension, "page-created", G_CALLBACK(web_page_created_callback), NULL);
+
     g_signal_connect(webkit_world, "window-object-cleared", G_CALLBACK(window_object_cleared_callback), NULL);
+
+// G_TYPE_OBJECT, //G_TYPE_FROM_CLASS (extension),
+    // guint extension_ready_signal = g_signal_new(
+    //     "extension:ready",
+    //     G_TYPE_FROM_CLASS(NULL),
+    //     G_SIGNAL_RUN_LAST | G_SIGNAL_NO_RECURSE | G_SIGNAL_NO_HOOKS, //signal_flags
+    //     0, //class_offset
+    //     NULL, //accumulator
+    //     NULL, //accu_data
+    //     NULL, //c_marshaller
+    //     G_TYPE_NONE, //return_type G_TYPE_STRING, G_TYPE_VALUE
+    //     0, //n_params
+    //     NULL // params
+    // );
+
+    // g_signal_emit(extension, extension_ready_signal, 0);
+
+    // g_signal_emit_by_name(extension, "extensionloaded");
 }
-
-
-
 
 
 
@@ -88,57 +133,3 @@ JSClassRef WebAppInterface () {
     return bridge_class;
 }
 
-
-
-
-/*
-
-
-static JSValueRef bridge_open_collection(
-    JSContextRef context,
-    JSObjectRef function,
-    JSObjectRef thisObject,
-    size_t argumentCount,
-    const JSValueRef arguments[],
-    JSValueRef *exception
-) {
-
-}
-
-static const JSStaticFunction bridge_staticfuncs[] =
-{
-    { "openCollection", bridge_open_collection, kJSPropertyAttributeReadOnly },
-    // { "saveCollection", battery_percentage_cb, kJSPropertyAttributeReadOnly },
-    // { "getPoster", battery_voltage_cb, kJSPropertyAttributeReadOnly },
-    // { "savePoster", battery_update_time_cb, kJSPropertyAttributeReadOnly },
-    { NULL, NULL, 0 }
-};
-
-static void battery_init_cb(JSContextRef context, JSObjectRef object) {
-
-}
-
-static const JSClassDefinition webview_bridge_def = {
-    0,                      // version
-    kJSClassAttributeNone,  // attributes
-    "WebkitgtkInterface",   // className
-    NULL,                   // parentClass
-    NULL,                   // staticValues
-    bridge_staticfuncs,     // staticFunctions
-    battery_init_cb,        // initialize
-    battery_destroy_cb,     // finalize
-    NULL,                   // hasProperty
-    NULL,                   // getProperty
-    NULL,                   // setProperty
-    NULL,                   // deleteProperty
-    NULL,                   // getPropertyNames
-    NULL,                   // callAsFunction
-    NULL,                   // callAsConstructor
-    NULL,                   // hasInstance  
-    NULL,                   // convertToType
-    NULL,                   // cachedPrototype
-};
-
-
-
-*/

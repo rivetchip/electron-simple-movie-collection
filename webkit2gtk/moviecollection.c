@@ -18,11 +18,11 @@ static void destroy_window_callback(
     GtkWidget* widget,
     GtkWidget* window
 );
+
 static gboolean close_webview_callback(
     WebKitWebView *webView,
     GtkWidget* window
 );
-
 
 
 int main(int argc, char* argv[]) {
@@ -44,11 +44,14 @@ int main(int argc, char* argv[]) {
     GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 
     // Link proxy extension to provide bridge javascript/Native API
+    static guint32 unique_id = 0; //get a different ID for each Web Process
+    
     char webextension_dir[256];
     sprintf(webextension_dir, "%s/", cwd);
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();
     webkit_web_context_set_web_extensions_directory (webkit_context, webextension_dir);
+    webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, g_variant_new_uint32(unique_id++));
 
     // Create a browser instance
     WebKitWebView *webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
@@ -72,84 +75,10 @@ int main(int argc, char* argv[]) {
     webkit_settings_set_default_charset(websettings, "utf8");
     webkit_settings_set_enable_javascript(websettings, true);
 
-    // if(is_debug) {
+    if(is_debug) {
         webkit_settings_set_enable_write_console_messages_to_stdout(websettings, true);
         webkit_settings_set_enable_developer_extras(websettings, true);
-    // }
-
-
-
-
-    // JSObjectRef contaxt = jsc_value_get_context();
-
-    // JSObjectRef globalObject = JSContextGetGlobalObject(webcontext);
-	// JSObjectRef webAppInterfaceObject = JSObjectMake(webcontext, WebAppInterface(), NULL);
-
-	// JSObjectSetProperty(
-    //     webcontext, globalObject,
-    //     JSStringCreateWithUTF8CString("WebkitgtkInterface"),
-    //     webAppInterfaceObject,
-    //     kJSPropertyAttributeNone,
-    //     NULL
-    // );
-
-
-
-
-
-
-
-
-// guint64 webview_pageid = webkit_web_view_get_page_id(webview);
-
-// JSCContext *jsccontext =  webkit_frame_get_js_context(webkit_frame);
-
-
-/*
-
-JSContextRef globalContext = JSGlobalContextCreate(NULL);
-
-JSObjectRef globalObject = JSContextGetGlobalObject(globalContext);
-
-JSObjectRef webAppInterfaceObject = JSObjectMake(globalContext, WebAppInterface(), NULL);
-
-JSObjectSetProperty(
-    globalContext, globalObject,
-    JSStringCreateWithUTF8CString("WebkitgtkInterface"),
-    webAppInterfaceObject,
-    kJSPropertyAttributeNone,
-    NULL
-);
-
-
-JSValueRef err = NULL;
-JSStringRef str_script = JSStringCreateWithUTF8CString("return WebkitgtkInterface.openCollection();");
-
-JSValueRef ret = JSEvaluateScript(globalContext, str_script, NULL, NULL, 0, &err);
-
-bool response = JSValueToBoolean(globalContext, ret);
-
-if(response) {
-    g_message("ok");
-} else {
-    g_message("nok");
-}
-
-
-if(err != NULL) {
-    g_message("error");
- JSStringRef pname = JSStringCreateWithUTF8CString("message");
- JSValueRef value = JSObjectGetProperty(globalContext, err, pname, NULL);
-}
-
-
-*/
-
-
-
-
-
-
+    }
 
     // Load a web page into the browser instance
 
@@ -157,7 +86,6 @@ if(err != NULL) {
     sprintf(webview_page, "file://%s/bundle/index.html", cwd);
 
     webkit_web_view_load_uri(webview, webview_page);
-
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
     gtk_widget_grab_focus(GTK_WIDGET(webview));
@@ -179,5 +107,4 @@ static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window
     gtk_widget_destroy(window);
     return true;
 }
-
 
