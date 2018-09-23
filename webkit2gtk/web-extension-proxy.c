@@ -5,11 +5,27 @@
 JSClassRef WebAppInterface();
 
 
+static char * WebAppInterface_openCollection(
+    WebKitWebExtension *extension
+) {
+    // char *response = "{\"ok\":123}";
+
+    // return response;
+
+    
+}
+
+
+
+
+
+
+
 static void window_object_cleared_callback(
     WebKitScriptWorld *world,
     WebKitWebPage *page,
     WebKitFrame *frame,
-    gpointer user_data
+    WebKitWebExtension *extension //gpointer user_data
 ) {
     g_message("extension:window_object_cleared_callback");
 
@@ -18,14 +34,36 @@ static void window_object_cleared_callback(
     JSCContext *jsc_context = webkit_frame_get_js_context_for_script_world(frame, world);
     JSCValue *jsc_globalObject = jsc_context_get_global_object(jsc_context);
 
-// jsc_context_set_value(jsc_context, "WebkitgtkInterface", WebAppInterface());
+    JSCClass *js_class = jsc_context_register_class(jsc_context, "WebkitgtkInterface", NULL, NULL, NULL);
+
+    jsc_class_add_method(
+        js_class,
+        "openCollection",
+        G_CALLBACK(WebAppInterface_openCollection), NULL, NULL,
+        G_TYPE_STRING,
+        0
+    );
+
+    // jsc_class_add_method(
+    //     js_class,
+    //     "getPoster",
+    //     G_CALLBACK(WebAppInterface_openCollection), NULL, NULL,
+    //     G_TYPE_STRING,
+    //     1, G_TYPE_STRING
+    // );
+
+
+    JSCValue *js_interface = jsc_value_new_object(jsc_context, extension, js_class);
+
+    jsc_value_object_set_property (jsc_globalObject, "WebkitgtkInterface", js_interface);
+    g_object_unref (js_interface);
 
 
 
 
 
 
-
+//https://webkitgtk.org/reference/jsc-glib/stable/JSCContext.html#jsc-context-register-class
 
     // JSGlobalContextRef context = webkit_frame_get_javascript_context_for_script_world(frame, world);
 
@@ -59,7 +97,7 @@ G_MODULE_EXPORT void webkit_web_extension_initialize (WebKitWebExtension *extens
 
     g_signal_connect(extension, "page-created", G_CALLBACK(web_page_created_callback), NULL);
 
-    g_signal_connect(webkit_world, "window-object-cleared", G_CALLBACK(window_object_cleared_callback), NULL);
+    g_signal_connect(webkit_world, "window-object-cleared", G_CALLBACK(window_object_cleared_callback), extension);
 
 // G_TYPE_OBJECT, //G_TYPE_FROM_CLASS (extension),
     // guint extension_ready_signal = g_signal_new(
@@ -81,6 +119,15 @@ G_MODULE_EXPORT void webkit_web_extension_initialize (WebKitWebExtension *extens
 }
 
 
+
+
+
+
+
+
+
+
+/*
 
 JSObjectRef WebAppInterface_callAsConstructor(
     JSContextRef context,
@@ -133,3 +180,4 @@ JSClassRef WebAppInterface () {
     return bridge_class;
 }
 
+*/
