@@ -10,10 +10,39 @@ Available on 🐧 Linux 💻 Windows 🤖 Android
 <img src="media/screenshot-desktop.png" height="350"> <img src="media/screenshot-mobile.png" height="350">
 
 
+.
+
+Building Webkit2Gtk Desktop :
+-----------------------------
+
+Install development required files, and [Meson build system](https://mesonbuild.com/) :
+
+```sh
+sudo dnf install gtk3-devel webkitgtk3-devel libgda-devel gobject-introspection-devel webkit2gtk3-devel
+
+sudo dnf install meson
+```
+
+__Build everything and launch the application :__
+
+```sh
+cd ./webkit2gtk
+meson builddir
+ninja -C builddir && ./moviecollection --debug
+```
 
 
-Debugging Desktop :
--------------------
+
+todo
+
+
+
+
+
+Building Electron Desktop :
+---------------------------
+
+__Debug the application :__
 
 ```sh
 npm install
@@ -28,30 +57,8 @@ Linux: Error "ENOSPC" : (max watch files limit exeed)
 echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 ```
 
+__Build everything :__
 
-Debugging Android :
--------------------
-
-Install latest JDK/OpenJDK package `java-1.8.0-openjdk-devel`
-
-Install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28)
-
-Inkscape command-line must also be on PATH in order to create mipmaps from SVGs
-
-```sh
-npm run serve   (keep terminal open)
-
-./android.sh test      (or just 'install' if you dont want to debug logs)
-```
-
-It will create mimaps (if needed), compile, sign, launch the APK using ADB and show console logs.
-
-Watch-out for Chrome versions when building for different API -> add targets to `.babelrc`
-(eg: default Android 23 with Chrome 51 don't support async/await)
-
-
-Build Desktop :
----------------
 
 ```sh
 npm install
@@ -68,10 +75,30 @@ Release executable will be in `/release-builds/` folder
 Linux: missing `libXss.so.1` library -> Install `libXScrnSaver` package
 
 
-Build Android :
----------------
 
-Report to "Debugging Android" section for requirements.
+Building Android :
+------------------
+
+Install latest JDK/OpenJDK package `java-1.8.0-openjdk-devel`
+Install [latest Android SDK](https://developer.android.com/studio/#command-tools) (currently v28)
+
+Inkscape command-line must also be on PATH in order to create mipmaps from SVGs
+
+__Debug the application :__
+
+```sh
+npm run serve   (keep terminal open)
+
+./android.sh test      (or just 'install' if you dont want to debug logs)
+```
+
+It will create mimaps (if needed), compile, sign, launch the APK using ADB and show console logs.
+
+Watch-out for Chrome versions when building for different API -> add targets to `.babelrc`
+(eg: default Android 23 with Chrome 51 don't support async/await)
+
+
+__Bbuild everything:__
 
 ```sh
 npm run bundle && ./android.sh
