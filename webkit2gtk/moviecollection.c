@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     // arguments passed to proxy extension
     GVariant *user_data = g_variant_new(
-        "(i)", unique_id++
+        "(iss)", unique_id++, cwd, webextension_dir
     );
 
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, user_data);

@@ -1,9 +1,9 @@
 
-#include <gtk/gtk.h>
 #include <webkit2/webkit-web-extension.h>
 #include <JavaScriptCore/JavaScript.h>
 
 JSClassRef WebAppInterface();
+
 
 
 static char *readFile(char *filename) {
