@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     }
 
     // get current application path
-    char *cwd = getcwd(NULL, 0);
+    char *app_cwd = getcwd(NULL, 0);
 
     // Initialize GTK+
     gtk_init(&argc, &argv);
@@ -46,14 +46,18 @@ int main(int argc, char* argv[]) {
     static guint32 unique_id = 0; //get a different ID for each Web Process
     
     char webextension_dir[256];
-    sprintf(webextension_dir, "%s/", cwd);
+    sprintf(webextension_dir, "%s/", app_cwd);
+
+    if(is_debug) {
+        g_message("app:webextension_dir %s", webextension_dir);
+    }
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();
     webkit_web_context_set_web_extensions_directory(webkit_context, webextension_dir);
 
     // arguments passed to proxy extension
     GVariant *user_data = g_variant_new(
-        "(iss)", unique_id++, cwd, webextension_dir
+        "(iss)", unique_id++, app_cwd, webextension_dir
     );
 
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, user_data);
@@ -88,7 +92,7 @@ int main(int argc, char* argv[]) {
     // Load a web page into the browser instance
 
     char webview_page[256];
-    sprintf(webview_page, "file://%s/bundle/index.html", cwd);
+    sprintf(webview_page, "file://%s/bundle/index.html", app_cwd);
 
     webkit_web_view_load_uri(webview, webview_page);
 
