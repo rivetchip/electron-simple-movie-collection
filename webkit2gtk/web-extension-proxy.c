@@ -1,20 +1,76 @@
 
+#include <gtk/gtk.h>
 #include <webkit2/webkit-web-extension.h>
 #include <JavaScriptCore/JavaScript.h>
 
 JSClassRef WebAppInterface();
 
 
-static char * WebAppInterface_openCollection(
-    WebKitWebExtension *extension
-) {
-    // char *response = "{\"ok\":123}";
+static char *readFile(char *filename) {
+    char *buffer = 0;
+    long length;
 
-    // return response;
+    FILE *f = fopen(filename, "r");
 
+    if(f) {
+        fseek(f, 0, SEEK_END);
+        length = ftell(f);
     
+        fseek(f, 0, SEEK_SET);
+        buffer = malloc(length);
+
+        if(buffer) {
+            fread(buffer, 1, length, f);
+        }
+    
+        fclose(f);
+        buffer[length] = '\0';
+    }
+
+    return buffer;
 }
 
+static JSCValue * WebAppInterface_openCollection(
+    WebKitWebExtension *extension
+) {
+    g_assert(WEBKIT_IS_WEB_EXTENSION(extension));
+
+    // todo: use gtk_file_picker ; cannot use gtk here
+    // try to use DBUS connection between app/extension if possible ??
+
+GList *gtk_parents = gtk_window_list_toplevels();
+GList *l;
+int i =5;
+
+for (l = gtk_parents; l != NULL; l = l->next)
+{
+i++;
+  }
+
+  char str[80];
+
+sprintf(str, " Echo : %i", i);
+
+puts(str);
+g_message(str);
+
+
+
+
+
+
+
+
+    //  g_assert(WEBKIT_IS_WEB_PAGE(webPage));
+
+
+
+    // JSCContext *context = jsc_context_get_current();
+
+    // char *content = readFile("/home/fox/Bureau/vscode");
+
+    // return jsc_value_new_string(context, content);
+}
 
 
 
@@ -29,6 +85,8 @@ static void window_object_cleared_callback(
 ) {
     g_message("extension:window_object_cleared_callback");
 
+    g_assert(WEBKIT_IS_WEB_EXTENSION(extension));
+
     // extend javascriptCore APi
 
     JSCContext *jsc_context = webkit_frame_get_js_context_for_script_world(frame, world);
@@ -40,8 +98,8 @@ static void window_object_cleared_callback(
         js_class,
         "openCollection",
         G_CALLBACK(WebAppInterface_openCollection), NULL, NULL,
-        G_TYPE_STRING,
-        0
+        JSC_TYPE_VALUE, //G_TYPE_STRING // return type
+        0, G_TYPE_NONE // args number and types
     );
 
     // jsc_class_add_method(
@@ -87,12 +145,51 @@ static void web_page_created_callback (
     gpointer user_data
 ) {
     g_message("extension:web_page_created_callback");
+
+    g_assert(WEBKIT_IS_WEB_EXTENSION(extension));
+
+
 }
 
 
-G_MODULE_EXPORT void webkit_web_extension_initialize (WebKitWebExtension *extension) {
+G_MODULE_EXPORT void webkit_web_extension_initialize_with_user_data(
+    WebKitWebExtension *extension,
+    GVariant *user_data
+) {
+
+     g_assert(WEBKIT_IS_WEB_EXTENSION(extension));
 
     WebKitScriptWorld *webkit_world = webkit_script_world_get_default();
+
+
+
+
+// if(parent_window == NULL){
+//     g_message("NULL");
+// }
+
+
+
+
+// GtkWidget *dialog;
+// GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+// gint res;
+
+// dialog = gtk_file_chooser_dialog_new ("Open File",
+//                                       parent_window,
+//                                       action,
+//                                       "_Cancel",
+//                                       GTK_RESPONSE_CANCEL,
+//                                       "_Open",
+//                                       GTK_RESPONSE_ACCEPT,
+//                                       NULL);
+
+// res = gtk_dialog_run (GTK_DIALOG (dialog));
+
+
+
+
+
 
 
     g_signal_connect(extension, "page-created", G_CALLBACK(web_page_created_callback), NULL);

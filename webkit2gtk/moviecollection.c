@@ -34,8 +34,7 @@ int main(int argc, char* argv[]) {
     }
 
     // get current application path
-    char cwd[256];
-    getcwd(cwd, sizeof(cwd));
+    char *cwd = getcwd(NULL, 0);
 
     // Initialize GTK+
     gtk_init(&argc, &argv);
@@ -50,8 +49,14 @@ int main(int argc, char* argv[]) {
     sprintf(webextension_dir, "%s/", cwd);
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();
-    webkit_web_context_set_web_extensions_directory (webkit_context, webextension_dir);
-    webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, g_variant_new_uint32(unique_id++));
+    webkit_web_context_set_web_extensions_directory(webkit_context, webextension_dir);
+
+    // arguments passed to proxy extension
+    GVariant *user_data = g_variant_new(
+        "(i)", unique_id++
+    );
+
+    webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, user_data);
 
     // Create a browser instance
     WebKitWebView *webview = WEBKIT_WEB_VIEW(webkit_web_view_new());
