@@ -34,6 +34,21 @@ font: Montserrat à la place de Lato
 h() function -> tagName, properties, children
 
 
+// check: https://github.com/GNOME/epiphany/tree/master/embed/web-extension
+
+webkit2gtk
+Si pas possible d'utiliser gtk.h dans l'extension ce qui ne semble pas être le cas :
+impossible de le passer via un g_variant_new() dans webkit_web_context_set_web_extensions_initialization_user_data 
+essayer d'utiliser DBUS communication between extension app ??
+
+SInon tantpis, on laisse pas le choix d'ouvrir un fichier
+plutot faire une interface pour créer et ouvrir des projets directement depuis l'app, ok ou nul ?
+
+
+
+
+
+
 
 
 
@@ -47,34 +62,6 @@ currying
 
 var string = toreplace('hello name') // 2
 var string2 = toreplace('hello name !')
-
-
-
-
-
-BABELRC different env
-
-last 2 versions
-
-    "env": {
-        "android": {
-            "presets": [
-                ["env", {"targets": {"chrome": 50}, "useBuiltIns": true}]
-            ]
-        },
-        "electron": {
-            "presets": [
-                ["env", {"targets": {"chrome": 61}, "useBuiltIns": true}]
-            ]
-        }
-    }
-
-    "bundle-electron": "BABEL_ENV=electron npm run bundle",
-    "bundle-android": "BABEL_ENV=android npm run bundle",
-
-    "serve-android": "BABEL_ENV=android npm run serve",
-
-
 
 
 
