@@ -114,14 +114,6 @@ int main(int argc, char* argv[]) {
 
 
 
-
-
-
-
-
-
-
-
     // styling application
     GtkCssProvider *window_css_provider = gtk_css_provider_get_default();
 
@@ -148,8 +140,9 @@ int main(int argc, char* argv[]) {
     WebKitSettings *websettings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
         "enable-javascript", true,
-        "auto-load-images", false,
-        "allow-file-access-from-file-urls", true, // allow xhr request
+        "auto-load-images", true,
+        "allow-file-access-from-file-urls", true, // todo allow xhr request
+        "allow-universal-access-from-file-urls", true, // access ressources locally
         "enable-write-console-messages-to-stdout", is_debug, // debug settings
         "enable-developer-extras", is_debug,
     NULL);
