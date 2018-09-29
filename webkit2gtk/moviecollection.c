@@ -72,15 +72,84 @@ int main(int argc, char* argv[]) {
     gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(GTK_WINDOW(main_window), true);
 
+    GtkSettings *window_settings = gtk_settings_get_default();
+    g_object_set(G_OBJECT(window_settings),
+        "gtk-application-prefer-dark-theme", TRUE, NULL //because webview is dark :)
+    );
+
+
+
+
+
+
+
+
+
+
+    // Set GTK CSD HeaderBar
+    GtkWidget *header_bar = gtk_header_bar_new();
+    gtk_widget_set_name(header_bar, "header_bar");
+
+    gtk_window_set_titlebar(GTK_WINDOW(main_window), header_bar);
+
+    gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), true);
+
+
+
+    // GtkWidget *close_icon = gtk_image_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_MENU);
+    // GtkWidget *close_btn = gtk_button_new();
+
+    // gtk_style_context_add_class(gtk_widget_get_style_context(close_btn), "titlebutton");
+
+    // gtk_container_add(GTK_CONTAINER(close_btn), close_icon);
+
+    // gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), close_btn);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // styling application
+    GtkCssProvider *window_css_provider = gtk_css_provider_get_default();
+
+    char window_style_dir[256];
+    sprintf(window_style_dir, "%s/style.css", launcher_dir);
+
+    if(is_debug) {
+        g_message("app:window_style_dir %s", window_style_dir);
+    }
+
+    GError **css_error = NULL;
+    gtk_css_provider_load_from_path(window_css_provider, window_style_dir, css_error);
+
+    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+        GTK_STYLE_PROVIDER(window_css_provider),
+        GTK_STYLE_PROVIDER_PRIORITY_USER
+    );
+
     // Callback when the main window is closed
     g_signal_connect(main_window, "destroy", G_CALLBACK(destroy_window_callback), NULL);
+
 
     // Webview settings & create the webview
     WebKitSettings *websettings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
-        "enable-javascript", TRUE,
-        "auto-load-images", FALSE,
-        "allow-file-access-from-file-urls", TRUE, // allow xhr request
+        "enable-javascript", true,
+        "auto-load-images", false,
+        "allow-file-access-from-file-urls", true, // allow xhr request
         "enable-write-console-messages-to-stdout", is_debug, // debug settings
         "enable-developer-extras", is_debug,
     NULL);
@@ -89,12 +158,12 @@ int main(int argc, char* argv[]) {
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();// todo webkit_web_view_get_context(webview);
     
-    GVariant *webex_data = g_variant_new(
+    GVariant *webextension_data = g_variant_new(
         "(is)", unique_id++, webextension_dir
     );
 
     // Callback when initialize extensions
-    g_signal_connect(webkit_context, "initialize-web-extensions", G_CALLBACK(initialize_web_extensions), webex_data);
+    g_signal_connect(webkit_context, "initialize-web-extensions", G_CALLBACK(initialize_web_extensions), webextension_data);
 
     WebKitWebView *webview = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(websettings));
 
