@@ -28,6 +28,9 @@ button.titlebutton:hover {
 button.titlebutton:active {
     background-color: #16a085;
 }
+button.titlebutton image {
+    -gtk-icon-shadow: none;
+}
 
 headerbar.titlebar label.title {
     color: #fff;
