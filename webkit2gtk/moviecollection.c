@@ -158,6 +158,7 @@ int main(int argc, char* argv[]) {
         "default-charset", "utf8",
         "enable-javascript", true,
         "auto-load-images", true,
+        "enable-page-cache", false,
         "allow-file-access-from-file-urls", true, // todo allow xhr request
         "allow-universal-access-from-file-urls", true, // access ressources locally
         "enable-write-console-messages-to-stdout", is_debug, // debug settings
