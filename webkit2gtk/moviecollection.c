@@ -1,7 +1,7 @@
 /*
 sudo dnf install gtk3-devel gstreamer-devel clutter-devel webkitgtk3-devel libgda-devel gobject-introspection-devel
 webkit2gtk3-devel
-
+builddir > clear && ninja && GTK_DEBUG=interactive ./moviecollection --debug
 gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` && ./main
 
 meson
@@ -46,7 +46,7 @@ static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant
 
     if(!fileexists(webextension_file)) {
         // extension not found, abort()
-        g_error("app:initialize_web_extensions extension-proxy not found");
+        g_error("app:initialize_web_extensions 'libweb-extension-proxy.so' not found");
     }
 
     webkit_web_context_set_web_extensions_directory(webkit_context, webextension_dir);
