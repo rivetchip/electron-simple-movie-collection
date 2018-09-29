@@ -23,7 +23,7 @@ static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window
     return true;
 }
 
-static bool fileexists(const char * filename){
+static bool fileexists(const char *filename) {
     /* try to open file to read */
     FILE *file = fopen(filename, "r");
     if(file) {
@@ -39,6 +39,15 @@ static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant
     char *webextension_dir;
 
     g_variant_get(user_data, "(is)", &unique_id, &webextension_dir);
+
+    char webextension_file[255];
+    strcpy(webextension_file, webextension_dir);
+    strcat(webextension_file, "libweb-extension-proxy.so");
+
+    if(!fileexists(webextension_file)) {
+        // extension not found, abort()
+        g_error("app:initialize_web_extensions extension-proxy not found");
+    }
 
     webkit_web_context_set_web_extensions_directory(webkit_context, webextension_dir);
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, user_data);
@@ -107,6 +116,7 @@ int main(int argc, char* argv[]) {
 
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
     gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), true);
+    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
 
 
 
