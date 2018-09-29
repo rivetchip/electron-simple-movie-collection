@@ -23,6 +23,17 @@ static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window
     return true;
 }
 
+static bool fileexists(const char * filename){
+    /* try to open file to read */
+    FILE *file = fopen(filename, "r");
+    if(file) {
+        fclose(file);
+        return true;
+    }
+    return false;
+}
+
+
 static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant *user_data) {
     int unique_id;
     char *webextension_dir;
@@ -77,6 +88,8 @@ int main(int argc, char* argv[]) {
         "gtk-application-prefer-dark-theme", TRUE, NULL //because webview is dark :)
     );
 
+    // Callback when the main window is closed
+    g_signal_connect(main_window, "destroy", G_CALLBACK(destroy_window_callback), NULL);
 
 
 
@@ -114,27 +127,31 @@ int main(int argc, char* argv[]) {
 
 
 
-    // styling application
-    GtkCssProvider *window_css_provider = gtk_css_provider_get_default();
+    // Styling application (if file available)
 
     char window_style_dir[256];
     sprintf(window_style_dir, "%s/style.css", launcher_dir);
 
-    if(is_debug) {
-        g_message("app:window_style_dir %s", window_style_dir);
+    if(fileexists(window_style_dir)) {
+
+        if(is_debug) {
+            g_message("app:window_style_dir %s", window_style_dir);
+        }
+
+        GtkCssProvider *window_css_provider = gtk_css_provider_get_default();
+
+        GError *css_error = NULL;
+        gtk_css_provider_load_from_path(window_css_provider, window_style_dir, &css_error);
+
+        if(css_error != NULL) {
+            g_warning("app:import style.css %s", css_error->message);
+        }
+
+        gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
+            GTK_STYLE_PROVIDER(window_css_provider),
+            GTK_STYLE_PROVIDER_PRIORITY_USER
+        );
     }
-
-    GError **css_error = NULL;
-    gtk_css_provider_load_from_path(window_css_provider, window_style_dir, css_error);
-
-    gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-        GTK_STYLE_PROVIDER(window_css_provider),
-        GTK_STYLE_PROVIDER_PRIORITY_USER
-    );
-
-    // Callback when the main window is closed
-    g_signal_connect(main_window, "destroy", G_CALLBACK(destroy_window_callback), NULL);
-
 
     // Webview settings & create the webview
     WebKitSettings *websettings = webkit_settings_new_with_settings(
