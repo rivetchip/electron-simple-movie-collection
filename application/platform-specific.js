@@ -2,18 +2,18 @@
 
 /**
  * Params of the Electron native API bridge
- * @param {Object} electron 
+ * @param {Object} bridge 
  */
 export function ElectronBridge(bridge) {
     // don't need to transmute functions, already done in preload.js
     return {
-        platform: 'dekstop', ...bridge
+        platform: 'desktop-window', ...bridge
     }
 }
 
 /**
  * Params of the Android native API bridge
- * @param {Object} android 
+ * @param {Object} bridge 
  */
 export function AndroidBridge(bridge) {
     // transmute function in Java.@JavascriptInterface to promises
@@ -51,13 +51,13 @@ console.log('storage'+storage)
 
 
 /**
- * Params of the Browser native API bridge
- * @param {Object} android 
+ * Params of the WebkitGtkBridge native API bridge
+ * @param {Object} bridge 
  */
-export function BrowserBridge(android) {
+export function WebkitgtkBridge(android) {
     // transmute function in Java.@JavascriptInterface to promises
     return {
-        platform: 'browser',
+        platform: 'desktop-webview',
 
         applicationClose(status) {
 

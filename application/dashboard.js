@@ -19,13 +19,16 @@ import {fetchmovie} from './moviesapi-protocol'
 // platform specifics javascript bridges & interfaces
 let $bridge, appPlatform
 
-import {ElectronBridge, AndroidBridge} from './platform-specific'
+import {WebkitgtkBridge, AndroidBridge, ElectronBridge} from './platform-specific'
 
-if('ElectronInterface' in window) {
-    $bridge = ElectronBridge(window.ElectronInterface)
+if('WebkitgtkInterface' in window) {
+    $bridge = WebkitgtkBridge(window.WebkitgtkInterface)
 }
-if('AndroidInterface' in window) {
+else if('AndroidInterface' in window) {
     $bridge = AndroidBridge(window.AndroidInterface)
+}
+else if('ElectronInterface' in window) {
+    $bridge = ElectronBridge(window.ElectronInterface)
 }
 
 if($bridge) {
@@ -65,14 +68,19 @@ function identity(v) {
 
 
 const state = { // initial state
+
     isLoading: false,
     isHamburgerOpen: false,
-    isFullscreen: appPlatform == 'mobile',
-    isMobile: appPlatform == 'mobile',
+    // if fullscreen, remove margin around fake window
+    isFullscreen: ['mobile', 'desktop-webview'].includes(appPlatform),
+    // if mobile : smaller interface
+    isMobile: ['mobile'].includes(appPlatform),
+    // remove header bar controls if we already have a real window
+    appHeaderTitle: 'Movie Collection',
+    appHeaderBar: ['desktop-window'].includes(appPlatform),
 
-    appTitle: 'Movie Collection',
-
-    location: 'welcome', // preview publication
+    // current interface : welcome preview publication
+    location: 'welcome',
 
     providerHash: 1, // french
     providers: [
@@ -272,12 +280,14 @@ const view = (state, actions) => (
         state.isHamburgerOpen && 'is-hamburger-open'
     ].filter(c => !!c).join(' ')}>
 
-        <ComponentAppTitlebar
-            title={state.appTitle}
-            onClose={actions.onAppClose}
-            onMinimize={actions.onAppMinimize}
-            onMaximize={actions.onAppMaximize}
-        />
+        {state.appHeaderBar && 
+            <ComponentAppTitlebar
+                title={state.appHeaderTitle}
+                onClose={actions.onAppClose}
+                onMinimize={actions.onAppMinimize}
+                onMaximize={actions.onAppMaximize}
+            />
+        }
 
         <ComponentAppToolbar
             buttons={[
