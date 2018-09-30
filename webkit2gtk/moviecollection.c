@@ -3,7 +3,8 @@ sudo dnf install gtk3-devel gstreamer-devel clutter-devel webkitgtk3-devel libgd
 webkit2gtk3-devel
 builddir > clear && ninja && GTK_DEBUG=interactive ./moviecollection --debug
 gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` && ./main
-meson
+meson --buildtype
+coredumpctl list => gdb
 */
 
 #include <stdlib.h>
@@ -13,6 +14,7 @@ meson
 #include <webkit2/webkit2.h>
 
 /*
+
 static void destroy_window_callback(GtkWidget* widget, GtkWidget* window) {
     gtk_main_quit();
 }
@@ -120,12 +122,10 @@ static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant
 
 
 struct WebviewWindowState {
-    int x;
-    int y;
     int height;
     int width;
-    bool maximized;
-    bool fullscreen;
+    bool is_maximized;
+    bool is_fullscreen;
 };
 
 typedef struct {
@@ -149,8 +149,8 @@ static void app_window_store_state(GtkApplication* gtk_app, struct WebviewWindow
 
     g_key_file_set_integer(keyfile, "WindowState", "height", window_state->height);
     g_key_file_set_integer(keyfile, "WindowState", "width", window_state->width);
-    g_key_file_set_boolean(keyfile, "WindowState", "maximized", window_state->maximized);
-    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", window_state->fullscreen);
+    g_key_file_set_boolean(keyfile, "WindowState", "maximized", window_state->is_maximized);
+    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", window_state->is_fullscreen);
 
     // save file under $XDG_CACHE_HOME
     char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
@@ -180,43 +180,19 @@ static void app_window_load_state(GtkApplication* gtk_app, struct WebviewWindowS
 
     if(g_key_file_load_from_file(keyfile, state_file, G_KEY_FILE_NONE, NULL)) {
 
-        GError *error_read;
-
-        int state_x = g_key_file_get_integer(keyfile, "WindowState", "x", &error_read);
-        if(error_read != NULL) {
-            window_state->x = state_x;
-        }
-        g_clear_error(&error_read);
-
-        int state_y = g_key_file_get_integer(keyfile, "WindowState", "y", &error_read);
-        if(error_read != NULL) {
-            window_state->y = state_y;
-        }
-        g_clear_error(&error_read);
+        GError *error_read = NULL;
 
         int state_height = g_key_file_get_integer(keyfile, "WindowState", "height", &error_read);
-        if(error_read != NULL) {
-            window_state->height = state_height;
-        }
-        g_clear_error(&error_read);
+        error_read == NULL ? (window_state->height = state_height) : g_clear_error(&error_read);
 
         int state_width = g_key_file_get_integer(keyfile, "WindowState", "width", &error_read);
-        if(error_read != NULL) {
-            window_state->width = state_width;
-        }
-        g_clear_error(&error_read);
+        error_read == NULL ? (window_state->width = state_width) : g_clear_error(&error_read);
 
         bool state_maximized = g_key_file_get_boolean(keyfile, "WindowState", "maximized", &error_read);
-        if(error_read != NULL) {
-            window_state->maximized = state_maximized;
-        }
-        g_clear_error(&error_read);
+        error_read == NULL ? (window_state->is_maximized = state_maximized) : g_clear_error(&error_read);
 
         int state_fullscreen = g_key_file_get_boolean(keyfile, "WindowState", "fullscreen", &error_read);
-        if(error_read != NULL) {
-            window_state->fullscreen = state_fullscreen;
-        }
-        g_clear_error(&error_read);
+        error_read == NULL ? (window_state->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
     }
 
     g_key_file_unref(keyfile);
@@ -226,14 +202,14 @@ static void app_window_load_state(GtkApplication* gtk_app, struct WebviewWindowS
 static void app_window_state_event_callback(GtkWidget* window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
     GdkWindowState new_window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
-    window_state->maximized = (new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
+    window_state->is_maximized = (new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
 
-    window_state->fullscreen = (new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+    window_state->is_fullscreen = (new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 }
 
 static void app_window_size_allocate_callback(GtkWidget* window, GdkRectangle *allocation, struct WebviewWindowState *window_state) {
     // save the window geometry only if we are not maximized of fullscreen
-    if(!(window_state->maximized || window_state->fullscreen)) {
+    if(!(window_state->is_maximized || window_state->is_fullscreen)) {
         // use gtk_ ; Using the allocation directly can lead to growing windows with client-side decorations
         gtk_window_get_size(GTK_WINDOW(window),
             &window_state->width,
@@ -268,32 +244,47 @@ g_message("okokkokokokok, %i", app->debug);
 
 static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
 
-    GtkWidget *window = gtk_application_window_new(gtk_app);
+    GtkWidget *main_window = gtk_application_window_new(gtk_app);
+
+    struct WebviewWindowState window_state = app->window_state;
 
 
 
-    
+  gtk_window_set_title (GTK_WINDOW (main_window), "Window");
+  gtk_window_set_default_size (GTK_WINDOW (main_window), 200, 200);
 
-  gtk_window_set_title (GTK_WINDOW (window), "Window");
-  gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
-  gtk_widget_show_all (window);
+    if(window_state.height > 0 && window_state.width > 0) {
+        g_message("qsdqsds %i %i", window_state.height, window_state.width);
+
+        gtk_window_set_default_size(GTK_WINDOW(main_window),
+            window_state.width,
+            window_state.height
+        );
+    }
+
+
+    if(window_state.is_maximized) {
+        gtk_window_maximize(GTK_WINDOW(main_window));
+    }
+
+    if(window_state.is_fullscreen) {
+        gtk_window_fullscreen(GTK_WINDOW(main_window));
+    }
+
+
+  gtk_widget_show_all (main_window);
 
 
 
     // on change state: minimize, maximize, etc
-    g_signal_connect(GTK_WINDOW(window), "window-state-event",
+    g_signal_connect(GTK_WINDOW(main_window), "window-state-event",
         G_CALLBACK(app_window_state_event_callback), &app->window_state
     );
 
     // on change size
-    g_signal_connect(GTK_WINDOW(window), "size-allocate",
+    g_signal_connect(GTK_WINDOW(main_window), "size-allocate",
         G_CALLBACK(app_window_size_allocate_callback), &app->window_state
     );
-
-
-
-
-  g_message("FINISH");
 }
 
 static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *app) {
