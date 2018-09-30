@@ -3,7 +3,6 @@ sudo dnf install gtk3-devel gstreamer-devel clutter-devel webkitgtk3-devel libgd
 webkit2gtk3-devel
 builddir > clear && ninja && GTK_DEBUG=interactive ./moviecollection --debug
 gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` && ./main
-
 meson
 */
 
@@ -13,7 +12,7 @@ meson
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
-
+/*
 static void destroy_window_callback(GtkWidget* widget, GtkWidget* window) {
     gtk_main_quit();
 }
@@ -23,14 +22,67 @@ static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window
     return true;
 }
 
+static void app_headerbar_close_callback(GtkButton* button, GtkWidget *window) {
+    gtk_main_quit();
+}
+static void app_headerbar_minimize_callback(GtkButton* button, GtkWidget *window) {
+    GtkWindow *gtk_window = GTK_WINDOW(window);
+
+    gtk_window_iconify(gtk_window);
+}
+static void app_headerbar_maximize_callback(GtkButton* button, GtkWidget *window) {
+    GtkWindow *gtk_window = GTK_WINDOW(window);
+
+    gtk_window_is_maximized(gtk_window) ? gtk_window_unmaximize(gtk_window) : gtk_window_maximize(gtk_window);
+}
+
+
+
 static bool fileexists(const char *filename) {
-    /* try to open file to read */
+    // try to open file to read
     FILE *file = fopen(filename, "r");
     if(file) {
         fclose(file);
         return true;
     }
     return false;
+}
+static bool direxists(const char *dirname) {
+    // try to open directory
+    DIR *dir = opendir(dirname);
+    if(dir) {
+        closedir(dir);
+        return true;
+    }
+    return false;
+}
+
+// create a gtk button with an icon inside
+static GtkWidget *app_create_button_icon(
+    const char *ressources_dir,
+    const char *icon_name,
+    const char *class_name,
+    GtkWidget *window,
+    const void *click_event
+) {
+
+    char icon_path[255];
+    sprintf(icon_path, "%s/%s.svg", ressources_dir, icon_name);
+    // gtk_image_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_MENU);
+
+    GtkWidget *gtk_button = gtk_button_new();
+
+    if(class_name != NULL) {
+        gtk_style_context_add_class(gtk_widget_get_style_context(gtk_button), class_name);
+    }
+
+    if(click_event != NULL) {
+        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), window);
+    }
+
+    gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image_new_from_file(icon_path));
+
+    return gtk_button;
 }
 
 
@@ -54,7 +106,291 @@ static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant
 }
 
 
+*/
+
+
+
+
+
+
+
+
+
+
+
+
+struct WebviewWindowState {
+    int x;
+    int y;
+    int height;
+    int width;
+    bool maximized;
+    bool fullscreen;
+};
+
+typedef struct {
+    // application main window
+    GtkWidget *window;
+    GtkWidget *headerbar;
+    struct WebviewWindowState window_state;
+
+    // other settings
+    bool debug;
+    char *launcher_dir;
+    char *ressources_dir;
+    char *webextension_dir;
+
+} WebviewApplication;
+
+static void app_window_store_state(GtkApplication* gtk_app, struct WebviewWindowState *window_state) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
+
+    GKeyFile *keyfile = g_key_file_new();
+
+    g_key_file_set_integer(keyfile, "WindowState", "height", window_state->height);
+    g_key_file_set_integer(keyfile, "WindowState", "width", window_state->width);
+    g_key_file_set_boolean(keyfile, "WindowState", "maximized", window_state->maximized);
+    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", window_state->fullscreen);
+
+    // save file under $XDG_CACHE_HOME
+    char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
+    char *state_file = g_build_filename(state_path, "state.ini", NULL);
+
+    // create save âth if not set
+    if(g_mkdir_with_parents(state_path, 0755) > -1) { // error=-1 exist=0
+
+        GError *error_save = NULL;
+        if(!g_key_file_save_to_file(keyfile, state_file, &error_save)) {
+            g_warning ("app:window_store_state Error: %s", error_save->message);
+        }
+    }
+
+    g_key_file_unref(keyfile);
+    g_free(state_path);
+    g_free(state_file);
+}
+
+static void app_window_load_state(GtkApplication* gtk_app, struct WebviewWindowState *window_state) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
+
+    char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
+
+    GKeyFile *keyfile = g_key_file_new();
+
+
+    if(g_key_file_load_from_file(keyfile, state_file, G_KEY_FILE_NONE, NULL)) {
+
+        GError *error_read;
+
+        int state_x = g_key_file_get_integer(keyfile, "WindowState", "x", &error_read);
+        if(error_read != NULL) {
+            window_state->x = state_x;
+        }
+        g_clear_error(&error_read);
+
+        int state_y = g_key_file_get_integer(keyfile, "WindowState", "y", &error_read);
+        if(error_read != NULL) {
+            window_state->y = state_y;
+        }
+        g_clear_error(&error_read);
+
+        int state_height = g_key_file_get_integer(keyfile, "WindowState", "height", &error_read);
+        if(error_read != NULL) {
+            window_state->height = state_height;
+        }
+        g_clear_error(&error_read);
+
+        int state_width = g_key_file_get_integer(keyfile, "WindowState", "width", &error_read);
+        if(error_read != NULL) {
+            window_state->width = state_width;
+        }
+        g_clear_error(&error_read);
+
+        bool state_maximized = g_key_file_get_boolean(keyfile, "WindowState", "maximized", &error_read);
+        if(error_read != NULL) {
+            window_state->maximized = state_maximized;
+        }
+        g_clear_error(&error_read);
+
+        int state_fullscreen = g_key_file_get_boolean(keyfile, "WindowState", "fullscreen", &error_read);
+        if(error_read != NULL) {
+            window_state->fullscreen = state_fullscreen;
+        }
+        g_clear_error(&error_read);
+    }
+
+    g_key_file_unref(keyfile);
+    g_free(state_file);
+}
+
+static void app_window_state_event_callback(GtkWidget* window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
+    GdkWindowState new_window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
+
+    window_state->maximized = (new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
+
+    window_state->fullscreen = (new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+}
+
+static void app_window_size_allocate_callback(GtkWidget* window, GdkRectangle *allocation, struct WebviewWindowState *window_state) {
+    // save the window geometry only if we are not maximized of fullscreen
+    if(!(window_state->maximized || window_state->fullscreen)) {
+        // use gtk_ ; Using the allocation directly can lead to growing windows with client-side decorations
+        gtk_window_get_size(GTK_WINDOW(window),
+            &window_state->width,
+            &window_state->height
+        );
+    }
+}
+
+
+static void app_startup_callback(GtkApplication* gtk_app, WebviewApplication *app) {
+
+    // app->settings = g_settings_new("fr.spidery.moviecollection.window-state");
+
+
+    app_window_load_state(gtk_app, &app->window_state);
+
+
+
+// app->height = 100;
+
+g_message("okokkokokokok, %i", app->debug);
+
+
+
+// app->window_state.height = 550;
+
+
+// g_message("édsdfsdf, %i", app->window_state.height);
+
+
+}
+
+static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
+
+    GtkWidget *window = gtk_application_window_new(gtk_app);
+
+
+
+    
+
+  gtk_window_set_title (GTK_WINDOW (window), "Window");
+  gtk_window_set_default_size (GTK_WINDOW (window), 200, 200);
+  gtk_widget_show_all (window);
+
+
+
+    // on change state: minimize, maximize, etc
+    g_signal_connect(GTK_WINDOW(window), "window-state-event",
+        G_CALLBACK(app_window_state_event_callback), &app->window_state
+    );
+
+    // on change size
+    g_signal_connect(GTK_WINDOW(window), "size-allocate",
+        G_CALLBACK(app_window_size_allocate_callback), &app->window_state
+    );
+
+
+
+
+  g_message("FINISH");
+}
+
+static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *app) {
+
+    // save current window state
+    app_window_store_state(gtk_app, &app->window_state);
+
+
+
+}
+
+static int app_commandline_callback(GtkApplication* gtk_app, GApplicationCommandLine *cmdline, WebviewApplication *app) {
+    return 0;
+}
+
+
 int main(int argc, char* argv[]) {
+
+    // main gtk app
+    GtkApplication *gtk_app;
+    int status;
+
+    // new_ user application
+    WebviewApplication *app = g_malloc(sizeof(WebviewApplication));
+
+    gtk_app = gtk_application_new("fr.spidery.moviecollection",
+        G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
+    );
+    
+    g_signal_connect(gtk_app, "startup", G_CALLBACK(app_startup_callback), app);
+    g_signal_connect(gtk_app, "activate", G_CALLBACK(app_activate_callback), app);
+    g_signal_connect(gtk_app, "shutdown", G_CALLBACK(app_shutdown_callback), app);
+    g_signal_connect(gtk_app, "command-line", G_CALLBACK(app_commandline_callback), app);
+
+    status = g_application_run(G_APPLICATION(gtk_app), argc, argv);
+
+    g_object_unref(gtk_app);
+
+    return status;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+int ___main(int argc, char* argv[]) {
 
     bool is_debug = argv[1] != NULL && strcmp(argv[1], "--debug") == 0;
 
@@ -80,6 +416,15 @@ int main(int argc, char* argv[]) {
         g_message("app:webextension_dir %s", webextension_dir);
     }
 
+    // get app ressources directory
+    char window_ressources_dir[256];
+    sprintf(window_ressources_dir, "%s/ressources/", launcher_dir);
+
+    if(is_debug) {
+        g_message("app:window_ressources_dir %s", window_ressources_dir);
+    }
+
+
     // Initialize GTK+
     gtk_init(&argc, &argv);
 
@@ -103,8 +448,7 @@ int main(int argc, char* argv[]) {
 
 
 
-
-
+//gtk_window_set_icon_from_file
 
 
 
@@ -112,26 +456,36 @@ int main(int argc, char* argv[]) {
     GtkWidget *header_bar = gtk_header_bar_new();
     gtk_widget_set_name(header_bar, "header_bar");
 
-    gtk_window_set_titlebar(GTK_WINDOW(main_window), header_bar);
-
+    // hide window decorationq of header bar
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), false);
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), true);
     gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
 
-
-
-    // GtkWidget *close_icon = gtk_image_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_MENU);
-    // GtkWidget *close_btn = gtk_button_new();
-
-    // gtk_style_context_add_class(gtk_widget_get_style_context(close_btn), "titlebutton");
-
-    // gtk_container_add(GTK_CONTAINER(close_btn), close_icon);
-
-    // gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), close_btn);
+    // hide window decorations of main app and use our own
+    gtk_window_set_titlebar(GTK_WINDOW(main_window), header_bar);
 
 
 
 
+    GtkWidget *btn_close = app_create_button_icon(
+        window_ressources_dir, "window-close", "titlebutton",
+        main_window, app_headerbar_close_callback
+    );
+    GtkWidget *btn_minimize = app_create_button_icon(
+        window_ressources_dir, "window-minimize", "titlebutton",
+        main_window, app_headerbar_minimize_callback
+    );
+    GtkWidget *btn_maximize = app_create_button_icon(
+        window_ressources_dir, "window-maximize", "titlebutton",
+        main_window, app_headerbar_maximize_callback
+    );
+
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_minimize);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_maximize);
+
+
+// direxists
 
 
 
@@ -184,20 +538,22 @@ int main(int argc, char* argv[]) {
     );
 
     // Callback when initialize extensions
-    g_signal_connect(webkit_context, "initialize-web-extensions", G_CALLBACK(initialize_web_extensions), webextension_data);
+    g_signal_connect(webkit_context, "initialize-web-extensions",
+        G_CALLBACK(initialize_web_extensions), webextension_data
+    );
 
     WebKitWebView *webview = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(websettings));
 
     // Callback when browser instance is closed, the program will also exit
-    g_signal_connect(webview, "close", G_CALLBACK(close_webview_callback), main_window);
+    g_signal_connect(webview, "close",
+        G_CALLBACK(close_webview_callback), main_window
+    );
 
 
 
 
 
 // todo check si extension .so not found
-
-
 
 
 
@@ -225,3 +581,4 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+*/
