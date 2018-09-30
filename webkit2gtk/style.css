@@ -2,13 +2,14 @@
 /*reset header*/
 headerbar.titlebar,
 button.titlebutton {
+    /* all: unset; */
     background: transparent;
     background-image: none;
     transition: all 200ms ease;
 }
 
 headerbar.titlebar {
-    min-height: 45px;
+    /* min-height: 40px; */
     /* padding: 5px; */
     background-color: #2c3133;
     background-image: none;
@@ -20,7 +21,7 @@ button.titlebutton {
     border-color: unset;
     border-radius: 4px;
     box-shadow: none;
-    /* padding: 6px; */
+    /* padding: 10px; */
 }
 button.titlebutton:hover {
     background-color: #1abc9c;
