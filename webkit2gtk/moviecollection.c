@@ -182,7 +182,7 @@ static void app_window_destroy_callback(GtkWidget *window, GtkApplication *gtk_a
 }
 
 // create a gtk button with an icon inside
-static GtkWidget *app_create_button_icon(
+static GtkWidget *app_headerbar_create_button(
     const char *ressources_dir,
     const char *icon_name,
     const char *class_name,
@@ -240,15 +240,15 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplicati
     gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
 
     // add buttons and callback on click
-    GtkWidget *btn_close = app_create_button_icon(
+    GtkWidget *btn_close = app_headerbar_create_button(
         app->ressources_dir, "window-close", "titlebutton",
         gtk_app, app_headerbar_close_callback
     );
-    GtkWidget *btn_minimize = app_create_button_icon(
+    GtkWidget *btn_minimize = app_headerbar_create_button(
         app->ressources_dir, "window-minimize", "titlebutton",
         gtk_app, app_headerbar_minimize_callback
     );
-    GtkWidget *btn_maximize = app_create_button_icon(
+    GtkWidget *btn_maximize = app_headerbar_create_button(
         app->ressources_dir, "window-maximize", "titlebutton",
         gtk_app, app_headerbar_maximize_callback
     );
