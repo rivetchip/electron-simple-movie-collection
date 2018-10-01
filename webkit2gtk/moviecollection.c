@@ -98,6 +98,7 @@ typedef struct {
 
 } WebviewApplication;
 
+
 static void app_window_store_state(GtkApplication *gtk_app, struct WebviewWindowState *window_state) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
@@ -176,6 +177,10 @@ static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *a
     }
 }
 
+static void app_window_destroy_callback(GtkWidget *window, GtkApplication *gtk_app) {
+    g_application_quit(G_APPLICATION(gtk_app));
+}
+
 // create a gtk button with an icon inside
 static GtkWidget *app_create_button_icon(
     const char *ressources_dir,
@@ -222,8 +227,6 @@ static void app_headerbar_maximize_callback(GtkButton* button, GtkApplication *g
         gtk_window_is_maximized(gtk_window) ? gtk_window_unmaximize(gtk_window) : gtk_window_maximize(gtk_window);
     }
 }
-
-
 
 static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplication *app) {
 
@@ -282,30 +285,30 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
 
 static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
 
+    // Initialize GTK+
     app->window = gtk_application_window_new(gtk_app);
 
-    struct WebviewWindowState window_state = app->window_state;
+    // Create an 800x600 window that will contain the browser instance
+    gtk_window_set_title(GTK_WINDOW(app->window), "Movie Collection");
+    gtk_window_set_default_size(GTK_WINDOW(app->window), 800, 600);
+    gtk_window_set_position(GTK_WINDOW(app->window), GTK_WIN_POS_CENTER);
+    gtk_window_set_resizable(GTK_WINDOW(app->window), true);
 
+    GtkSettings *window_settings = gtk_settings_get_default();
+    g_object_set(G_OBJECT(window_settings),
+        "gtk-application-prefer-dark-theme", TRUE, NULL //because webview is dark :)
+    );
 
-
-
-    app->header_bar = app_headerbar_create(gtk_app, app);
+    // Callback when the main window is closed
+    g_signal_connect(app->window, "destroy", G_CALLBACK(app_window_destroy_callback), gtk_app);
 
     // hide window decorations of main app and use our own
+    app->header_bar = app_headerbar_create(gtk_app, app);
+
     gtk_window_set_titlebar(GTK_WINDOW(app->window), app->header_bar);
 
-
-
-
-
-
-
-
-  gtk_window_set_title (GTK_WINDOW (app->window), "Window");
-  gtk_window_set_default_size (GTK_WINDOW (app->window), 200, 200);
-
-
-
+    // Load window preview state, if any
+    struct WebviewWindowState window_state = app->window_state;
 
     if(window_state.height > 0 && window_state.width > 0) {
         gtk_window_set_default_size(GTK_WINDOW(app->window),
@@ -313,7 +316,6 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
             window_state.height
         );
     }
-
 
     if(window_state.is_maximized) {
         gtk_window_maximize(GTK_WINDOW(app->window));
@@ -324,7 +326,13 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
     }
 
 
-  gtk_widget_show_all (app->window);
+
+// create webview
+
+
+
+
+
 
 
 
@@ -337,6 +345,12 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
     g_signal_connect(GTK_WINDOW(app->window), "size-allocate",
         G_CALLBACK(app_window_size_allocate_callback), &app->window_state
     );
+
+    // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
+    // gtk_widget_grab_focus(GTK_WIDGET(webview));
+
+    // Make sure the main window and all its contents are visible
+    gtk_widget_show_all(app->window);
 }
 
 static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *app) {
@@ -400,26 +414,6 @@ int ___main(int argc, char* argv[]) {
 
 
 
-
-    // Initialize GTK+
-    gtk_init(&argc, &argv);
-
-    // Create an 800x600 window that will contain the browser instance
-    GtkWidget *main_window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-
-    // Set GTK window options
-    gtk_window_set_title(GTK_WINDOW(main_window), "Movie Collection");
-    gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
-    gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
-    gtk_window_set_resizable(GTK_WINDOW(main_window), true);
-
-    GtkSettings *window_settings = gtk_settings_get_default();
-    g_object_set(G_OBJECT(window_settings),
-        "gtk-application-prefer-dark-theme", TRUE, NULL //because webview is dark :)
-    );
-
-    // Callback when the main window is closed
-    g_signal_connect(main_window, "destroy", G_CALLBACK(destroy_window_callback), NULL);
 
 
 
