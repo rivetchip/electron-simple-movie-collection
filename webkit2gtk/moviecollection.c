@@ -130,19 +130,20 @@ struct WebviewWindowState {
 
 typedef struct {
     // application main window
-    GtkWidget *window;
-    GtkWidget *headerbar;
+    GtkWidget window;
+    GtkWidget headerbar;
+    GtkWidget webview;
     struct WebviewWindowState window_state;
 
     // other settings
     bool debug;
-    char *launcher_dir;
-    char *ressources_dir;
-    char *webextension_dir;
+    char launcher_dir[200];
+    char ressources_dir[255];
+    char webextension_dir[255];
 
 } WebviewApplication;
 
-static void app_window_store_state(GtkApplication* gtk_app, struct WebviewWindowState *window_state) {
+static void app_window_store_state(GtkApplication *gtk_app, struct WebviewWindowState *window_state) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
     GKeyFile *keyfile = g_key_file_new();
@@ -170,7 +171,7 @@ static void app_window_store_state(GtkApplication* gtk_app, struct WebviewWindow
     g_free(state_file);
 }
 
-static void app_window_load_state(GtkApplication* gtk_app, struct WebviewWindowState *window_state) {
+static void app_window_load_state(GtkApplication *gtk_app, struct WebviewWindowState *window_state) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
     char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
@@ -199,7 +200,7 @@ static void app_window_load_state(GtkApplication* gtk_app, struct WebviewWindowS
     g_free(state_file);
 }
 
-static void app_window_state_event_callback(GtkWidget* window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
+static void app_window_state_event_callback(GtkWidget *window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
     GdkWindowState new_window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
     window_state->is_maximized = (new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
@@ -207,7 +208,7 @@ static void app_window_state_event_callback(GtkWidget* window, GdkEventWindowSta
     window_state->is_fullscreen = (new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 }
 
-static void app_window_size_allocate_callback(GtkWidget* window, GdkRectangle *allocation, struct WebviewWindowState *window_state) {
+static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *allocation, struct WebviewWindowState *window_state) {
     // save the window geometry only if we are not maximized of fullscreen
     if(!(window_state->is_maximized || window_state->is_fullscreen)) {
         // use gtk_ ; Using the allocation directly can lead to growing windows with client-side decorations
@@ -218,31 +219,43 @@ static void app_window_size_allocate_callback(GtkWidget* window, GdkRectangle *a
     }
 }
 
-
-static void app_startup_callback(GtkApplication* gtk_app, WebviewApplication *app) {
-
-    // app->settings = g_settings_new("fr.spidery.moviecollection.window-state");
+static void app_headerbar_create(GtkApplication *gtk_app, WebviewApplication *app, GtkWidget *headerbar) {
 
 
-    app_window_load_state(gtk_app, &app->window_state);
-
-
-
-// app->height = 100;
-
-g_message("okokkokokokok, %i", app->debug);
-
-
-
-// app->window_state.height = 550;
-
-
-// g_message("édsdfsdf, %i", app->window_state.height);
 
 
 }
 
+
+
+
+static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *app) {
+
+    // get current application path
+    getcwd(app->launcher_dir, sizeof(app->launcher_dir));
+
+    g_message("app:launcher_dir %s", app->launcher_dir);
+
+    //get a different ID for each Web Process
+    static int unique_id = 0;
+
+    // get webkit extensions .so directory
+    sprintf(app->webextension_dir, "%s/", app->launcher_dir);
+
+    // get app ressources directory
+    sprintf(app->ressources_dir, "%s/ressources/", app->launcher_dir);
+
+    // load previous window state, if any
+    app_window_load_state(gtk_app, &app->window_state);
+}
+
 static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
+
+
+
+g_message("okokkokokokok, %s", app->launcher_dir);
+
+
 
     GtkWidget *main_window = gtk_application_window_new(gtk_app);
 
@@ -253,9 +266,10 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
   gtk_window_set_title (GTK_WINDOW (main_window), "Window");
   gtk_window_set_default_size (GTK_WINDOW (main_window), 200, 200);
 
-    if(window_state.height > 0 && window_state.width > 0) {
-        g_message("qsdqsds %i %i", window_state.height, window_state.width);
 
+
+
+    if(window_state.height > 0 && window_state.width > 0) {
         gtk_window_set_default_size(GTK_WINDOW(main_window),
             window_state.width,
             window_state.height
@@ -336,84 +350,17 @@ int main(int argc, char* argv[]) {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
 
 int ___main(int argc, char* argv[]) {
 
     bool is_debug = argv[1] != NULL && strcmp(argv[1], "--debug") == 0;
 
-    if(is_debug) {
-        g_message("app:is_debug");
-    }
 
-    // get current application path
-    char launcher_dir[200];
-    getcwd(launcher_dir, sizeof(launcher_dir));
 
-    if(is_debug) {
-        g_message("app:launcher_dir %s", launcher_dir);
-    }
 
-    //get a different ID for each Web Process
-    static int unique_id = 0;
 
-    char webextension_dir[256];
-    sprintf(webextension_dir, "%s/", launcher_dir);
 
-    if(is_debug) {
-        g_message("app:webextension_dir %s", webextension_dir);
-    }
-
-    // get app ressources directory
-    char window_ressources_dir[256];
-    sprintf(window_ressources_dir, "%s/ressources/", launcher_dir);
-
-    if(is_debug) {
-        g_message("app:window_ressources_dir %s", window_ressources_dir);
-    }
 
 
     // Initialize GTK+
