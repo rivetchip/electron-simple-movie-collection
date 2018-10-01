@@ -13,30 +13,12 @@ coredumpctl list => gdb
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
-/*
 
-static void destroy_window_callback(GtkWidget* widget, GtkWidget* window) {
-    gtk_main_quit();
-}
+// static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window) {
+//     gtk_widget_destroy(window);
+//     return true;
+// }
 
-static gboolean close_webview_callback(WebKitWebView* Webview, GtkWidget* window) {
-    gtk_widget_destroy(window);
-    return true;
-}
-
-static void app_headerbar_close_callback(GtkButton* button, GtkWidget *window) {
-    gtk_main_quit();
-}
-static void app_headerbar_minimize_callback(GtkButton* button, GtkWidget *window) {
-    GtkWindow *gtk_window = GTK_WINDOW(window);
-
-    gtk_window_iconify(gtk_window);
-}
-static void app_headerbar_maximize_callback(GtkButton* button, GtkWidget *window) {
-    GtkWindow *gtk_window = GTK_WINDOW(window);
-
-    gtk_window_is_maximized(gtk_window) ? gtk_window_unmaximize(gtk_window) : gtk_window_maximize(gtk_window);
-}
 
 
 
@@ -59,33 +41,7 @@ static bool direxists(const char *dirname) {
     return false;
 }
 
-// create a gtk button with an icon inside
-static GtkWidget *app_create_button_icon(
-    const char *ressources_dir,
-    const char *icon_name,
-    const char *class_name,
-    GtkWidget *window,
-    const void *click_event
-) {
 
-    char icon_path[255];
-    sprintf(icon_path, "%s/%s.svg", ressources_dir, icon_name);
-    // gtk_image_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_MENU);
-
-    GtkWidget *gtk_button = gtk_button_new();
-
-    if(class_name != NULL) {
-        gtk_style_context_add_class(gtk_widget_get_style_context(gtk_button), class_name);
-    }
-
-    if(click_event != NULL) {
-        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), window);
-    }
-
-    gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image_new_from_file(icon_path));
-
-    return gtk_button;
-}
 
 
 static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant *user_data) {
@@ -108,7 +64,6 @@ static void initialize_web_extensions(WebKitWebContext *webkit_context, GVariant
 }
 
 
-*/
 
 
 
@@ -130,9 +85,9 @@ struct WebviewWindowState {
 
 typedef struct {
     // application main window
-    GtkWidget window;
-    GtkWidget headerbar;
-    GtkWidget webview;
+    GtkWidget *window;
+    GtkWidget *header_bar;
+    GtkWidget *webview;
     struct WebviewWindowState window_state;
 
     // other settings
@@ -200,12 +155,14 @@ static void app_window_load_state(GtkApplication *gtk_app, struct WebviewWindowS
     g_free(state_file);
 }
 
-static void app_window_state_event_callback(GtkWidget *window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
+static bool app_window_state_event_callback(GtkWidget *window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
     GdkWindowState new_window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
     window_state->is_maximized = (new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
 
     window_state->is_fullscreen = (new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+
+    return GDK_EVENT_PROPAGATE;
 }
 
 static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *allocation, struct WebviewWindowState *window_state) {
@@ -219,11 +176,85 @@ static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *a
     }
 }
 
-static void app_headerbar_create(GtkApplication *gtk_app, WebviewApplication *app, GtkWidget *headerbar) {
+// create a gtk button with an icon inside
+static GtkWidget *app_create_button_icon(
+    const char *ressources_dir,
+    const char *icon_name,
+    const char *class_name,
+    GtkApplication *gtk_app,
+    const void *click_event
+) {
+    char icon_path[255];
+    sprintf(icon_path, "%s/%s.svg", ressources_dir, icon_name);
+    // gtk_image_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_MENU);
+
+    GtkWidget *gtk_button = gtk_button_new();
+
+    if(class_name != NULL) {
+        gtk_style_context_add_class(gtk_widget_get_style_context(gtk_button), class_name);
+    }
+
+    if(click_event != NULL) {
+        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), gtk_app);
+    }
+
+    gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image_new_from_file(icon_path));
+
+    return gtk_button;
+}
+
+static void app_headerbar_close_callback(GtkButton* button, GtkApplication *gtk_app) {
+    // g_application_quit(G_APPLICATION(gtk_app));
+}
+static void app_headerbar_minimize_callback(GtkButton* button, GtkApplication *gtk_app) {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
+
+    if(GTK_IS_WINDOW(toplevel)) {
+        GtkWindow *gtk_window = GTK_WINDOW(toplevel);
+        gtk_window_iconify(gtk_window);
+    }
+}
+static void app_headerbar_maximize_callback(GtkButton* button, GtkApplication *gtk_app) {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
+
+    if(GTK_IS_WINDOW(toplevel)) {
+        GtkWindow *gtk_window = GTK_WINDOW(toplevel);
+        gtk_window_is_maximized(gtk_window) ? gtk_window_unmaximize(gtk_window) : gtk_window_maximize(gtk_window);
+    }
+}
 
 
 
+static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplication *app) {
 
+    // Set GTK CSD HeaderBar
+    GtkWidget *header_bar = gtk_header_bar_new();
+    gtk_widget_set_name(header_bar, "header_bar");
+
+    // hide window decorationq of header bar
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), false);
+    gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
+    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
+
+    // add buttons and callback on click
+    GtkWidget *btn_close = app_create_button_icon(
+        app->ressources_dir, "window-close", "titlebutton",
+        gtk_app, app_headerbar_close_callback
+    );
+    GtkWidget *btn_minimize = app_create_button_icon(
+        app->ressources_dir, "window-minimize", "titlebutton",
+        gtk_app, app_headerbar_minimize_callback
+    );
+    GtkWidget *btn_maximize = app_create_button_icon(
+        app->ressources_dir, "window-maximize", "titlebutton",
+        gtk_app, app_headerbar_maximize_callback
+    );
+
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_minimize);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_maximize);
+
+    return header_bar;
 }
 
 
@@ -251,26 +282,33 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
 
 static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
 
-
-
-g_message("okokkokokokok, %s", app->launcher_dir);
-
-
-
-    GtkWidget *main_window = gtk_application_window_new(gtk_app);
+    app->window = gtk_application_window_new(gtk_app);
 
     struct WebviewWindowState window_state = app->window_state;
 
 
 
-  gtk_window_set_title (GTK_WINDOW (main_window), "Window");
-  gtk_window_set_default_size (GTK_WINDOW (main_window), 200, 200);
+
+    app->header_bar = app_headerbar_create(gtk_app, app);
+
+    // hide window decorations of main app and use our own
+    gtk_window_set_titlebar(GTK_WINDOW(app->window), app->header_bar);
+
+
+
+
+
+
+
+
+  gtk_window_set_title (GTK_WINDOW (app->window), "Window");
+  gtk_window_set_default_size (GTK_WINDOW (app->window), 200, 200);
 
 
 
 
     if(window_state.height > 0 && window_state.width > 0) {
-        gtk_window_set_default_size(GTK_WINDOW(main_window),
+        gtk_window_set_default_size(GTK_WINDOW(app->window),
             window_state.width,
             window_state.height
         );
@@ -278,25 +316,25 @@ g_message("okokkokokokok, %s", app->launcher_dir);
 
 
     if(window_state.is_maximized) {
-        gtk_window_maximize(GTK_WINDOW(main_window));
+        gtk_window_maximize(GTK_WINDOW(app->window));
     }
 
     if(window_state.is_fullscreen) {
-        gtk_window_fullscreen(GTK_WINDOW(main_window));
+        gtk_window_fullscreen(GTK_WINDOW(app->window));
     }
 
 
-  gtk_widget_show_all (main_window);
+  gtk_widget_show_all (app->window);
 
 
 
     // on change state: minimize, maximize, etc
-    g_signal_connect(GTK_WINDOW(main_window), "window-state-event",
+    g_signal_connect(GTK_WINDOW(app->window), "window-state-event",
         G_CALLBACK(app_window_state_event_callback), &app->window_state
     );
 
     // on change size
-    g_signal_connect(GTK_WINDOW(main_window), "size-allocate",
+    g_signal_connect(GTK_WINDOW(app->window), "size-allocate",
         G_CALLBACK(app_window_size_allocate_callback), &app->window_state
     );
 }
@@ -389,38 +427,6 @@ int ___main(int argc, char* argv[]) {
 //gtk_window_set_icon_from_file
 
 
-
-    // Set GTK CSD HeaderBar
-    GtkWidget *header_bar = gtk_header_bar_new();
-    gtk_widget_set_name(header_bar, "header_bar");
-
-    // hide window decorationq of header bar
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), false);
-    gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
-    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
-
-    // hide window decorations of main app and use our own
-    gtk_window_set_titlebar(GTK_WINDOW(main_window), header_bar);
-
-
-
-
-    GtkWidget *btn_close = app_create_button_icon(
-        window_ressources_dir, "window-close", "titlebutton",
-        main_window, app_headerbar_close_callback
-    );
-    GtkWidget *btn_minimize = app_create_button_icon(
-        window_ressources_dir, "window-minimize", "titlebutton",
-        main_window, app_headerbar_minimize_callback
-    );
-    GtkWidget *btn_maximize = app_create_button_icon(
-        window_ressources_dir, "window-maximize", "titlebutton",
-        main_window, app_headerbar_maximize_callback
-    );
-
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_minimize);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_maximize);
 
 
 // direxists
