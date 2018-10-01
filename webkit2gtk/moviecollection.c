@@ -19,7 +19,7 @@ coredumpctl list => gdb
 //     return true;
 // }
 
-
+//g_assert
 
 
 static bool fileexists(const char *filename) {
@@ -204,7 +204,7 @@ static GtkWidget *app_create_button_icon(
 }
 
 static void app_headerbar_close_callback(GtkButton* button, GtkApplication *gtk_app) {
-    // g_application_quit(G_APPLICATION(gtk_app));
+    g_application_quit(G_APPLICATION(gtk_app));
 }
 static void app_headerbar_minimize_callback(GtkButton* button, GtkApplication *gtk_app) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
