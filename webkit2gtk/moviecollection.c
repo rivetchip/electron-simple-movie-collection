@@ -92,9 +92,9 @@ typedef struct {
 
     // other settings
     bool debug;
-    char launcher_dir[200];
-    char ressources_dir[255];
-    char webextension_dir[255];
+    char *launcher_dir;
+    char *ressources_dir;
+    char *webextension_dir;
 
 } WebviewApplication;
 
@@ -251,7 +251,7 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplicati
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
     gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
 
-    // add buttons and callback on click
+    // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
         app->ressources_dir, "window-close", "titlebutton",
         gtk_app, app_headerbar_close_callback
@@ -278,7 +278,8 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplicati
 static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *app) {
 
     // get current application path
-    getcwd(app->launcher_dir, sizeof(app->launcher_dir));
+    // getcwd(app->launcher_dir, sizeof(app->launcher_dir));
+    app->launcher_dir = g_get_current_dir();
 
     g_message("app:launcher_dir %s", app->launcher_dir);
 
@@ -286,10 +287,10 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
     static int unique_id = 0;
 
     // get webkit extensions .so directory
-    sprintf(app->webextension_dir, "%s/", app->launcher_dir);
+    app->webextension_dir = g_build_filename(app->launcher_dir, "extensions", NULL);
 
     // get app ressources directory
-    sprintf(app->ressources_dir, "%s/ressources/", app->launcher_dir);
+    app->ressources_dir = g_build_filename(app->launcher_dir, "ressources", NULL);
 
     // load previous window state, if any
     app_window_load_state(gtk_app, &app->window_state);
