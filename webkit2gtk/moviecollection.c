@@ -118,7 +118,7 @@ static void app_window_store_state(GtkApplication *gtk_app, struct WebviewWindow
 
         GError *error_save = NULL;
         if(!g_key_file_save_to_file(keyfile, state_file, &error_save)) {
-            g_warning ("app:window_store_state Error: %s", error_save->message);
+            g_warning("app:window_store_state Error: %s", error_save->message);
         }
     }
 
@@ -133,7 +133,6 @@ static void app_window_load_state(GtkApplication *gtk_app, struct WebviewWindowS
     char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
 
     GKeyFile *keyfile = g_key_file_new();
-
 
     if(g_key_file_load_from_file(keyfile, state_file, G_KEY_FILE_NONE, NULL)) {
 
@@ -189,9 +188,10 @@ static GtkWidget *app_headerbar_create_button(
     GtkApplication *gtk_app,
     const void *click_event
 ) {
-    char icon_path[255];
-    sprintf(icon_path, "%s/%s.svg", ressources_dir, icon_name);
-    // gtk_image_new_from_icon_name("window-close-symbolic", GTK_ICON_SIZE_MENU);
+    char icon_svg[20];
+    sprintf(icon_svg, "%s.svg", icon_name);
+
+    char *icon_path = g_build_filename(ressources_dir, icon_svg, NULL);
 
     GtkWidget *gtk_button = gtk_button_new();
 
@@ -203,7 +203,19 @@ static GtkWidget *app_headerbar_create_button(
         g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), gtk_app);
     }
 
-    gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image_new_from_file(icon_path));
+    GtkWidget *gtk_image;
+
+    if(g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+        gtk_image = gtk_image_new_from_file(icon_path);
+    } else {
+        // default fallback picture (symbolic)
+        char icon_symbolic[25];
+        sprintf(icon_symbolic, "%s-symbolic", icon_name);
+
+        gtk_image = gtk_image_new_from_icon_name(icon_symbolic, GTK_ICON_SIZE_MENU);
+    }
+
+    gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image);
 
     return gtk_button;
 }
