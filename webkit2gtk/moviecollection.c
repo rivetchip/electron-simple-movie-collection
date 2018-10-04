@@ -14,18 +14,19 @@ coredumpctl list => gdb
 #include <webkit2/webkit2.h>
 
 
-struct WebviewWindowState {
+
+typedef struct {
     int height;
     int width;
     bool is_maximized;
     bool is_fullscreen;
-};
+} WebviewWindowState;
 
 typedef struct {
     // application main window
     GtkWidget *header_bar;
     GtkWidget *webview;
-    struct WebviewWindowState window_state;
+    WebviewWindowState window_state;
 
     // other settings
     bool debug;
@@ -37,7 +38,7 @@ typedef struct {
 } WebviewApplication;
 
 
-static void app_window_store_state(GtkApplication *gtk_app, struct WebviewWindowState *window_state) {
+static void app_window_store_state(GtkApplication *gtk_app, WebviewWindowState *window_state) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
     GKeyFile *keyfile = g_key_file_new();
@@ -65,7 +66,7 @@ static void app_window_store_state(GtkApplication *gtk_app, struct WebviewWindow
     g_free(state_file);
 }
 
-static void app_window_load_state(GtkApplication *gtk_app, struct WebviewWindowState *window_state) {
+static void app_window_load_state(GtkApplication *gtk_app, WebviewWindowState *window_state) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
     char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
@@ -93,7 +94,7 @@ static void app_window_load_state(GtkApplication *gtk_app, struct WebviewWindowS
     g_free(state_file);
 }
 
-static bool app_window_state_event_callback(GtkWidget *window, GdkEventWindowState *event, struct WebviewWindowState *window_state) {
+static bool app_window_state_event_callback(GtkWidget *window, GdkEventWindowState *event, WebviewWindowState *window_state) {
     GdkWindowState new_window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
     window_state->is_maximized = (new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
@@ -103,7 +104,7 @@ static bool app_window_state_event_callback(GtkWidget *window, GdkEventWindowSta
     return GDK_EVENT_PROPAGATE;
 }
 
-static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *allocation, struct WebviewWindowState *window_state) {
+static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *allocation, WebviewWindowState *window_state) {
     // save the window geometry only if we are not maximized of fullscreen
     if(!(window_state->is_maximized || window_state->is_fullscreen)) {
         // use gtk_ ; Using the allocation directly can lead to growing windows with client-side decorations
@@ -187,9 +188,9 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplicati
     gtk_widget_set_name(header_bar, "header_bar");
 
     // hide window decorationq of header bar
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), false);
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), FALSE);
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
-    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), false);
+    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), FALSE);
 
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
@@ -238,13 +239,13 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
 
     WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
-        "enable-javascript", true,
-        "auto-load-images", true,
-        "enable-page-cache", false, // disable cache, we simply use local files
-        "allow-file-access-from-file-urls", true, // todo allow xhr request
-        "allow-universal-access-from-file-urls", true, // access ressources locally
-        "enable-write-console-messages-to-stdout", true, // debug settings
-        "enable-developer-extras", true, // todo
+        "enable-javascript", TRUE,
+        "auto-load-images", TRUE,
+        "enable-page-cache", FALSE, // disable cache, we simply use local files
+        "allow-file-access-from-file-urls", TRUE, // todo allow xhr request
+        "allow-universal-access-from-file-urls", TRUE, // access ressources locally
+        "enable-write-console-messages-to-stdout", TRUE, // debug settings
+        "enable-developer-extras", TRUE, // todo
     NULL);
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();
@@ -300,7 +301,7 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
     gtk_window_set_title(GTK_WINDOW(main_window), "Movie Collection");
     gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
     gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
-    gtk_window_set_resizable(GTK_WINDOW(main_window), true);
+    gtk_window_set_resizable(GTK_WINDOW(main_window), TRUE);
 
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
@@ -328,7 +329,7 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
     );
 
     // Load window preview state, if any
-    struct WebviewWindowState window_state = app->window_state;
+    WebviewWindowState window_state = app->window_state;
 
     if(window_state.height > 0 && window_state.width > 0) {
         gtk_window_set_default_size(GTK_WINDOW(main_window),
@@ -400,7 +401,7 @@ int main(int argc, char* argv[]) {
     int status;
 
     // new_ user application
-    WebviewApplication *app = g_malloc(sizeof(WebviewApplication));
+    WebviewApplication *app = g_malloc(sizeof(WebviewApplication)); // {0}
 
     gtk_app = gtk_application_new("fr.spidery.moviecollection",
         G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
@@ -418,74 +419,3 @@ int main(int argc, char* argv[]) {
     return status;
 }
 
-
-
-
-
-
-
-
-
-
-
-/*
-
-int ___main(int argc, char* argv[]) {
-
-    bool is_debug = argv[1] != NULL && strcmp(argv[1], "--debug") == 0;
-
-
-
-
-
-
-
-
-
-
-
-//gtk_window_set_icon_from_file
-
-
-
-
-// direxists
-
-
-
-
-
-
-
-
-
-
-
-
-// todo check si extension .so not found
-
-
-
-
-
-
-    // Put the browser area into the main window
-    gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
-
-
-
-    webkit_web_view_load_uri(webview, webview_page);
-
-    // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
-    gtk_widget_grab_focus(GTK_WIDGET(webview));
-
-    // Make sure the main window and all its contents are visible
-    gtk_widget_show_all(main_window);
-
-    // Run the main GTK+ event loop
-    gtk_main();
-
-    return 0;
-}
-
-*/
