@@ -257,6 +257,11 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
 
     WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(webkit_settings));
 
+    // set default background color (same as title bar + fade effect on css)
+    GdkRGBA background_color;
+    gdk_rgba_parse(&background_color, "#2c3133");
+    webkit_web_view_set_background_color(webkit_view, &background_color);
+
     // Callback when browser instance is closed, the program will also exit
     g_signal_connect(webkit_view, "close",
         G_CALLBACK(app_webview_close_callback), gtk_app
