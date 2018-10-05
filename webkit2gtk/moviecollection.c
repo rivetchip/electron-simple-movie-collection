@@ -7,9 +7,10 @@ meson --buildtype
 coredumpctl list => gdb
 */
 
+// #include <config.h> //meson generated
+
 #include <stdlib.h>
 #include <glib.h>
-
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
 
