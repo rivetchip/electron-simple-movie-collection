@@ -304,6 +304,8 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
 
 static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
 
+    g_assert(!g_application_get_is_remote(G_APPLICATION(gtk_app)));
+
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(gtk_app);
 
@@ -391,6 +393,10 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
 
     // Make sure the main window and all its contents are visible
     gtk_widget_show_all(main_window);
+
+
+    g_message("activate");
+
 }
 
 static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *app) {
@@ -400,8 +406,29 @@ static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *a
 }
 
 static int app_commandline_callback(GtkApplication* gtk_app, GApplicationCommandLine *cmdline, WebviewApplication *app) {
-    return 0;
+    return 0; // exit
 }
+
+static void app_cmdline_print_version(GtkApplication* gtk_app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
+
+    g_print("%s - GTK:%d.%d.%d WebKit:%d.%d.%d \n", appid,
+        gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version(),
+        webkit_get_major_version(), webkit_get_minor_version(), webkit_get_micro_version()
+    );
+}
+
+static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDict *options, WebviewApplication *app) {
+    // handle command lines locally
+
+    if(g_variant_dict_lookup(options, "version", "b", NULL)) {
+        app_cmdline_print_version(gtk_app);
+        return 0;
+    }
+
+    return -1; //let the default option processing continue
+}
+
 
 
 int main(int argc, char* argv[]) {
@@ -410,18 +437,39 @@ int main(int argc, char* argv[]) {
     GtkApplication *gtk_app;
     int status;
 
-    // new_ user application
+    // new_ user application (by default the gtk_app is unique)
     WebviewApplication *app = g_malloc(sizeof(WebviewApplication)); // {0}
 
     gtk_app = gtk_application_new("fr.spidery.moviecollection",
         G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
     );
-    
+
+    // Add aplication main events flow
     g_signal_connect(gtk_app, "startup", G_CALLBACK(app_startup_callback), app);
     g_signal_connect(gtk_app, "activate", G_CALLBACK(app_activate_callback), app);
     g_signal_connect(gtk_app, "shutdown", G_CALLBACK(app_shutdown_callback), app);
-    g_signal_connect(gtk_app, "command-line", G_CALLBACK(app_commandline_callback), app);
 
+    // Register app
+    GError *error = NULL;
+    if(!g_application_register(G_APPLICATION(gtk_app), NULL, &error)) {
+        g_warning("Unable to register GApplication: %s", error->message);
+        g_clear_error(error);
+        return 1;
+    }
+
+    if(g_application_get_is_remote(G_APPLICATION(gtk_app))){
+        return 0;
+    }
+
+    // Add app main arguments
+    g_application_add_main_option(G_APPLICATION(gtk_app),
+        "version", 0, 0, G_OPTION_ARG_NONE, "Show program version", NULL
+    );
+
+    g_signal_connect(gtk_app, "handle-local-options", G_CALLBACK(app_handle_local_options_callback), app);
+    g_signal_connect(gtk_app, "command-line", G_CALLBACK(app_commandline_callback), app); // received from remote
+
+    // Run the app and get its exit status
     status = g_application_run(G_APPLICATION(gtk_app), argc, argv);
 
     g_object_unref(gtk_app);
