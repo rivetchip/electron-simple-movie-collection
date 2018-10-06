@@ -3,6 +3,7 @@ sudo dnf install gtk3-devel gstreamer-devel clutter-devel webkitgtk3-devel libgd
 webkit2gtk3-devel
 builddir > clear && ninja && GTK_DEBUG=interactive ./moviecollection --debug
 gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` && ./main
+/usr/local
 meson --buildtype
 coredumpctl list => gdb / coredumpctl gdb
 */
@@ -232,9 +233,15 @@ static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_
         g_error("app:initialize_web_extensions 'libweb-extension-proxy.so' not found");
     }
 
+    //Web Extensions get a different ID for each Web Process
+    static int unique_id = 0;
+
     GVariant *webextension_data = g_variant_new(
-        "(s)", webextension_file
+        "(is)", (unique_id++), webextension_dir
     );
+
+    // Use one process for each WebKitWebView
+    webkit_web_context_set_process_model(webkit_context, WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
 
     webkit_web_context_set_web_extensions_directory(webkit_context, webextension_dir);
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webextension_data);
@@ -277,7 +284,6 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
 
 
 
-
 static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *app) {
 
     // get current application path
@@ -285,9 +291,6 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
     app->launcher_dir = g_get_current_dir();
 
     g_message("app:launcher_dir %s", app->launcher_dir);
-
-    //get a different ID for each Web Process
-    static int unique_id = 0;
 
     // Load a web page into the browser instance
     app->webview_page = g_build_filename("file://", app->launcher_dir, "bundle", "index.html", NULL);
@@ -303,6 +306,7 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
 }
 
 static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApplication *app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(gtk_app);
@@ -312,10 +316,9 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
     gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(GTK_WINDOW(main_window), TRUE);
+    gtk_window_set_icon_name(GTK_WINDOW(main_window), appid);
 
-    // Set window icon
-    gtk_window_set_icon_name(GTK_WINDOW(main_window), "view-fullscreen-symbolic");
-
+    // Set window settings
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
         "gtk-application-prefer-dark-theme", TRUE, //because webview is dark :)
