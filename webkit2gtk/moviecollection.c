@@ -4,7 +4,7 @@ webkit2gtk3-devel
 builddir > clear && ninja && GTK_DEBUG=interactive ./moviecollection --debug
 gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.0` && ./main
 meson --buildtype
-coredumpctl list => gdb
+coredumpctl list => gdb / coredumpctl gdb
 */
 
 // #include <config.h> //meson generated
@@ -302,9 +302,7 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
     app_window_load_state(gtk_app, &app->window_state);
 }
 
-static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
-
-    g_assert(!g_application_get_is_remote(G_APPLICATION(gtk_app)));
+static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApplication *app) {
 
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(gtk_app);
@@ -314,6 +312,9 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
     gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
     gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(GTK_WINDOW(main_window), TRUE);
+
+    // Set window icon
+    gtk_window_set_icon_name(GTK_WINDOW(main_window), "view-fullscreen-symbolic");
 
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
@@ -393,10 +394,20 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
 
     // Make sure the main window and all its contents are visible
     gtk_widget_show_all(main_window);
+}
 
+static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *app) {
 
-    g_message("activate");
+    // Check if window is already active
+    GtkWindow *window = gtk_application_get_active_window(gtk_app);
 
+    if(window != NULL) {
+        gtk_window_present(window);
+        return;
+    }
+
+    // Else, we show the main window
+    app_show_show_interactive_dialog(gtk_app, app);
 }
 
 static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *app) {
@@ -426,6 +437,10 @@ static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDi
         return 0;
     }
 
+    if(g_variant_dict_lookup(options, "debug", "b", NULL)) {
+        gtk_window_set_interactive_debugging(TRUE);
+    }
+
     return -1; //let the default option processing continue
 }
 
@@ -449,22 +464,13 @@ int main(int argc, char* argv[]) {
     g_signal_connect(gtk_app, "activate", G_CALLBACK(app_activate_callback), app);
     g_signal_connect(gtk_app, "shutdown", G_CALLBACK(app_shutdown_callback), app);
 
-    // Register app
-    GError *error = NULL;
-    if(!g_application_register(G_APPLICATION(gtk_app), NULL, &error)) {
-        g_warning("Unable to register GApplication: %s", error->message);
-        g_clear_error(error);
-        return 1;
-    }
-
-    if(g_application_get_is_remote(G_APPLICATION(gtk_app))){
-        return 0;
-    }
-
     // Add app main arguments
-    g_application_add_main_option(G_APPLICATION(gtk_app),
-        "version", 0, 0, G_OPTION_ARG_NONE, "Show program version", NULL
-    );
+    GOptionEntry entries[] = {
+        {"version", 'v', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Show program version", NULL},
+        {"debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Open the interactive debugger", NULL},
+        {NULL}
+    };
+    g_application_add_main_option_entries(G_APPLICATION(gtk_app), entries);
 
     g_signal_connect(gtk_app, "handle-local-options", G_CALLBACK(app_handle_local_options_callback), app);
     g_signal_connect(gtk_app, "command-line", G_CALLBACK(app_commandline_callback), app); // received from remote
