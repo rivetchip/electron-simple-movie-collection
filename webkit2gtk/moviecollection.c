@@ -193,6 +193,10 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplicati
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
     gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), FALSE);
 
+    g_object_set(G_OBJECT(header_bar),
+        "height-request", 45, //prefered max header size
+    NULL);
+
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
         app->ressources_dir, "window-close", "titlebutton",
@@ -311,8 +315,8 @@ static void app_activate_callback(GtkApplication* gtk_app, WebviewApplication *a
 
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
-        "gtk-application-prefer-dark-theme", TRUE, NULL //because webview is dark :)
-    );
+        "gtk-application-prefer-dark-theme", TRUE, //because webview is dark :)
+    NULL);
 
     // hide window decorations of main app and use our own
     app->header_bar = app_headerbar_create(gtk_app, app);
