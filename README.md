@@ -15,12 +15,10 @@ Available on 🐧 Linux 💻 Windows 🤖 Android
 Building Webkit2Gtk Desktop :
 -----------------------------
 
-Install development required files, and [Meson build system](https://mesonbuild.com/) :
+Install development header files, and [Meson build system](https://mesonbuild.com/) :
 
 ```sh
-sudo dnf install gtk3-devel webkitgtk3-devel libgda-devel gobject-introspection-devel webkit2gtk3-devel
-
-sudo dnf install meson
+sudo dnf install meson gtk3-devel webkit2gtk3-devel webkit2gtk3-jsc-devel
 ```
 
 __Build everything and launch the application :__
@@ -33,7 +31,7 @@ ninja -C builddir && ./moviecollection --debug
 
 
 
-todo
+todo (+nodejs)
 
 
 
