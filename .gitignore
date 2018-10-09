@@ -10,6 +10,6 @@ android/keystorepass
 android/mykey.keystore
 android/store-icon.png
 android/res/mipmap-*
-android/java/fr/spidery/moviecollection/R.java
+android/**/R.java
 __ideas
-webkit2gtk/builddir/
+webkit2gtk/*build
