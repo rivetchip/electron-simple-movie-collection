@@ -8,13 +8,12 @@ meson --buildtype
 coredumpctl list => gdb / coredumpctl gdb
 */
 
-// #include <config.h> //meson generated
+#include <config.h> //build generated
 
 #include <stdlib.h>
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <webkit2/webkit2.h>
-
 
 
 typedef struct {
@@ -289,7 +288,7 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
     // get current application path
     // getcwd(app->launcher_dir, sizeof(app->launcher_dir));
     app->launcher_dir = g_get_current_dir();
-
+    
     g_message("app:launcher_dir %s", app->launcher_dir);
 
     // Load a web page into the browser instance
@@ -454,6 +453,10 @@ int main(int argc, char* argv[]) {
     // main gtk app
     GtkApplication *gtk_app;
     int status;
+
+    #if PACKAGE_DEVELOPER_MODE
+        g_message("Dev mode");
+    #endif
 
     // new_ user application (by default the gtk_app is unique)
     WebviewApplication *app = g_malloc(sizeof(WebviewApplication)); // {0}
