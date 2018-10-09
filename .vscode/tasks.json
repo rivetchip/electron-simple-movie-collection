@@ -4,20 +4,28 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "(gcc) Build debug",
+            "identifier": "meson:dev",
+            "label": "Meson dev",
             "type": "shell",
-            "command": "meson --buildtype=debugoptimized builddir",
+            "command": "meson -Ddeveloper_mode=true $builddir && ninja -C $builddir",
             "options": {
+                "env": {
+                    "builddir": "devbuild"
+                },
                 "cwd": "${workspaceFolder}/webkit2gtk/",
             }
         },
         {
-            "label": "(gcc) Build release",
+            "identifier": "meson:release",
+            "label": "Meson release",
             "type": "shell",
-            "command": "meson --buildtype=release release",
+            "command": "meson $builddir && ninja -C $builddir",
             "options": {
+                "env": {
+                    "builddir": "releasebuild"
+                },
                 "cwd": "${workspaceFolder}/webkit2gtk/",
             }
-        }
+        },
     ]
 }

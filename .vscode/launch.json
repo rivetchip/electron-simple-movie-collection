@@ -3,17 +3,16 @@
     "configurations": [
         
         {
-            "name": "(gdb) Launch",
+            "name": "(gdb) Launch debugoptimized",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/webkit2gtk/builddir/moviecollection",
+            "program": "${workspaceFolder}/webkit2gtk/devbuild/moviecollection",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/webkit2gtk/builddir/",
+            "cwd": "${workspaceFolder}/webkit2gtk/",
             "environment": [],
-            "externalConsole": true,
             "MIMode": "gdb",
-            "preLaunchTask": "(gcc) Build debug",
+            "preLaunchTask": "meson:dev",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
