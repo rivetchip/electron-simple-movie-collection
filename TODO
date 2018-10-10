@@ -47,6 +47,16 @@ plutot faire une interface pour créer et ouvrir des projets directement depuis 
 
 
 
+meson :
+
+    # add bundle files (todo: wait implement copy content of symlink folder)
+    bundle_files = []
+    foreach f : run_command('ls', 'bundle', '-1', '--literal').stdout().strip().split('\n')
+        bundle_files += 'bundle/' + f
+    endforeach
+
+    install_data(bundle_files, install_dir: pkgwebbundledir)
+
 
 
 
