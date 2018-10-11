@@ -3,11 +3,11 @@
     "configurations": [
         
         {
-            "name": "(gdb) Launch debugoptimized",
+            "name": "(gdb) meson:dev",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/webkit2gtk/devbuild/moviecollection",
-            "args": [],
+            "args": ["--inspect"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/webkit2gtk/",
             "environment": [],
