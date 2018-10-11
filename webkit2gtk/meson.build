@@ -50,6 +50,7 @@ if developer_mode # locally
     pkgwebbundledir = join_paths(source_root, 'bundle')
     pkgwebextensionsdir = build_root
 endif
+# todo cannot install on dev mode
 
 
 # generate config.h based on compilation options
