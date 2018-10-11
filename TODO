@@ -57,7 +57,8 @@ meson :
 
     install_data(bundle_files, install_dir: pkgwebbundledir)
 
-
+c code:
+check for thread-safe code
 
 
 
