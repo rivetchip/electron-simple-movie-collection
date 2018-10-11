@@ -28,13 +28,8 @@ typedef struct {
     GtkWidget *header_bar;
     GtkWidget *webview;
     WebviewWindowState window_state;
-
-    // other settings
-    bool debug;
-    char *launcher_dir;
-    char *ressources_dir;
-    char *webview_page;
-    char *webextension_dir;
+    // options
+    GHashTable *package_config;
 
 } WebviewApplication;
 
@@ -182,7 +177,7 @@ static void app_headerbar_maximize_callback(GtkButton* button, GtkApplication *g
     }
 }
 
-static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplication *app) {
+static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, char* ressources_dir) {
 
     // Set GTK CSD HeaderBar
     GtkWidget *header_bar = gtk_header_bar_new();
@@ -199,15 +194,15 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, WebviewApplicati
 
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
-        app->ressources_dir, "window-close", "titlebutton",
+        ressources_dir, "window-close", "titlebutton",
         gtk_app, app_headerbar_close_callback
     );
     GtkWidget *btn_minimize = app_headerbar_create_button(
-        app->ressources_dir, "window-minimize", "titlebutton",
+        ressources_dir, "window-minimize", "titlebutton",
         gtk_app, app_headerbar_minimize_callback
     );
     GtkWidget *btn_maximize = app_headerbar_create_button(
-        app->ressources_dir, "window-maximize", "titlebutton",
+        ressources_dir, "window-maximize", "titlebutton",
         gtk_app, app_headerbar_maximize_callback
     );
 
@@ -246,7 +241,7 @@ static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webextension_data);
 }
 
-static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, WebviewApplication *app) {
+static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir) {
 
     WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
@@ -263,7 +258,7 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
 
     // Callback when initialize extensions
     g_signal_connect(webkit_context, "initialize-web-extensions",
-        G_CALLBACK(app_webview_initialize_extensions_callback), app->webextension_dir
+        G_CALLBACK(app_webview_initialize_extensions_callback), webextension_dir
     );
 
     WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(webkit_settings));
@@ -285,20 +280,17 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
 
 static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *app) {
 
-    // get current application path
-    // getcwd(app->launcher_dir, sizeof(app->launcher_dir));
-    app->launcher_dir = g_get_current_dir();
-    
-    g_message("app:launcher_dir %s", app->launcher_dir);
+    // set application main config variables
+    GHashTable *p = g_hash_table_new(g_direct_hash, g_direct_equal);
+    g_hash_table_insert(p, "developer_mode", GINT_TO_POINTER(PACKAGE_DEVELOPER_MODE));
+    g_hash_table_insert(p, "project_name", PACKAGE_NAME);
+    g_hash_table_insert(p, "project_version", PACKAGE_VERSION);
+    g_hash_table_insert(p, "pkgressourcesdir", PACKAGE_RESSOURCES_DIR);
+    g_hash_table_insert(p, "pkgstylesdir", PACKAGE_STYLES_DIR);
+    g_hash_table_insert(p, "pkgwebbundledir", PACKAGE_WEB_BUNDLE_DIR);
+    g_hash_table_insert(p, "pkgwebextensionsdir", PACKAGE_WEB_EXTENSIONS_DIR);
 
-    // Load a web page into the browser instance
-    app->webview_page = g_build_filename("file://", app->launcher_dir, "bundle", "index.html", NULL);
-
-    // get webkit extensions .so files
-    app->webextension_dir = g_build_filename(app->launcher_dir, NULL);
-
-    // get app ressources directory
-    app->ressources_dir = g_build_filename(app->launcher_dir, "ressources", NULL);
+    app->package_config = p;
 
     // load previous window state, if any
     app_window_load_state(gtk_app, &app->window_state);
@@ -306,6 +298,9 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
 
 static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApplication *app) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
+
+    // Get application config
+    GHashTable *p = app->package_config;
 
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(gtk_app);
@@ -324,7 +319,8 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     NULL);
 
     // hide window decorations of main app and use our own
-    app->header_bar = app_headerbar_create(gtk_app, app);
+    char *pkgressourcesdir = g_hash_table_lookup(p, "pkgressourcesdir");
+    app->header_bar = app_headerbar_create(gtk_app, pkgressourcesdir);
 
     gtk_window_set_titlebar(GTK_WINDOW(main_window), app->header_bar);
 
@@ -363,7 +359,8 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
 
     // Styling application (if file available)
 
-    char *window_style_file = g_build_filename(app->launcher_dir, "style.css", NULL);
+    char *pkgstylesdir = g_hash_table_lookup(p, "pkgstylesdir");
+    char *window_style_file = g_build_filename(pkgstylesdir, "style.css", NULL);
 
     if(g_file_test(window_style_file, G_FILE_TEST_IS_REGULAR)) {
 
@@ -383,13 +380,17 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     }
 
     // Create main webkit2gtk webview
-    WebKitWebView *webview = app_webview_create_with_settings(gtk_app, app);
+    char *pkgwebextensionsdir = g_hash_table_lookup(p, "pkgwebextensionsdir");
+    WebKitWebView *webview = app_webview_create_with_settings(gtk_app, pkgwebextensionsdir);
 
     // Put the browser area into the main window
     gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
 
     // Load the selected file into webkit webview
-    webkit_web_view_load_uri(webview, app->webview_page);
+    char *pkgwebbundledir = g_hash_table_lookup(p, "pkgwebbundledir");
+    char *webview_page = g_build_filename("file://", pkgwebbundledir, "index.html", NULL);
+
+    webkit_web_view_load_uri(webview, webview_page);
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
     gtk_widget_grab_focus(GTK_WIDGET(webview));
@@ -418,7 +419,7 @@ static void app_shutdown_callback(GtkApplication* gtk_app, WebviewApplication *a
     app_window_store_state(gtk_app, &app->window_state);
 }
 
-static int app_commandline_callback(GtkApplication* gtk_app, GApplicationCommandLine *cmdline, WebviewApplication *app) {
+static int app_commandline_callback(GtkApplication* gtk_app, GApplicationCommandLine *cmdline) {
     return 0; // exit
 }
 
@@ -431,7 +432,7 @@ static void app_cmdline_print_version(GtkApplication* gtk_app) {
     );
 }
 
-static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDict *options, WebviewApplication *app) {
+static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDict *options) {
     // handle command lines locally
 
     if(g_variant_dict_lookup(options, "version", "b", NULL)) {
@@ -439,7 +440,7 @@ static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDi
         return 0;
     }
 
-    if(g_variant_dict_lookup(options, "debug", "b", NULL)) {
+    if(g_variant_dict_lookup(options, "inspect", "b", NULL)) {
         gtk_window_set_interactive_debugging(TRUE);
     }
 
@@ -473,13 +474,13 @@ int main(int argc, char* argv[]) {
     // Add app main arguments
     GOptionEntry entries[] = {
         {"version", 'v', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Show program version", NULL},
-        {"debug", 'd', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Open the interactive debugger", NULL},
+        {"inspect", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Open the interactive debugger", NULL},
         {NULL}
     };
     g_application_add_main_option_entries(G_APPLICATION(gtk_app), entries);
 
-    g_signal_connect(gtk_app, "handle-local-options", G_CALLBACK(app_handle_local_options_callback), app);
-    g_signal_connect(gtk_app, "command-line", G_CALLBACK(app_commandline_callback), app); // received from remote
+    g_signal_connect(gtk_app, "handle-local-options", G_CALLBACK(app_handle_local_options_callback), NULL);
+    g_signal_connect(gtk_app, "command-line", G_CALLBACK(app_commandline_callback), NULL); // received from remote
 
     // Run the app and get its exit status
     status = g_application_run(G_APPLICATION(gtk_app), argc, argv);
