@@ -121,5 +121,5 @@ executable('moviecollection',
     dependencies: [depgtk, depglib, depwebkit2gtk],
     install_dir: pkgbindir,
     install: true,
-    override_options: developer_mode ? override_options : false
+    override_options: developer_mode ? override_options : []
 )
