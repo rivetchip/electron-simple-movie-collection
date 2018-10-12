@@ -54,7 +54,7 @@ console.log('storage'+storage)
  * Params of the WebkitGtkBridge native API bridge
  * @param {Object} bridge 
  */
-export function WebkitgtkBridge(android) {
+export function WebkitgtkBridge(bridge) {
     // transmute function in Java.@JavascriptInterface to promises
     return {
         platform: 'desktop-webview',
@@ -65,6 +65,7 @@ export function WebkitgtkBridge(android) {
 
         async openCollection(parser) {
 
+            console.log(bridge.openCollection())
         },
     
         async saveCollection(storage, stringify) {

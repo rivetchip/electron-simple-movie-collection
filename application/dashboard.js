@@ -292,28 +292,23 @@ const view = (state, actions) => (
         <ComponentAppToolbar
             buttons={[
                 {
-                    class: 'hamburger',
-                    name: 'Menu',
-                    onclick: actions.onToolbarHamburger
-                },
-                {
-                    class: 'open',
+                    className: 'open',
                     name: 'Ouvrir',
                     title: 'Ouvrir un fichier',
                     onclick: actions.onToolbarOpen
                 },
                 {
-                    class: 'save',
+                    className: 'save',
                     name: 'Enregistrer',
                     title: 'Enregistrer la liste courante',
                     onclick: actions.onToolbarSave
                 },
                 {
-                    class: 'new',
+                    className: 'new',
                     name: 'Ajouter un film',
                     title: 'Ajouter un film',
-                    onclick: actions.onToolbarNew,
-                },
+                    onclick: actions.onToolbarNew
+                }
             ]}
             providers={state.providers}
             providerHash={state.providerHash}

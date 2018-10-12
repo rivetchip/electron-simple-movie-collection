@@ -28,7 +28,7 @@ export const ComponentAppToolbar = ({buttons, providers, providerHash, onProvide
     <app-toolbar>
 
         {buttons.map((button, key) => (
-            <button class={button.class} onclick={event => button.onclick()} title={button.title}>
+            <button class={button.className} onclick={event => button.onclick()} title={button.title}>
                 {button.name}
             </button>
         ))}
