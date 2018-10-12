@@ -292,6 +292,11 @@ const view = (state, actions) => (
         <ComponentAppToolbar
             buttons={[
                 {
+                    className: 'hamburger',
+                    name: 'Menu',
+                    onclick: actions.onToolbarHamburger
+                },
+                {
                     className: 'open',
                     name: 'Ouvrir',
                     title: 'Ouvrir un fichier',
