@@ -322,6 +322,8 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     char *pkgressourcesdir = g_hash_table_lookup(p, "pkgressourcesdir");
     app->header_bar = app_headerbar_create(gtk_app, pkgressourcesdir);
 
+    // header bar
+    gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
     gtk_window_set_titlebar(GTK_WINDOW(main_window), app->header_bar);
 
     // Callback when the main window is closed
