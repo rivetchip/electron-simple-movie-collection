@@ -464,6 +464,7 @@ int main(int argc, char* argv[]) {
     // new_ user application (by default the gtk_app is unique)
     WebviewApplication *app = g_malloc(sizeof(WebviewApplication)); // {0}
 
+    // Instantiate the main app
     gtk_app = gtk_application_new("fr.spidery.moviecollection",
         G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
     );

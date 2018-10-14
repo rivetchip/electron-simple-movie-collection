@@ -119,3 +119,195 @@ exports.createSnackbar = (() => {
         viewport.appendChild(snackbar)
     }
 })()
+
+
+
+
+
+
+
+
+
+GDBUS
+
+main:
+
+
+bool proxy_dbus_peer_is_authorized_callback(GDBusAuthObserver *observer, GIOStream *stream, GCredentials *peer_credentials) {
+    static GCredentials *own_credentials = NULL;
+    GError *error = NULL;
+
+    if(!own_credentials) {
+        own_credentials = g_credentials_new();
+    }
+
+    if(peer_credentials && g_credentials_is_same_user (peer_credentials, own_credentials, &error)) {
+        return TRUE;
+    }
+    
+    if(error) {
+        g_warning("Failed to authorize web extension connection: %s", error->message);
+        g_error_free(error);
+    }
+    return FALSE;
+}
+
+static void proxy_dbus_connection_closed_callback(GDBusConnection *connection, bool remote_peer_vanished, GError *error) {
+    if(error && !remote_peer_vanished) {
+        g_warning("Unexpectedly lost connection to web extension: %s", error->message);
+    }
+}
+
+
+static void
+on_signal (GDBusProxy *proxy,
+           gchar      *sender_name,
+           gchar      *signal_name,
+           GVariant   *parameters,
+           gpointer    user_data)
+{
+  gchar *parameters_str;
+
+  parameters_str = g_variant_print (parameters, TRUE);
+
+  g_message (" *** Received Signal: %s: %s\n",
+           signal_name,
+           parameters_str);
+  g_free (parameters_str);
+}
+
+
+
+static bool proxy_dbus_new_connection_callback(GDBusServer *server, GDBusConnection *connection) {
+    g_assert(G_IS_DBUS_CONNECTION(connection));
+
+    g_signal_connect(connection, "closed",
+        G_CALLBACK(proxy_dbus_connection_closed_callback), NULL
+    );
+
+    GError *error = NULL;
+
+    GCancellable *cancellable = g_cancellable_new();
+
+    GDBusProxy *proxy = g_dbus_proxy_new_sync(connection,
+        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES | G_DBUS_PROXY_FLAGS_DO_NOT_CONNECT_SIGNALS,
+        NULL, // GDBusInterfaceInfo
+        NULL,//EPHY_WEB_EXTENSION_SERVICE_NAME,
+        EPHY_WEB_EXTENSION_OBJECT_PATH,
+        EPHY_WEB_EXTENSION_INTERFACE,
+        cancellable,
+        &error
+    );
+
+    if(error != NULL) {
+        g_warning("Error creating proxy: %s\n", error->message);
+        g_error_free (error);
+        return FALSE;
+    }
+
+    g_signal_connect(proxy, "g-signal", G_CALLBACK(on_signal), NULL);
+
+    return TRUE;
+}
+
+static GDBusServer* proxy_dbus_setup_web_extensions_server() {
+    GError *error = NULL;
+
+    char *guid = g_dbus_generate_guid();
+
+    char *address = g_strdup_printf("unix:tmpdir=%s", g_get_tmp_dir());
+    GDBusAuthObserver *observer = g_dbus_auth_observer_new();
+
+    g_signal_connect_object(observer, "authorize-authenticated-peer",
+        G_CALLBACK (proxy_dbus_peer_is_authorized_callback), NULL, 0
+    );
+
+    GDBusServer *dbus_server = g_dbus_server_new_sync(address, G_DBUS_SERVER_FLAGS_NONE, guid, observer, NULL, &error);
+
+    if(error) {
+        g_warning("Failed to start web extension server on %s: %s", address, error->message);
+        g_error_free(error);
+
+        g_free(address);
+        g_object_unref(observer);
+// test
+        return FALSE;
+    }
+
+    g_signal_connect_object(dbus_server, "new-connection",
+        G_CALLBACK(proxy_dbus_new_connection_callback), NULL, 0
+    );
+
+    g_dbus_server_start(dbus_server);
+
+
+
+    #if PACKAGE_DEVELOPER_MODE
+        g_message("GDBusServer is listening at: %s", g_dbus_server_get_client_address(dbus_server));
+    #endif
+
+    return dbus_server;
+}
+
+
+
+
+extension:
+
+
+    const int unique_id;
+    const char *webextension_dir;
+    const char *proxy_guid;
+    const char *proxy_address;
+
+    g_variant_get(user_data, "(is&sm&s)", &unique_id, &webextension_dir, &proxy_guid, &proxy_address);
+
+    if(!proxy_address) {
+        g_warning ("UI process did not start D-Bus server, giving up.");
+        return;
+    }
+
+    GDBusAuthObserver *observer = g_dbus_auth_observer_new();
+
+    g_signal_connect(observer, "authorize-authenticated-peer",
+        G_CALLBACK(proxy_dbus_peer_is_authorized_callback), NULL
+    );
+
+
+    GError *error = NULL;
+
+    GDBusConnection *proxy_connection = g_dbus_connection_new_for_address_sync(proxy_address,
+        G_DBUS_CONNECTION_FLAGS_AUTHENTICATION_CLIENT | G_DBUS_CONNECTION_FLAGS_MESSAGE_BUS_CONNECTION,
+        observer,
+        NULL,
+        &error
+    );
+
+    g_object_unref(observer);
+
+    if(error != NULL) {
+        g_warning("Failed to connect to UI process: %s", error->message);
+        g_error_free(error);
+        return;
+    }
+
+
+
+
+/*
+g_dbus_connection_emit_signal (proxy_connection,
+                                 EPHY_WEB_EXTENSION_SERVICE_NAME,
+                                 EPHY_WEB_EXTENSION_OBJECT_PATH,
+                                 EPHY_WEB_EXTENSION_INTERFACE,
+                                 "PageCreated",
+                                 g_variant_new ("(i)", 123456),
+                                 &error);
+
+    if(error != NULL) {
+        g_warning("ERROR g_dbus_connection_emit_signal: %s", error->message);
+        g_error_free(error);
+        return;
+    }
+
+    g_message("proxy_address %s", proxy_address);
+*/
