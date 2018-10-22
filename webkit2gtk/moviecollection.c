@@ -120,8 +120,8 @@ static GtkWidget *app_headerbar_create_button(
     const char *ressources_dir,
     const char *icon_name,
     const char *class_name,
-    GtkApplication *gtk_app,
-    const void *click_event
+    const void *click_event,
+    GtkApplication *gtk_app
 ) {
     char icon_svg[20];
     sprintf(icon_svg, "%s.svg", icon_name);
@@ -195,15 +195,15 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, char* ressources
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
         ressources_dir, "window-close", "titlebutton",
-        gtk_app, app_headerbar_close_callback
+        app_headerbar_close_callback, gtk_app
     );
     GtkWidget *btn_minimize = app_headerbar_create_button(
         ressources_dir, "window-minimize", "titlebutton",
-        gtk_app, app_headerbar_minimize_callback
+        app_headerbar_minimize_callback, gtk_app
     );
     GtkWidget *btn_maximize = app_headerbar_create_button(
         ressources_dir, "window-maximize", "titlebutton",
-        gtk_app, app_headerbar_maximize_callback
+        app_headerbar_maximize_callback, gtk_app
     );
 
     gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
