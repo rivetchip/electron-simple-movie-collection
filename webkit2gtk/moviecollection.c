@@ -425,7 +425,7 @@ static int app_commandline_callback(GtkApplication* gtk_app, GApplicationCommand
     return 0; // exit
 }
 
-static void app_cmdline_print_version(GtkApplication* gtk_app) {
+static void app_commandline_print_version(GtkApplication* gtk_app) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
 
     g_print("%s - GTK:%d.%d.%d WebKit:%d.%d.%d \n", appid,
@@ -438,7 +438,7 @@ static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDi
     // handle command lines locally
 
     if(g_variant_dict_lookup(options, "version", "b", NULL)) {
-        app_cmdline_print_version(gtk_app);
+        app_commandline_print_version(gtk_app);
         return 0;
     }
 
