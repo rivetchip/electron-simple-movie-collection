@@ -28,8 +28,6 @@ typedef struct {
     GtkWidget *header_bar;
     GtkWidget *webview;
     WebviewWindowState window_state;
-    // options
-    GHashTable *package_config;
 
 } WebviewApplication;
 
@@ -220,11 +218,12 @@ static void app_webview_close_callback(WebKitWebView* Webview, GtkApplication *g
 
 static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_context, char *webextension_dir) {
 
-    char *webextension_file = g_build_filename(webextension_dir, "libweb-extension-proxy.so", NULL);
+    char *webext_file = "libweb-extension-proxy.so";
+    char *webext_filepath = g_build_filename(webextension_dir, webext_file, NULL);
 
-    if(!g_file_test(webextension_file, G_FILE_TEST_IS_REGULAR)) {
+    if(!g_file_test(webext_filepath, G_FILE_TEST_IS_REGULAR)) {
         // extension not found, abort()
-        g_error("app:initialize_web_extensions 'libweb-extension-proxy.so' not found");
+        g_error("app:initialize web extension '%s' not found", webext_filepath);
     }
 
     //Web Extensions get a different ID for each Web Process
@@ -241,7 +240,7 @@ static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webextension_data);
 }
 
-static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir) {
+static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir, bool developer_mode) {
 
     WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
@@ -250,8 +249,8 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
         "enable-page-cache", FALSE, // disable cache, we simply use local files
         "allow-file-access-from-file-urls", TRUE, // todo allow xhr request
         "allow-universal-access-from-file-urls", TRUE, // access ressources locally
-        "enable-write-console-messages-to-stdout", TRUE, // debug settings
-        "enable-developer-extras", TRUE, // todo
+        "enable-write-console-messages-to-stdout", developer_mode, // debug settings
+        "enable-developer-extras", developer_mode,
     NULL);
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();
@@ -281,16 +280,6 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
 static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *app) {
 
     // set application main config variables
-    GHashTable *p = g_hash_table_new(g_direct_hash, g_direct_equal);
-    g_hash_table_insert(p, "developer_mode", GINT_TO_POINTER(PACKAGE_DEVELOPER_MODE));
-    g_hash_table_insert(p, "project_name", PACKAGE_NAME);
-    g_hash_table_insert(p, "project_version", PACKAGE_VERSION);
-    g_hash_table_insert(p, "pkgressourcesdir", PACKAGE_RESSOURCES_DIR);
-    g_hash_table_insert(p, "pkgstylesdir", PACKAGE_STYLES_DIR);
-    g_hash_table_insert(p, "pkgwebbundledir", PACKAGE_WEB_BUNDLE_DIR);
-    g_hash_table_insert(p, "pkgwebextensionsdir", PACKAGE_WEB_EXTENSIONS_DIR);
-
-    app->package_config = p;
 
     // load previous window state, if any
     app_window_load_state(gtk_app, &app->window_state);
@@ -298,9 +287,6 @@ static void app_startup_callback(GtkApplication *gtk_app, WebviewApplication *ap
 
 static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApplication *app) {
     const char *appid = g_application_get_application_id(G_APPLICATION(gtk_app));
-
-    // Get application config
-    GHashTable *p = app->package_config;
 
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(gtk_app);
@@ -319,8 +305,7 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     NULL);
 
     // hide window decorations of main app and use our own
-    char *pkgressourcesdir = g_hash_table_lookup(p, "pkgressourcesdir");
-    app->header_bar = app_headerbar_create(gtk_app, pkgressourcesdir);
+    app->header_bar = app_headerbar_create(gtk_app, PACKAGE_RESSOURCES_DIR);
 
     // header bar
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
@@ -361,15 +346,14 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
 
     // Styling application (if file available)
 
-    char *pkgstylesdir = g_hash_table_lookup(p, "pkgstylesdir");
-    char *window_style_file = g_build_filename(pkgstylesdir, "style.css", NULL);
+    char *window_style = g_build_filename(PACKAGE_STYLES_DIR, "style.css", NULL);
 
-    if(g_file_test(window_style_file, G_FILE_TEST_IS_REGULAR)) {
+    if(g_file_test(window_style, G_FILE_TEST_IS_REGULAR)) {
 
         GtkCssProvider *window_css_provider = gtk_css_provider_get_default();
 
         GError *css_error = NULL;
-        gtk_css_provider_load_from_path(window_css_provider, window_style_file, &css_error);
+        gtk_css_provider_load_from_path(window_css_provider, window_style, &css_error);
 
         if(css_error != NULL) {
             g_warning("app:import style.css %s", css_error->message);
@@ -382,15 +366,15 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     }
 
     // Create main webkit2gtk webview
-    char *pkgwebextensionsdir = g_hash_table_lookup(p, "pkgwebextensionsdir");
-    WebKitWebView *webview = app_webview_create_with_settings(gtk_app, pkgwebextensionsdir);
+    WebKitWebView *webview = app_webview_create_with_settings(gtk_app,
+        PACKAGE_WEB_EXTENSIONS_DIR, PACKAGE_DEVELOPER_MODE
+    );
 
     // Put the browser area into the main window
     gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
 
     // Load the selected file into webkit webview
-    char *pkgwebbundledir = g_hash_table_lookup(p, "pkgwebbundledir");
-    char *webview_page = g_build_filename("file://", pkgwebbundledir, "index.html", NULL);
+    char *webview_page = g_build_filename("file://", PACKAGE_WEB_BUNDLE_DIR, "index.html", NULL);
 
     webkit_web_view_load_uri(webview, webview_page);
 
@@ -453,6 +437,10 @@ static int app_handle_local_options_callback(GtkApplication* gtk_app, GVariantDi
 
 int main(int argc, char* argv[]) {
 
+    // hacks workaround slow computers
+    // putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
+
+
     // main gtk app
     GtkApplication *gtk_app;
     int status;
@@ -465,7 +453,8 @@ int main(int argc, char* argv[]) {
     WebviewApplication *app = g_malloc(sizeof(WebviewApplication)); // {0}
 
     // Instantiate the main app
-    gtk_app = gtk_application_new("fr.spidery.moviecollection",
+    gtk_app = gtk_application_new(
+        PACKAGE_APPLICATION_ID,
         G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
     );
 
