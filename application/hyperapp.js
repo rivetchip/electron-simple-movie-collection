@@ -55,7 +55,9 @@ export function app(state, actions, view, container) {
   function resolveNode(node) {
     return typeof node === "function"
       ? resolveNode(node(globalState, wiredActions))
-      : node != null ? node : ""
+      : node != null
+        ? node
+        : ""
   }
 
   function render() {
@@ -157,12 +159,17 @@ export function app(state, actions, view, container) {
   function updateAttribute(element, name, value, oldValue, isSvg) {
     if (name === "key") {
     } else if (name === "style") {
-      for (var i in clone(oldValue, value)) {
-        var style = value == null || value[i] == null ? "" : value[i]
-        if (i[0] === "-") {
-          element[name].setProperty(i, style)
-        } else {
-          element[name][i] = style
+      if (typeof value === "string") {
+        element.style.cssText = value
+      } else {
+        if (typeof oldValue === "string") oldValue = element.style.cssText = ""
+        for (var i in clone(oldValue, value)) {
+          var style = value == null || value[i] == null ? "" : value[i]
+          if (i[0] === "-") {
+            element.style.setProperty(i, style)
+          } else {
+            element.style[i] = style
+          }
         }
       }
     } else {
@@ -184,7 +191,15 @@ export function app(state, actions, view, container) {
         } else {
           element.removeEventListener(name, eventListener)
         }
-      } else if (name in element && name !== "list" && !isSvg) {
+      } else if (
+        name in element &&
+        name !== "list" &&
+        name !== "type" &&
+        name !== "draggable" &&
+        name !== "spellcheck" &&
+        name !== "translate" &&
+        !isSvg
+      ) {
         element[name] = value == null ? "" : value
       } else if (value != null && value !== false) {
         element.setAttribute(name, value)
