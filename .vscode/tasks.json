@@ -4,10 +4,9 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "identifier": "meson:dev",
-            "label": "Meson dev",
+            "label": "meson:dev",
             "type": "shell",
-            "command": "meson -Ddeveloper_mode=true $builddir && ninja -C $builddir",
+            "command": "meson -Ddeveloper_mode=true $builddir --buildtype=debugoptimized && ninja -C $builddir",
             "options": {
                 "env": {
                     "builddir": "devbuild"
@@ -16,8 +15,7 @@
             }
         },
         {
-            "identifier": "meson:release",
-            "label": "Meson release",
+            "label": "meson:release",
             "type": "shell",
             "command": "meson $builddir && ninja -C $builddir",
             "options": {

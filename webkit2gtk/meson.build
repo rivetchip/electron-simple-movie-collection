@@ -19,10 +19,9 @@ depwebkit2gtkextension = dependency('webkit2gtk-web-extension-4.0', version: '>=
 # main project options
 project_name = meson.project_name()
 project_version = meson.project_version()
-buildtype = get_option('buildtype')
-developer_mode = get_option('developer_mode')
 source_root = meson.source_root()
 build_root = meson.build_root()
+developer_mode = get_option('developer_mode')
 
 # standard install directories
 prefix = get_option('prefix') # /usr
@@ -50,11 +49,12 @@ if developer_mode # locally
     pkgwebbundledir = join_paths(source_root, 'bundle')
     pkgwebextensionsdir = build_root
 endif
-# todo cannot install on dev mode
+# todo cannot install on dev mode because of extension copy same location
 
 
 # generate config.h based on compilation options
 config_h = configuration_data()
+config_h.set_quoted('PACKAGE_APPLICATION_ID', application_id)
 config_h.set_quoted('PACKAGE_NAME', project_name)
 config_h.set_quoted('PACKAGE_VERSION', project_version)
 config_h.set_quoted('PACKAGE_SOURCE_ROOT', source_root)
@@ -80,12 +80,12 @@ desktop_file = configure_file(
     configuration: desktop_conf
 )
 
-install_data(desktop_file, install_dir: pkgappsdir)
-
 desktop_utils = find_program('desktop-file-validate', required: false)
 if desktop_utils.found()
     test('Validate desktop file', desktop_utils, args: [desktop_file])
 endif
+
+install_data(desktop_file, install_dir: pkgappsdir)
 
 if not developer_mode # locally
     # add ressources files
@@ -96,18 +96,9 @@ endif
 
 
 
-
-
 add_project_arguments([
     '-I' + build_root,
 ], language: 'c')
-
-if developer_mode # locally
-    override_options = [
-        'buildtype=debugoptimized',
-        'prefix=' + developer_prefix
-    ]
-endif
 
 shared_module('web-extension-proxy',
     sources: [config_header, 'web-extension-proxy.c'],
@@ -120,6 +111,5 @@ executable('moviecollection',
     sources: [config_header, 'moviecollection.c'],
     dependencies: [depgtk, depglib, depwebkit2gtk],
     install_dir: pkgbindir,
-    install: true,
-    override_options: developer_mode ? override_options : []
+    install: true
 )
