@@ -52,6 +52,7 @@ static void app_window_store_state(GtkApplication *gtk_app, WebviewWindowState *
         GError *error_save = NULL;
         if(!g_key_file_save_to_file(keyfile, state_file, &error_save)) {
             g_warning("app:window_store_state Error: %s", error_save->message);
+            g_clear_error(&error_save);
         }
     }
 
@@ -350,17 +351,18 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
 
     if(g_file_test(window_style, G_FILE_TEST_IS_REGULAR)) {
 
-        GtkCssProvider *window_css_provider = gtk_css_provider_get_default();
+        GtkCssProvider *css_provider = gtk_css_provider_new();
 
         GError *css_error = NULL;
-        gtk_css_provider_load_from_path(window_css_provider, window_style, &css_error);
+        gtk_css_provider_load_from_path(css_provider, window_style, &css_error);
 
         if(css_error != NULL) {
             g_warning("app:import style.css %s", css_error->message);
+            g_clear_error(&css_error);
         }
 
         gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-            GTK_STYLE_PROVIDER(window_css_provider),
+            GTK_STYLE_PROVIDER(css_provider),
             GTK_STYLE_PROVIDER_PRIORITY_USER
         );
     }
