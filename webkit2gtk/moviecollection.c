@@ -241,7 +241,7 @@ static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webextension_data);
 }
 
-static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir, bool developer_mode) {
+static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir) {
 
     WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
@@ -249,9 +249,11 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
         "auto-load-images", TRUE,
         "enable-page-cache", FALSE, // disable cache, we simply use local files
         "allow-file-access-from-file-urls", TRUE, // todo allow xhr request
+        #if PACKAGE_DEVELOPER_MODE
         "allow-universal-access-from-file-urls", TRUE, // access ressources locally
-        "enable-write-console-messages-to-stdout", developer_mode, // debug settings
-        "enable-developer-extras", developer_mode,
+        "enable-write-console-messages-to-stdout", TRUE, // debug settings
+        "enable-developer-extras", TRUE,
+        #endif
     NULL);
 
     WebKitWebContext *webkit_context = webkit_web_context_get_default();
@@ -368,9 +370,7 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     }
 
     // Create main webkit2gtk webview
-    WebKitWebView *webview = app_webview_create_with_settings(gtk_app,
-        PACKAGE_WEB_EXTENSIONS_DIR, PACKAGE_DEVELOPER_MODE
-    );
+    WebKitWebView *webview = app_webview_create_with_settings(gtk_app, PACKAGE_WEB_EXTENSIONS_DIR);
 
     // Put the browser area into the main window
     gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
