@@ -55,7 +55,7 @@ console.log('storage'+storage)
  * @param {Object} bridge 
  */
 export function WebkitgtkBridge(bridge) {
-    // transmute function in Java.@JavascriptInterface to promises
+    // transmute function in JSC interface to promises
     return {
         platform: 'desktop-webview',
 
@@ -63,21 +63,20 @@ export function WebkitgtkBridge(bridge) {
 
         },
 
-        async openCollection(parser) {
-
-            console.log(bridge.openCollection())
+        async openCollection() {
+            return bridge.openCollection()
         },
     
-        async saveCollection(storage, stringify) {
-
+        async saveCollection(content) {
+            return bridge.saveCollection(content)
         },
     
         async getPoster(filename) {
-    
+            return bridge.getPoster(filename)
         },
     
         async savePoster(filename, content) {
-            
+            return bridge.getPoster(filename, content)
         }
     }
 }

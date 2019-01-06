@@ -11,39 +11,28 @@ import {ComponentPanelWelcome, ComponentPanelPreview, ComponentPanelPublication}
 import {ComponentAppStatusbar} from './components/app-statusbar'
 
 // helpers
-import {lookup, map, filter, urlstringify} from './helpers'
+import {map, filter} from './helpers'
 
 // app other utilities
 import {fetchmovie} from './moviesapi-protocol'
 
 // platform specifics javascript bridges & interfaces
-let $bridge, appPlatform
-
 import {WebkitgtkBridge, AndroidBridge, ElectronBridge} from './platform-specific'
 
-if('WebkitgtkInterface' in window) {
-    $bridge = WebkitgtkBridge(window.WebkitgtkInterface)
-}
-else if('AndroidInterface' in window) {
-    $bridge = AndroidBridge(window.AndroidInterface)
-}
-else if('ElectronInterface' in window) {
-    $bridge = ElectronBridge(window.ElectronInterface)
-}
+let $bridge
 
-if($bridge) {
-    appPlatform = $bridge.platform
-}
-
-
+map({
+    'WebkitgtkInterface': WebkitgtkBridge,
+    'AndroidInterface': AndroidBridge,
+    'ElectronInterface': ElectronBridge
+}, function(callback, interfaceName) {
+    if(interfaceName in window) {
+        $bridge = callback(window[interfaceName])
+    }
+})
 
 // disable eval
 window.eval = global.eval = () => {throw 'no eval'}
-
-
-
-
-
 
 
 
@@ -72,12 +61,12 @@ const state = { // initial state
     isLoading: false,
     isHamburgerOpen: false,
     // if fullscreen, remove margin around fake window
-    isFullscreen: ['mobile', 'desktop-webview'].includes(appPlatform),
+    isFullscreen: ['mobile', 'desktop-webview'].includes($bridge.platform),
     // if mobile : smaller interface
-    isMobile: ['mobile'].includes(appPlatform),
+    isMobile: ['mobile'].includes($bridge.platform),
     // remove header bar controls if we already have a real window
     appHeaderTitle: 'Movie Collection',
-    appHeaderBar: ['desktop-window'].includes(appPlatform),
+    appHeaderBar: ['desktop-window'].includes($bridge.platform), //todo: remove
 
     // current interface : welcome preview publication
     location: 'welcome',
@@ -103,12 +92,12 @@ const state = { // initial state
 
 
 
-// import {version, metadata, options, collection as movies} from './___.json'
+import {version, metadata, options, collection as movies} from './___.json'
 
-// state.collection = movies;
-// state.activeCollection = Object.keys(movies);
-// state.isMobile = true;
-// state.isFullscreen = true;
+state.collection = movies;
+state.activeCollection = Object.keys(movies);
+state.isMobile = true;
+state.isFullscreen = true;
 
 
 
@@ -142,7 +131,7 @@ const actions = {
 
     onToolbarOpen: () => async (state, actions) => {
         try {
-            let storage = await $bridge.openCollection(JSON.parse)
+            let storage = JSON.parse(await $bridge.openCollection())
             actions.onReceiveCollection({storage})
         }
         catch(error) {
@@ -179,7 +168,7 @@ const actions = {
         })
 
         try {
-            await $bridge.saveCollection(storage, JSON.stringify)
+            await $bridge.saveCollection(JSON.stringify(storage))
         }
         catch(error) {
             console.log('saveCollection >> '+error)
