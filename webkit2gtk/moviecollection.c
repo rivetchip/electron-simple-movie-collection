@@ -212,12 +212,12 @@ static GtkWidget *app_headerbar_create(GtkApplication *gtk_app, char* ressources
     return header_bar;
 }
 
-static void app_webview_close_callback(WebKitWebView* Webview, GtkApplication *gtk_app) {
+static void webkit_view_close_callback(WebKitWebView* Webview, GtkApplication *gtk_app) {
     // also quit the window when webview close
     g_application_quit(G_APPLICATION(gtk_app));
 }
 
-static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_context, char *webextension_dir) {
+static void webkit_context_initialize_extensions_callback(WebKitWebContext *webkit_context, const char *webextension_dir) {
 
     char *webext_file = "libweb-extension-proxy.so";
     char *webext_filepath = g_build_filename(webextension_dir, webext_file, NULL);
@@ -241,29 +241,45 @@ static void app_webview_initialize_extensions_callback(WebKitWebContext *webkit_
     webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webextension_data);
 }
 
-static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir) {
+static WebKitWebView *webview_create_with_settings(GtkApplication *gtk_app, char *webextension_dir) {
 
     WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
         "enable-javascript", TRUE,
+        // always load images
         "auto-load-images", TRUE,
-        "enable-page-cache", FALSE, // disable cache, we simply use local files
-        "allow-file-access-from-file-urls", TRUE, // todo allow xhr request
+        // disable cache, we don't need it because we only use static html files
+        "enable-page-cache", FALSE,
+        // Whether file access is allowed from file URLs
+        "allow-file-access-from-file-urls", TRUE,
+        // Whether or not JavaScript running in the context of a file scheme URL should be allowed to access content from any origin
+        "allow-universal-access-from-file-urls", TRUE,
+
+        // disable unused features active by default
+        "enable-plugins", FALSE,
+        "enable-java", FALSE,
+        "enable-html5-database", FALSE,
+
         #if PACKAGE_DEVELOPER_MODE
-        "allow-universal-access-from-file-urls", TRUE, // access ressources locally
-        "enable-write-console-messages-to-stdout", TRUE, // debug settings
         "enable-developer-extras", TRUE,
+        // "enable-write-console-messages-to-stdout", TRUE,
         #endif
     NULL);
 
-    WebKitWebContext *webkit_context = webkit_web_context_get_default();
+    WebKitWebContext *webkit_context = webkit_web_context_new_ephemeral();
 
-    // Callback when initialize extensions
+    // Callback when initialize extensions (cannot init extension on new context)
     g_signal_connect(webkit_context, "initialize-web-extensions",
-        G_CALLBACK(app_webview_initialize_extensions_callback), webextension_dir
+        G_CALLBACK(webkit_context_initialize_extensions_callback), webextension_dir
     );
 
-    WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(webkit_settings));
+    // WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(webkit_settings));
+    WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
+        "web-context", webkit_context,
+        "settings", webkit_settings,
+        // An ephemeral context will handles all websites data as non-persistent. This is normally used to implement private instances
+        "is-ephemeral", webkit_web_context_is_ephemeral(webkit_context),
+    NULL));
 
     // set default background color (same as title bar + fade effect on css)
     GdkRGBA background_color;
@@ -271,9 +287,7 @@ static WebKitWebView *app_webview_create_with_settings(GtkApplication *gtk_app, 
     webkit_web_view_set_background_color(webkit_view, &background_color);
 
     // Callback when browser instance is closed, the program will also exit
-    g_signal_connect(webkit_view, "close",
-        G_CALLBACK(app_webview_close_callback), gtk_app
-    );
+    g_signal_connect(webkit_view, "close", G_CALLBACK(webkit_view_close_callback), gtk_app);
 
     return webkit_view;
 }
@@ -370,7 +384,7 @@ static void app_show_show_interactive_dialog(GtkApplication* gtk_app, WebviewApp
     }
 
     // Create main webkit2gtk webview
-    WebKitWebView *webview = app_webview_create_with_settings(gtk_app, PACKAGE_WEB_EXTENSIONS_DIR);
+    WebKitWebView *webview = webview_create_with_settings(gtk_app, PACKAGE_WEB_EXTENSIONS_DIR);
 
     // Put the browser area into the main window
     gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));

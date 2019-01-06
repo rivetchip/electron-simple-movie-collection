@@ -139,6 +139,7 @@ static gboolean web_page_send_request_callback(
 }
 
 static void web_page_console_message_callback(WebKitWebPage *web_page, WebKitConsoleMessage *console_message) {
+    // fixme: console-log not send to stdout when ephemeral context ??
 
     g_message("extension:console #%i - %s",
         webkit_console_message_get_line(console_message),
