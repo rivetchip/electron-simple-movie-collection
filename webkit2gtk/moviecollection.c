@@ -478,11 +478,15 @@ static int app_handle_local_options_callback(WebviewApplication* webapp, GVarian
 
 int main(int argc, char* argv[]) {
 
-    // hacks workaround slow computers
-    // putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
-
     #if PACKAGE_DEVELOPER_MODE
         g_message("Dev mode");
+
+        // hacks workaround slow computers
+        putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
+
+        // inspector debug
+        // putenv("GTK_DEBUG=all");
+        putenv("GOBJECT_DEBUG=instance-count");
     #endif
 
 
