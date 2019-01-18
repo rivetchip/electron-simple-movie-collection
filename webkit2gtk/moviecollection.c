@@ -16,8 +16,6 @@ coredumpctl list => gdb / coredumpctl gdb
 #include <webkit2/webkit2.h>
 
 
-
-//todo:freed everything
 typedef struct {
     GtkApplication parent_instance;
 
@@ -33,6 +31,7 @@ typedef struct {
 typedef GtkApplicationClass WebviewApplicationClass;
 
 G_DEFINE_TYPE(WebviewApplication, webview_application, GTK_TYPE_APPLICATION);
+
 
 static void webview_application_init(WebviewApplication *app) {
     g_message(__func__);
@@ -82,7 +81,7 @@ static void app_window_store_state(WebviewApplication *webapp) {
         }
     }
 
-    g_key_file_unref(keyfile);
+    g_key_file_free(keyfile);
     g_free(state_path);
     g_free(state_file);
 }
@@ -111,7 +110,7 @@ static void app_window_load_state(WebviewApplication *webapp) {
         error_read == NULL ? (webapp->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
     }
 
-    g_key_file_unref(keyfile);
+    g_key_file_free(keyfile);
     g_free(state_file);
 }
 
@@ -174,6 +173,8 @@ static GtkWidget *app_headerbar_create_button(
 
         gtk_image = gtk_image_new_from_icon_name(icon_symbolic, GTK_ICON_SIZE_MENU);
     }
+
+    g_free(icon_path);
 
     gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image);
 
