@@ -17,19 +17,9 @@ import {map, filter} from './helpers'
 import {fetchmovie} from './moviesapi-protocol'
 
 // platform specifics javascript bridges & interfaces
-import {WebkitgtkBridge, AndroidBridge, ElectronBridge} from './platform-specific'
+import {DeviceBridge} from './platform-specific'
 
-let $bridge
-
-map({
-    'WebkitgtkInterface': WebkitgtkBridge,
-    'AndroidInterface': AndroidBridge,
-    'ElectronInterface': ElectronBridge
-}, function(callback, interfaceName) {
-    if(interfaceName in window) {
-        $bridge = callback(window[interfaceName])
-    }
-})
+let $bridge = DeviceBridge(window.WebkitgtkInterface || window.AndroidInterface || window.ElectronInterface);
 
 // disable eval
 window.eval = global.eval = () => {throw 'no eval'}
@@ -48,6 +38,7 @@ var x = fetchmovie({source:'tmdb', lang:'en', action:'movie', keyword:78})
 })
 */
 
+console.log($bridge)
 
 function identity(v) {
     return v
@@ -61,7 +52,7 @@ const state = { // initial state
     isLoading: false,
     isHamburgerOpen: false,
     // if fullscreen, remove margin around fake window
-    isFullscreen: ['mobile', 'desktop-webview'].includes($bridge.platform),
+    isFullscreen: ['mobile', 'desktop'].includes($bridge.platform),
     // if mobile : smaller interface
     isMobile: ['mobile'].includes($bridge.platform),
     // remove header bar controls if we already have a real window
@@ -104,24 +95,6 @@ state.isFullscreen = true;
 
 
 const actions = {
-
-    // Application titlebar
-
-    onAppClose: () => {
-        return $bridge.applicationClose()
-    },
-    onAppMinimize: () => {
-        return $bridge.applicationMinimize()
-    },
-    onAppMaximize: () => {
-        return $bridge.applicationMaximize()
-    },
-
-    // when user click fullscreen on the main app
-    onAppFullscreen: ({status}) => {
-        return {isFullscreen: status}
-    },
-
 
     // Application toolbar
 
@@ -187,21 +160,26 @@ const actions = {
 
 
 
-    openPanelPreview: ({movieHash}) => (state, actions) => {
+    openPanelPreview: ({movieHash, movie}) => (state, actions) => {
         console.log('openPanelPreview', movieHash)
 
-        let movie = state.collection[movieHash]
-
-        if(movie) {// TODO better
-            return {movieHash, movie, location: 'preview', isHamburgerOpen: false}
-        }
+        return {location: 'preview', movieHash, movie, isHamburgerOpen: false}
     },
 
     // set the selected ; then open the preview
     onSidebarClick: ({movieHash}) => async (state, actions) => {
         console.log('onSidebarClick', movieHash)
 
-        return actions.openPanelPreview({movieHash})
+        let movie = Object.assign({}, state.collection[movieHash])
+
+        try {
+            movie.poster_url = await $bridge.getPoster(movie.poster)
+        }
+        catch(error) {
+            console.log('onSidebarClick >> '+error)
+        }
+
+        return actions.openPanelPreview({movieHash, movie})
     },
 
     // filter collection based on keyword search
