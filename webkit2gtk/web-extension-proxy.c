@@ -1,61 +1,116 @@
-
+#include <config.h> //build generated
+#include <stdlib.h>
+#include <glib.h>
 #include <webkit2/webkit-web-extension.h>
 #include <JavaScriptCore/JavaScript.h>
 
+static char *storageFilename;
+static char *storageFolder;
+static char *storagePosters;
+
+//todo: use glib socket to commucate with main for ask open file via gtk chooser
+
 
 static JSCValue* javascriptinterface_open_collection(WebKitWebExtension *extension) {
-
     JSCContext *context = jsc_context_get_current();
 
-    GError *error_read = NULL;
+    GError *error = NULL;
+    char *contents = NULL;
 
-    char *content = NULL;
-    g_file_get_contents("/home/fox/Bureau/vscode", &content, NULL, &error_read);
+    bool success = (
+        // create save path if not set
+        g_mkdir_with_parents(storageFolder, 0755) == 0 &&
+        g_file_get_contents(
+            g_build_filename(storageFolder, storageFilename, NULL),
+            &contents, NULL, &error
+        )
+    );
 
-    if(error_read != NULL) {
-        g_warning("extension:cannot open collection : %s", error_read->message);
-        g_clear_error(&error_read);
+    if(success && contents) {
+        return jsc_value_new_string(context, contents);
     }
 
-    return jsc_value_new_string(context, content);
+    if(error != NULL) {
+        g_warning("extension:cannot open collection : %s", error->message);
+        g_clear_error(&error);
+    }
+
+    return jsc_value_new_boolean(context, FALSE);
 }
 
-static JSCValue* javascriptinterface_save_collection(WebKitWebExtension *extension, const char *collect_content) {
-
+static JSCValue* javascriptinterface_save_collection(WebKitWebExtension *extension, const char *contents) {
     JSCContext *context = jsc_context_get_current();
 
-    bool success = FALSE;
+    GError *error = NULL;
 
+    bool success = (
+        // create save path if not set
+        g_mkdir_with_parents(storageFolder, 0755) == 0 &&
+        g_file_set_contents(
+            g_build_filename(storageFolder, storageFilename, NULL),
+            contents, -1, &error
+        )
+    );
 
+    if(success) {
+        return jsc_value_new_boolean(context, TRUE);
+    }
 
-    return jsc_value_new_boolean(context, success);
+    if(error != NULL) {
+        g_warning("extension:cannot save collection : %s", error->message);
+        g_clear_error(&error);
+    }
+
+    return jsc_value_new_boolean(context, FALSE);
 }
 
 static JSCValue* javascriptinterface_get_poster(WebKitWebExtension *extension, const char *poster_name) {
-
     JSCContext *context = jsc_context_get_current();
 
-    char *filename = NULL;
+    char *filename = g_build_filename(storagePosters, poster_name, NULL);
 
+    bool success = (g_file_test(filename, G_FILE_TEST_IS_REGULAR));
 
+    if(success) {
+        // return full poster path
+        return jsc_value_new_string(context, g_build_filename("file://", filename, NULL));
+    }
 
-filename = "sqdqsdqq";
-
-
-    return jsc_value_new_string(context, filename);
+    return jsc_value_new_boolean(context, FALSE);
 }
 
-static JSCValue* javascriptinterface_save_poster(WebKitWebExtension *extension, const char *poster_name, const char *poster_content) {
-
+static JSCValue* javascriptinterface_save_poster(WebKitWebExtension *extension, const char *poster_name, const char *contents) {
     JSCContext *context = jsc_context_get_current();
 
-    bool success = FALSE;
+    GError *error = NULL;
 
+    char *filename = g_build_filename(storagePosters, poster_name, NULL);
 
+    bool success = (
+        // create save path if not set
+        g_mkdir_with_parents(storagePosters, 0755) == 0 &&
+        g_file_set_contents(
+            g_build_filename(storagePosters, filename, NULL),
+            contents, -1, &error
+        )
+    );
 
-    return jsc_value_new_boolean(context, success);
+    if(success) {
+        // return full poster path
+        return jsc_value_new_string(context, g_build_filename("file://", filename, NULL));
+    }
+
+    if(error != NULL) {
+        g_warning("extension:cannot save poster : %s", error->message);
+        g_clear_error(&error);
+    }
+
+    return jsc_value_new_boolean(context, FALSE);
 }
 
+static bool javascriptinterface_get_developer_mode(WebKitWebExtension *extension) {
+    return PACKAGE_DEVELOPER_MODE;
+}
 
 
 
@@ -75,7 +130,13 @@ static void webkit_world_window_cleared_callback(
 
     JSCClass *js_class = jsc_context_register_class(jsc_context, "WebkitgtkInterface", NULL, NULL, NULL);
 
-    // jsc_class_add_property(js_class, "version", G_TYPE_INT, )
+    jsc_class_add_property(
+        js_class, "developer_mode", G_TYPE_BOOLEAN,
+        G_CALLBACK(javascriptinterface_get_developer_mode),
+        NULL, // callback
+        NULL, // user_data
+        NULL // destroy_notify
+    );
 
     jsc_class_add_method(
         js_class, "openCollection",
@@ -163,10 +224,20 @@ G_MODULE_EXPORT void webkit_web_extension_initialize_with_user_data(WebKitWebExt
     g_assert(WEBKIT_IS_WEB_EXTENSION(extension));
 
     const int unique_id;
-    const char *webextension_dir;
+    const char *appid;
+    const char *webext_file;
 
-    g_variant_get(user_data, "(is)", &unique_id, &webextension_dir);
+    g_variant_get(user_data, "(iss)", &unique_id, &appid, &webext_file);
 
+    // set user defined storage todo
+    storageFilename = "moviecollection.json";
+    storageFolder = g_build_filename(g_get_user_data_dir(), appid, NULL);
+    storagePosters = g_build_filename(storageFolder, "posters", NULL);
+
+    #if PACKAGE_DEVELOPER_MODE
+        storageFolder = g_build_filename(PACKAGE_BUILD_ROOT, "test-collection", NULL);
+        storagePosters = g_build_filename(PACKAGE_BUILD_ROOT, "test-posters", NULL);
+    #endif
 
     WebKitScriptWorld *webkit_world = webkit_script_world_get_default(); //webkit_script_world_new_with_name
 
