@@ -9,7 +9,6 @@ coredumpctl list => gdb / coredumpctl gdb
 */
 
 #include <config.h> //build generated
-
 #include <stdlib.h>
 #include <glib.h>
 #include <gtk/gtk.h>
@@ -71,12 +70,12 @@ static void app_window_store_state(WebviewApplication *webapp) {
     char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
     char *state_file = g_build_filename(state_path, "state.ini", NULL);
 
-    // create save âth if not set
-    if(g_mkdir_with_parents(state_path, 0755) > -1) { // error=-1 exist=0
+    // create save path if not set
+    if(g_mkdir_with_parents(state_path, 0755) == 0) { // error=-1 exist=0
 
         GError *error_save = NULL;
         if(!g_key_file_save_to_file(keyfile, state_file, &error_save)) {
-            g_warning("app:window_store_state Error: %s", error_save->message);
+            g_warning("app:window store state / %s", error_save->message);
             g_clear_error(&error_save);
         }
     }
@@ -244,31 +243,31 @@ static void webkit_view_close_callback(WebKitWebView* Webview, WebviewApplicatio
     g_application_quit(G_APPLICATION(webapp));
 }
 
-static void webkit_context_initialize_extensions_callback(WebKitWebContext *webkit_context, const char *webextension_dir) {
+static void webkit_context_initialize_extensions_callback(WebKitWebContext *webkit_context, WebviewApplication *webapp) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(webapp));
 
-    char *webext_file = "libweb-extension-proxy.so";
-    char *webext_filepath = g_build_filename(webextension_dir, webext_file, NULL);
+    char *webext_file = g_build_filename(PACKAGE_WEB_EXTENSIONS_DIR, "libweb-extension-proxy.so", NULL);
 
-    if(!g_file_test(webext_filepath, G_FILE_TEST_IS_REGULAR)) {
+    if(!g_file_test(webext_file, G_FILE_TEST_IS_REGULAR)) {
         // extension not found, abort()
-        g_error("app:initialize web extension '%s' not found", webext_filepath);
+        g_error("app:initialize web extension '%s' not found", webext_file);
     }
 
     //Web Extensions get a different ID for each Web Process
     static int unique_id = 0;
 
-    GVariant *webextension_data = g_variant_new(
-        "(is)", (unique_id++), webextension_dir
+    GVariant *webext_data = g_variant_new(
+        "(iss)", (unique_id++), appid, webext_file
     );
 
     // Use one process for each WebKitWebView
     webkit_web_context_set_process_model(webkit_context, WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
 
-    webkit_web_context_set_web_extensions_directory(webkit_context, webextension_dir);
-    webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webextension_data);
+    webkit_web_context_set_web_extensions_directory(webkit_context, PACKAGE_WEB_EXTENSIONS_DIR);
+    webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webext_data);
 }
 
-static WebKitWebView *webview_create_with_settings(WebviewApplication *webapp, char *webextension_dir) {
+static WebKitWebView *webview_create_with_settings(WebviewApplication *webapp) {
 
     WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
         "default-charset", "utf8",
@@ -298,7 +297,7 @@ static WebKitWebView *webview_create_with_settings(WebviewApplication *webapp, c
 
     // Callback when initialize extensions (cannot init extension on new context)
     g_signal_connect(webkit_context, "initialize-web-extensions",
-        G_CALLBACK(webkit_context_initialize_extensions_callback), webextension_dir
+        G_CALLBACK(webkit_context_initialize_extensions_callback), webapp
     );
 
     // WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(webkit_settings));
@@ -409,7 +408,7 @@ static void app_show_interactive_dialog(WebviewApplication* webapp) {
     }
 
     // Create main webkit2gtk webview
-    WebKitWebView *webview = webview_create_with_settings(webapp, PACKAGE_WEB_EXTENSIONS_DIR);
+    WebKitWebView *webview = webview_create_with_settings(webapp);
 
     // Put the browser area into the main window
     gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
@@ -478,11 +477,12 @@ static int app_handle_local_options_callback(WebviewApplication* webapp, GVarian
 
 int main(int argc, char* argv[]) {
 
+    // hacks workaround slow computers
+    putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
+
+
     #if PACKAGE_DEVELOPER_MODE
         g_message("Dev mode");
-
-        // hacks workaround slow computers
-        putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
 
         // inspector debug
         // putenv("GTK_DEBUG=all");
