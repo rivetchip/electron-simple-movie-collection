@@ -68,7 +68,9 @@ export const ComponentPanelPreview = ({ movieHash, movie }) => (
 
             </div>
 
-            <img class="video-poster" src={movie.poster} />
+            {movie.poster_url && 
+                <img class="video-poster" src={movie.poster_url} />
+            }
 
             {/* {poster && 
                 <div class="video-poster" style={{backgroundImage: 'url(' + poster + ')'}}></div>
