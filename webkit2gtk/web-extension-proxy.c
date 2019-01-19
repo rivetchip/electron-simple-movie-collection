@@ -9,7 +9,7 @@ static char *storageFolder;
 static char *storagePosters;
 
 //todo: use glib socket to commucate with main for ask open file via gtk chooser
-
+//todo: freed * on jsinterface
 
 static JSCValue* javascriptinterface_open_collection(WebKitWebExtension *extension) {
     JSCContext *context = jsc_context_get_current();
