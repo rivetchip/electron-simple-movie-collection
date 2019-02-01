@@ -1,0 +1,29 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "meson:dev",
+            "type": "shell",
+            "command": "meson -Ddeveloper_mode=true $builddir --buildtype=debugoptimized && ninja -C $builddir",
+            "options": {
+                "env": {
+                    "builddir": "devbuild"
+                },
+                "cwd": "${workspaceFolder}/webkit2gtk/",
+            }
+        },
+        {
+            "label": "meson:release",
+            "type": "shell",
+            "command": "meson $builddir && ninja -C $builddir",
+            "options": {
+                "env": {
+                    "builddir": "releasebuild"
+                },
+                "cwd": "${workspaceFolder}/webkit2gtk/",
+            }
+        },
+    ]
+}

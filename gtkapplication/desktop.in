@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Monster Movie Collection
+GenericName=Movie Collection
+Comment=Manage your favorite movies collection!
+Exec=@exec_command@
+Icon=@icon_name@
+Terminal=false
+Type=Application
+Categories=GTK;GNOME;Utility;
