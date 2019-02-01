@@ -13,3 +13,4 @@ android/res/mipmap-*
 android/**/R.java
 __ideas
 webkit2gtk/*build
+gtkapplication/*build
