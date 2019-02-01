@@ -12,7 +12,7 @@ coredumpctl list => gdb / coredumpctl gdb
 #include <stdlib.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <webkit2/webkit2.h>
+#include <stdbool.h> 
 
 
 typedef struct {
@@ -24,30 +24,30 @@ typedef struct {
     bool is_maximized;
     bool is_fullscreen;
 
-} WebviewApplication;
+} MovieApplication;
 
-// typedef GtkApplication WebviewApplication;
-typedef GtkApplicationClass WebviewApplicationClass;
+// typedef GtkApplication MovieApplication;
+typedef GtkApplicationClass MovieApplicationClass;
 
-G_DEFINE_TYPE(WebviewApplication, webview_application, GTK_TYPE_APPLICATION);
+G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
 
-static void webview_application_init(WebviewApplication *app) {
+static void movie_application_init(MovieApplication *app) {
     g_message(__func__);
 }
 
-static void webview_application_class_init(WebviewApplicationClass *class) {
+static void movie_application_class_init(MovieApplicationClass *class) {
     // GApplicationClass *app_class = G_APPLICATION_CLASS(class);
 
     // app_class->startup = demo_application_startup;
     // app_class->activate = demo_application_activate;
 }
 
-WebviewApplication *webview_application_new(const char *application_id, GApplicationFlags flags) {
+MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
     
     g_return_val_if_fail(g_application_id_is_valid(application_id), NULL);
     
-    return g_object_new(webview_application_get_type(),
+    return g_object_new(movie_application_get_type(),
         "application-id", application_id,
         "flags", flags,
     NULL);
@@ -56,15 +56,15 @@ WebviewApplication *webview_application_new(const char *application_id, GApplica
 
 
 
-static void app_window_store_state(WebviewApplication *webapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(webapp));
+static void mainwindow_store_state(MovieApplication *mapp) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
     GKeyFile *keyfile = g_key_file_new();
 
-    g_key_file_set_integer(keyfile, "WindowState", "height", webapp->win_height);
-    g_key_file_set_integer(keyfile, "WindowState", "width", webapp->win_width);
-    g_key_file_set_boolean(keyfile, "WindowState", "maximized", webapp->is_maximized);
-    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", webapp->is_fullscreen);
+    g_key_file_set_integer(keyfile, "WindowState", "height", mapp->win_height);
+    g_key_file_set_integer(keyfile, "WindowState", "width", mapp->win_width);
+    g_key_file_set_boolean(keyfile, "WindowState", "maximized", mapp->is_maximized);
+    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", mapp->is_fullscreen);
 
     // save file under $XDG_CACHE_HOME
     char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
@@ -85,8 +85,8 @@ static void app_window_store_state(WebviewApplication *webapp) {
     g_free(state_file);
 }
 
-static void app_window_load_state(WebviewApplication *webapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(webapp));
+static void mainwindow_load_state(MovieApplication *mapp) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
     char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
 
@@ -97,59 +97,54 @@ static void app_window_load_state(WebviewApplication *webapp) {
         GError *error_read = NULL;
 
         int state_height = g_key_file_get_integer(keyfile, "WindowState", "height", &error_read);
-        error_read == NULL ? (webapp->win_height = state_height) : g_clear_error(&error_read);
+        error_read == NULL ? (mapp->win_height = state_height) : g_clear_error(&error_read);
 
         int state_width = g_key_file_get_integer(keyfile, "WindowState", "width", &error_read);
-        error_read == NULL ? (webapp->win_width = state_width) : g_clear_error(&error_read);
+        error_read == NULL ? (mapp->win_width = state_width) : g_clear_error(&error_read);
 
         bool state_maximized = g_key_file_get_boolean(keyfile, "WindowState", "maximized", &error_read);
-        error_read == NULL ? (webapp->is_maximized = state_maximized) : g_clear_error(&error_read);
+        error_read == NULL ? (mapp->is_maximized = state_maximized) : g_clear_error(&error_read);
 
         int state_fullscreen = g_key_file_get_boolean(keyfile, "WindowState", "fullscreen", &error_read);
-        error_read == NULL ? (webapp->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
+        error_read == NULL ? (mapp->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
     }
 
     g_key_file_free(keyfile);
     g_free(state_file);
 }
 
-static bool app_window_state_event_callback(GtkWidget *window, GdkEventWindowState *event, WebviewApplication *webapp) {
+static bool signal_mainwindow_state_event(GtkWidget *window, GdkEventWindowState *event, MovieApplication *mapp) {
     GdkWindowState window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
-    webapp->is_maximized = (window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
+    mapp->is_maximized = (window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
 
-    webapp->is_fullscreen = (window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+    mapp->is_fullscreen = (window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 
     return GDK_EVENT_PROPAGATE;
 }
 
-static void app_window_size_allocate_callback(GtkWidget *window, GdkRectangle *allocation, WebviewApplication *webapp) {
+static void signal_mainwindow_size_allocate(GtkWidget *window, GdkRectangle *allocation, MovieApplication *mapp) {
     // save the window geometry only if we are not maximized of fullscreen
-    if(!(webapp->is_maximized || webapp->is_fullscreen)) {
+    if(!(mapp->is_maximized || mapp->is_fullscreen)) {
         // use gtk_ ; Using the allocation directly can lead to growing windows with client-side decorations
         gtk_window_get_size(GTK_WINDOW(window),
-            &webapp->win_width,
-            &webapp->win_height
+            &mapp->win_width,
+            &mapp->win_height
         );
     }
 }
 
-static void app_window_destroy_callback(GtkWidget *window, WebviewApplication *webapp) {
-    g_application_quit(G_APPLICATION(webapp));
+static void signal_mainwindow_destroy(GtkWidget *window) {
+    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
+    g_application_quit(G_APPLICATION(gtkapp));
 }
 
 // create a gtk button with an icon inside
-static GtkWidget *app_headerbar_create_button(
-    const char *ressources_dir,
-    const char *icon_name,
-    const char *class_name,
-    const void *click_event,
-    WebviewApplication *webapp
-) {
+static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name, void *click_event, MovieApplication *mapp) {
     char icon_svg[20];
     sprintf(icon_svg, "%s.svg", icon_name);
 
-    char *icon_path = g_build_filename(ressources_dir, icon_svg, NULL);
+    char *icon_path = g_build_filename(PACKAGE_RESSOURCES_DIR, icon_svg, NULL);
 
     GtkWidget *gtk_button = gtk_button_new();
 
@@ -158,7 +153,7 @@ static GtkWidget *app_headerbar_create_button(
     }
 
     if(click_event != NULL) {
-        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), webapp);
+        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), mapp);
     }
 
     GtkWidget *gtk_image;
@@ -180,11 +175,11 @@ static GtkWidget *app_headerbar_create_button(
     return gtk_button;
 }
 
-static void app_headerbar_close_callback(GtkButton* button, WebviewApplication *webapp) {
-    g_application_quit(G_APPLICATION(webapp));
+static void signal_headerbar_close(GtkButton* button, MovieApplication *mapp) {
+    g_application_quit(G_APPLICATION(mapp));
 }
 
-static void app_headerbar_minimize_callback(GtkButton* button, WebviewApplication *webapp) {
+static void signal_headerbar_minimize(GtkButton* button, MovieApplication *mapp) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
@@ -193,7 +188,7 @@ static void app_headerbar_minimize_callback(GtkButton* button, WebviewApplicatio
     }
 }
 
-static void app_headerbar_maximize_callback(GtkButton* button, WebviewApplication *webapp) {
+static void signal_headerbar_maximize(GtkButton* button, MovieApplication *mapp) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
@@ -202,7 +197,7 @@ static void app_headerbar_maximize_callback(GtkButton* button, WebviewApplicatio
     }
 }
 
-static GtkWidget *app_headerbar_create(WebviewApplication *webapp, char* ressources_dir) {
+static GtkWidget *app_headerbar_create(MovieApplication *mapp) {
 
     // Set GTK CSD HeaderBar
     GtkWidget *header_bar = gtk_header_bar_new();
@@ -219,16 +214,16 @@ static GtkWidget *app_headerbar_create(WebviewApplication *webapp, char* ressour
 
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
-        ressources_dir, "window-close", "titlebutton",
-        app_headerbar_close_callback, webapp
+        "window-close", "titlebutton",
+        signal_headerbar_close, mapp
     );
     GtkWidget *btn_minimize = app_headerbar_create_button(
-        ressources_dir, "window-minimize", "titlebutton",
-        app_headerbar_minimize_callback, webapp
+        "window-minimize", "titlebutton",
+        signal_headerbar_minimize, mapp
     );
     GtkWidget *btn_maximize = app_headerbar_create_button(
-        ressources_dir, "window-maximize", "titlebutton",
-        app_headerbar_maximize_callback, webapp
+        "window-maximize", "titlebutton",
+        signal_headerbar_maximize, mapp
     );
 
     gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
@@ -238,100 +233,19 @@ static GtkWidget *app_headerbar_create(WebviewApplication *webapp, char* ressour
     return header_bar;
 }
 
-static void webkit_view_close_callback(WebKitWebView* Webview, WebviewApplication *webapp) {
-    // also quit the window when webview close
-    g_application_quit(G_APPLICATION(webapp));
-}
-
-static void webkit_context_initialize_extensions_callback(WebKitWebContext *webkit_context, WebviewApplication *webapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(webapp));
-
-    char *webext_file = g_build_filename(PACKAGE_WEB_EXTENSIONS_DIR, "libweb-extension-proxy.so", NULL);
-
-    if(!g_file_test(webext_file, G_FILE_TEST_IS_REGULAR)) {
-        // extension not found, abort()
-        g_error("app:initialize web extension '%s' not found", webext_file);
-    }
-
-    //Web Extensions get a different ID for each Web Process
-    static int unique_id = 0;
-
-    GVariant *webext_data = g_variant_new(
-        "(iss)", (unique_id++), appid, webext_file
-    );
-
-    // Use one process for each WebKitWebView
-    webkit_web_context_set_process_model(webkit_context, WEBKIT_PROCESS_MODEL_MULTIPLE_SECONDARY_PROCESSES);
-
-    webkit_web_context_set_web_extensions_directory(webkit_context, PACKAGE_WEB_EXTENSIONS_DIR);
-    webkit_web_context_set_web_extensions_initialization_user_data(webkit_context, webext_data);
-}
-
-static WebKitWebView *webview_create_with_settings(WebviewApplication *webapp) {
-
-    WebKitSettings *webkit_settings = webkit_settings_new_with_settings(
-        "default-charset", "utf8",
-        "enable-javascript", TRUE,
-        // always load images
-        "auto-load-images", TRUE,
-        // disable cache, we don't need it because we only use static html files
-        "enable-page-cache", FALSE,
-        // Whether file access is allowed from file URLs
-        "allow-file-access-from-file-urls", TRUE,
-        // Whether or not JavaScript running in the context of a file scheme URL should be allowed to access content from any origin
-        "allow-universal-access-from-file-urls", TRUE,
-
-        // disable unused features active by default
-        "enable-plugins", FALSE,
-        "enable-java", FALSE,
-        "enable-html5-database", FALSE,
-
-        #if PACKAGE_DEVELOPER_MODE
-        "enable-developer-extras", TRUE,
-        // "enable-write-console-messages-to-stdout", TRUE,
-        #endif
-    NULL);
-
-    // An ephemeral context will handles all websites data as non-persistent, this is normally used to implement private instances
-    WebKitWebContext *webkit_context = webkit_web_context_new_ephemeral();
-
-    // Callback when initialize extensions (cannot init extension on new context)
-    g_signal_connect(webkit_context, "initialize-web-extensions",
-        G_CALLBACK(webkit_context_initialize_extensions_callback), webapp
-    );
-
-    // WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(webkit_web_view_new_with_settings(webkit_settings));
-    WebKitWebView *webkit_view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
-        "web-context", webkit_context,
-        "settings", webkit_settings,
-        "is-ephemeral", webkit_web_context_is_ephemeral(webkit_context),
-    NULL));
-
-    // set default background color (same as title bar + fade effect on css)
-    GdkRGBA background_color;
-    gdk_rgba_parse(&background_color, "#2c3133");
-    webkit_web_view_set_background_color(webkit_view, &background_color);
-
-    // Callback when browser instance is closed, the program will also exit
-    g_signal_connect(webkit_view, "close", G_CALLBACK(webkit_view_close_callback), webapp);
-
-    return webkit_view;
-}
-
-
-static void app_startup_callback(WebviewApplication *webapp) {
+static void signal_app_startup(MovieApplication *mapp) {
 
     // set application main config variables
 
     // load previous window state, if any
-    app_window_load_state(webapp);
+    mainwindow_load_state(mapp);
 }
 
-static void app_show_interactive_dialog(WebviewApplication* webapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(webapp));
+static void app_show_interactive_dialog(MovieApplication* mapp) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
     // Initialize GTK+
-    GtkWidget *main_window = gtk_application_window_new(GTK_APPLICATION(webapp));
+    GtkWidget *main_window = gtk_application_window_new(GTK_APPLICATION(mapp));
 
     // Create an 800x600 window that will contain the browser instance
     gtk_window_set_title(GTK_WINDOW(main_window), "Movie Collection");
@@ -347,7 +261,7 @@ static void app_show_interactive_dialog(WebviewApplication* webapp) {
     NULL);
 
     // hide window decorations of main app and use our own
-    GtkWidget *header_bar = app_headerbar_create(webapp, PACKAGE_RESSOURCES_DIR);
+    GtkWidget *header_bar = app_headerbar_create(mapp);
 
     // header bar
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
@@ -355,33 +269,33 @@ static void app_show_interactive_dialog(WebviewApplication* webapp) {
 
     // Callback when the main window is closed
     g_signal_connect(main_window, "destroy",
-        G_CALLBACK(app_window_destroy_callback), webapp
+        G_CALLBACK(signal_mainwindow_destroy), mapp
     );
 
     // on change state: minimize, maximize, etc
     g_signal_connect(GTK_WINDOW(main_window), "window-state-event",
-        G_CALLBACK(app_window_state_event_callback), webapp
+        G_CALLBACK(signal_mainwindow_state_event), mapp
     );
 
     // on change size
     g_signal_connect(GTK_WINDOW(main_window), "size-allocate",
-        G_CALLBACK(app_window_size_allocate_callback), webapp
+        G_CALLBACK(signal_mainwindow_size_allocate), mapp
     );
 
     // Load window preview state, if any
 
-    if(webapp->win_height > 0 && webapp->win_width > 0) {
+    if(mapp->win_height > 0 && mapp->win_width > 0) {
         gtk_window_set_default_size(GTK_WINDOW(main_window),
-            webapp->win_width,
-            webapp->win_height
+            mapp->win_width,
+            mapp->win_height
         );
     }
 
-    if(webapp->is_maximized) {
+    if(mapp->is_maximized) {
         gtk_window_maximize(GTK_WINDOW(main_window));
     }
 
-    if(webapp->is_fullscreen) {
+    if(mapp->is_fullscreen) {
         gtk_window_fullscreen(GTK_WINDOW(main_window));
     }
 
@@ -407,28 +321,28 @@ static void app_show_interactive_dialog(WebviewApplication* webapp) {
         );
     }
 
-    // Create main webkit2gtk webview
-    WebKitWebView *webview = webview_create_with_settings(webapp);
+    // Create main content
+
+
+
+
 
     // Put the browser area into the main window
-    gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
+    // gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
 
-    // Load the selected file into webkit webview
-    char *webview_page = g_build_filename("file://", PACKAGE_WEB_BUNDLE_DIR, "index.html", NULL);
 
-    webkit_web_view_load_uri(webview, webview_page);
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
-    gtk_widget_grab_focus(GTK_WIDGET(webview));
+    // gtk_widget_grab_focus(GTK_WIDGET(webview));
 
     // Make sure the main window and all its contents are visible
     gtk_widget_show_all(main_window);
 }
 
-static void app_activate_callback(WebviewApplication* webapp) {
+static void signal_app_activate(MovieApplication* mapp) {
 
     // Check if window is already active
-    GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(webapp));
+    GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(mapp));
 
     if(window != NULL) {
         gtk_window_present(window);
@@ -436,33 +350,32 @@ static void app_activate_callback(WebviewApplication* webapp) {
     }
 
     // Else, we show the main window
-    app_show_interactive_dialog(webapp);
+    app_show_interactive_dialog(mapp);
 }
 
-static void app_shutdown_callback(WebviewApplication* webapp) {
+static void signal_app_shutdown(MovieApplication* mapp) {
 
     // save current window state
-    app_window_store_state(webapp);
+    mainwindow_store_state(mapp);
 }
 
-static int app_commandline_callback(WebviewApplication* webapp, GApplicationCommandLine *cmdline) {
+static int signal_app_command_line(MovieApplication* mapp, GApplicationCommandLine *cmdline) {
     return 0; // exit
 }
 
-static void app_commandline_print_version(WebviewApplication* webapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(webapp));
+static void app_commandline_print_version(MovieApplication* mapp) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
-    g_print("%s - GTK:%d.%d.%d WebKit:%d.%d.%d \n", appid,
-        gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version(),
-        webkit_get_major_version(), webkit_get_minor_version(), webkit_get_micro_version()
+    g_print("%s - GTK:%d.%d.%d \n", appid,
+        gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version()
     );
 }
 
-static int app_handle_local_options_callback(WebviewApplication* webapp, GVariantDict *options) {
+static int signal_app_handle_local_options(MovieApplication* mapp, GVariantDict *options) {
     // handle command lines locally
 
     if(g_variant_dict_lookup(options, "version", "b", NULL)) {
-        app_commandline_print_version(webapp);
+        app_commandline_print_version(mapp);
         return 0;
     }
 
@@ -477,32 +390,30 @@ static int app_handle_local_options_callback(WebviewApplication* webapp, GVarian
 
 int main(int argc, char* argv[]) {
 
-    // hacks workaround slow computers
-    putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
-
-
     #if PACKAGE_DEVELOPER_MODE
         g_message("Dev mode");
-
+        // hacks workaround slow computers
+        putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
         // inspector debug
-        // putenv("GTK_DEBUG=all");
+        putenv("GTK_DEBUG=fatal-warnings");
         putenv("GOBJECT_DEBUG=instance-count");
+        // putenv("G_ENABLE_DIAGNOSTIC=1");
     #endif
 
 
     int status;
 
     // Instantiate the main app
-    WebviewApplication *webapp = webview_application_new(
+    MovieApplication *mapp = movie_application_new(
         PACKAGE_APPLICATION_ID,
         G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
     );
 
     // Add aplication main events flow (start with "_init")
-    g_signal_connect(webapp, "startup", G_CALLBACK(app_startup_callback), NULL);
-    g_signal_connect(webapp, "activate", G_CALLBACK(app_activate_callback), NULL);
-    g_signal_connect(webapp, "shutdown", G_CALLBACK(app_shutdown_callback), NULL);
-    // g_signal_connect(webapp, "open", G_CALLBACK(app_open_callback), NULL);
+    g_signal_connect(mapp, "startup", G_CALLBACK(signal_app_startup), NULL);
+    g_signal_connect(mapp, "activate", G_CALLBACK(signal_app_activate), NULL);
+    g_signal_connect(mapp, "shutdown", G_CALLBACK(signal_app_shutdown), NULL);
+    // g_signal_connect(mapp, "open", G_CALLBACK(signal_app_open), NULL);
 
     // Add app main arguments
     GOptionEntry entries[] = {
@@ -510,15 +421,15 @@ int main(int argc, char* argv[]) {
         {"inspect", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Open the interactive debugger", NULL},
         {NULL}
     };
-    g_application_add_main_option_entries(G_APPLICATION(webapp), entries);
+    g_application_add_main_option_entries(G_APPLICATION(mapp), entries);
 
-    g_signal_connect(webapp, "handle-local-options", G_CALLBACK(app_handle_local_options_callback), NULL);
-    g_signal_connect(webapp, "command-line", G_CALLBACK(app_commandline_callback), NULL); // received from remote
+    g_signal_connect(mapp, "handle-local-options", G_CALLBACK(signal_app_handle_local_options), NULL);
+    g_signal_connect(mapp, "command-line", G_CALLBACK(signal_app_command_line), NULL); // received from remote
 
     // Run the app and get its exit status
-    status = g_application_run(G_APPLICATION(webapp), argc, argv);
+    status = g_application_run(G_APPLICATION(mapp), argc, argv);
 
-    g_object_unref(webapp);
+    g_object_unref(mapp);
 
     return status;
 }
