@@ -11,7 +11,7 @@
                 "env": {
                     "builddir": "devbuild"
                 },
-                "cwd": "${workspaceFolder}/webkit2gtk/",
+                "cwd": "${workspaceFolder}/",
             }
         },
         {
@@ -22,7 +22,7 @@
                 "env": {
                     "builddir": "releasebuild"
                 },
-                "cwd": "${workspaceFolder}/webkit2gtk/",
+                "cwd": "${workspaceFolder}/",
             }
         },
     ]

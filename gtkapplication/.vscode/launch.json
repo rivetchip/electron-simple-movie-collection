@@ -6,10 +6,10 @@
             "name": "(gdb) meson:dev",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/webkit2gtk/devbuild/moviecollection",
+            "program": "${workspaceFolder}/devbuild/moviecollection",
             "args": ["--inspect"],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/webkit2gtk/",
+            "cwd": "${workspaceFolder}/",
             "environment": [],
             "MIMode": "gdb",
             "preLaunchTask": "meson:dev",
@@ -20,32 +20,6 @@
                     "ignoreFailures": true
                 }
             ]
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Electron Debug",
-            "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-            "program": "${workspaceFolder}/electron/index.js",
-            "protocol": "inspector",
-            "console": "internalConsole",
-            "outputCapture": "std",
-            "sourceMaps": true,
-            "env": {
-                "NODE_ENV": "development"
-            }
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Electron Debug (npm)",
-            "runtimeExecutable": "npm",
-            "runtimeArgs": ["run", "electron-debug"],
-            "port": 12345,
-            "protocol": "inspector",
-            "console": "internalConsole",
-            "outputCapture": "std",
-            "sourceMaps": true,
         }
     ]
 }
