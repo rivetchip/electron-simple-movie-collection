@@ -241,6 +241,76 @@ static void signal_app_startup(MovieApplication *mapp) {
     mainwindow_load_state(mapp);
 }
 
+
+
+
+
+
+static void signal_searchentry_changed(GtkSearchEntry *entry, MovieApplication *mapp) {
+
+}
+
+static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
+
+}
+
+static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
+
+    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+    // Sidebar search
+
+    GtkWidget *search_enty = gtk_search_entry_new();
+    g_signal_connect(search_enty, "search-changed",
+        G_CALLBACK(signal_searchentry_changed), mapp
+    );
+
+    GtkWidget *search_bar = gtk_search_bar_new();
+    gtk_widget_set_hexpand(GTK_WIDGET(search_enty), FALSE);
+
+    g_object_set(G_OBJECT(search_bar),
+        "search-mode-enabled", TRUE,
+        "show-close-button", FALSE,
+    NULL);
+
+    gtk_container_add(GTK_CONTAINER(search_bar), GTK_WIDGET(search_enty));
+
+    // Sidebar entries list
+
+    GtkWidget *list_scroll = gtk_scrolled_window_new(NULL, NULL); // horiz, vertical adjustement
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(list_scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+
+    GtkWidget *list_box = gtk_list_box_new();
+    gtk_style_context_add_class(gtk_widget_get_style_context(GTK_WIDGET(list_box)), "categories");
+    gtk_widget_set_size_request(GTK_WIDGET(list_box), 200, -1);
+
+    g_signal_connect(list_box, "row-selected", // todo prefer row-activated
+        G_CALLBACK(signal_listbox_entries_row_selected), mapp
+    );
+    //set_header_func
+
+    gtk_container_add(GTK_CONTAINER(list_scroll), GTK_WIDGET(list_box));
+
+    // Add all elements to sidebar
+    gtk_box_pack_start(GTK_BOX(box), search_bar, FALSE, FALSE, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(list_box), TRUE, TRUE, 0);
+
+    return box;
+}
+
+static GtkWidget *app_separator_create(MovieApplication *mapp) {
+
+    GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
+    gtk_style_context_add_class(gtk_widget_get_style_context(separator), "separator");
+
+    return separator;
+}
+
+
+
+
+
+
 static void app_show_interactive_dialog(MovieApplication* mapp) {
     const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
@@ -321,15 +391,22 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
         );
     }
 
+
     // Create main content
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    GtkWidget *sidebar = app_sidebar_create(mapp);
+    GtkWidget *separator = app_separator_create(mapp);
+
+    gtk_box_pack_start(GTK_BOX(main_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(main_box), separator, FALSE, FALSE, 0);
 
 
 
 
 
-    // Put the browser area into the main window
-    // gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(webview));
-
+    // Put the content area into the main window
+    gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(main_box));
 
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
