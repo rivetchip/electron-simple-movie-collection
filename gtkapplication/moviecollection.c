@@ -18,6 +18,9 @@ coredumpctl list => gdb / coredumpctl gdb
 typedef struct {
     GtkApplication parent_instance;
 
+    // application collection
+    GtkWidget *listbox;
+
     // application main window
     int win_height;
     int win_width;
@@ -55,6 +58,10 @@ MovieApplication *movie_application_new(const char *application_id, GApplication
 
 
 
+
+static void widget_add_class(GtkWidget *widget, char *class_name) {
+    gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
+}
 
 static void mainwindow_store_state(MovieApplication *mapp) {
     const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
@@ -149,7 +156,7 @@ static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name,
     GtkWidget *gtk_button = gtk_button_new();
 
     if(class_name != NULL) {
-        gtk_style_context_add_class(gtk_widget_get_style_context(gtk_button), class_name);
+        widget_add_class(gtk_button, class_name);
     }
 
     if(click_event != NULL) {
@@ -201,7 +208,7 @@ static GtkWidget *app_headerbar_create(MovieApplication *mapp) {
 
     // Set GTK CSD HeaderBar
     GtkWidget *header_bar = gtk_header_bar_new();
-    gtk_widget_set_name(header_bar, "header_bar");
+    gtk_widget_set_name(header_bar, "headerbar");
 
     // hide window decorationq of header bar
     gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), FALSE);
@@ -214,15 +221,15 @@ static GtkWidget *app_headerbar_create(MovieApplication *mapp) {
 
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
-        "window-close", "titlebutton",
+        "window-close", "headerbutton",
         signal_headerbar_close, mapp
     );
     GtkWidget *btn_minimize = app_headerbar_create_button(
-        "window-minimize", "titlebutton",
+        "window-minimize", "headerbutton",
         signal_headerbar_minimize, mapp
     );
     GtkWidget *btn_maximize = app_headerbar_create_button(
-        "window-maximize", "titlebutton",
+        "window-maximize", "headerbutton",
         signal_headerbar_maximize, mapp
     );
 
@@ -254,26 +261,29 @@ static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxR
 
 }
 
+
+
+
 static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(box, "sidebar");
 
     // Sidebar search
 
     GtkWidget *search_enty = gtk_search_entry_new();
+    widget_add_class(search_enty, "searchentry");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(search_enty), "Recherche");
+
     g_signal_connect(search_enty, "search-changed",
         G_CALLBACK(signal_searchentry_changed), mapp
     );
 
-    GtkWidget *search_bar = gtk_search_bar_new();
+    GtkWidget *search_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(search_box, "searchbar");
     gtk_widget_set_hexpand(GTK_WIDGET(search_enty), FALSE);
 
-    g_object_set(G_OBJECT(search_bar),
-        "search-mode-enabled", TRUE,
-        "show-close-button", FALSE,
-    NULL);
-
-    gtk_container_add(GTK_CONTAINER(search_bar), GTK_WIDGET(search_enty));
+    gtk_container_add(GTK_CONTAINER(search_box), GTK_WIDGET(search_enty));
 
     // Sidebar entries list
 
@@ -281,19 +291,21 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(list_scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
     GtkWidget *list_box = gtk_list_box_new();
-    gtk_style_context_add_class(gtk_widget_get_style_context(GTK_WIDGET(list_box)), "categories");
-    gtk_widget_set_size_request(GTK_WIDGET(list_box), 200, -1);
+    widget_add_class(list_box, "categories");
+    gtk_widget_set_size_request(GTK_WIDGET(list_box), 300, -1);
 
     g_signal_connect(list_box, "row-selected", // todo prefer row-activated
         G_CALLBACK(signal_listbox_entries_row_selected), mapp
     );
     //set_header_func
 
+    mapp->listbox = list_box;
+
     gtk_container_add(GTK_CONTAINER(list_scroll), GTK_WIDGET(list_box));
 
     // Add all elements to sidebar
-    gtk_box_pack_start(GTK_BOX(box), search_bar, FALSE, FALSE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(box), GTK_WIDGET(list_box), TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(box), search_box, FALSE, FALSE, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(box), list_scroll, TRUE, TRUE, 0);
 
     return box;
 }
@@ -301,10 +313,12 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
 static GtkWidget *app_separator_create(MovieApplication *mapp) {
 
     GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
-    gtk_style_context_add_class(gtk_widget_get_style_context(separator), "separator");
+    widget_add_class(separator, "separator");
 
     return separator;
 }
+
+
 
 
 
@@ -387,7 +401,7 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
         gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
             GTK_STYLE_PROVIDER(css_provider),
-            GTK_STYLE_PROVIDER_PRIORITY_USER
+            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
         );
     }
 
@@ -410,7 +424,7 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
-    // gtk_widget_grab_focus(GTK_WIDGET(webview));
+    gtk_widget_grab_focus(GTK_WIDGET(main_box));
 
     // Make sure the main window and all its contents are visible
     gtk_widget_show_all(main_window);
