@@ -63,6 +63,49 @@ static void widget_add_class(GtkWidget *widget, char *class_name) {
     gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
 }
 
+static char *widget_get_iconpath(char *icon_name) {
+    char icon_svg[20];
+    sprintf(icon_svg, "%s.svg", icon_name);
+
+    char *icon_path = g_build_filename(PACKAGE_RESSOURCES_DIR, icon_svg, NULL);
+
+    if(g_file_test(icon_path, G_FILE_TEST_IS_REGULAR)) {
+        return icon_path;
+    }
+
+    g_free(icon_path);
+
+    return NULL;
+}
+
+static GtkWidget *widget_get_child(GtkWidget *parent, char *child_name) {
+
+    if(strcmp(gtk_widget_get_name(parent), child_name) == 0) { 
+        return parent;
+    }
+
+    if(GTK_IS_BIN(parent)) { // container with one child
+        GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
+        return widget_get_child(child, child_name);
+    }
+
+    if(GTK_IS_CONTAINER(parent)) {
+        GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
+        while((children = g_list_next(children)) != NULL) {
+            GtkWidget* widget = widget_get_child(children->data, child_name);
+            if(widget != NULL) {
+                return widget;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+
+
+
+
 static void mainwindow_store_state(MovieApplication *mapp) {
     const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
@@ -250,19 +293,46 @@ static void signal_app_startup(MovieApplication *mapp) {
 
 
 
-
-
-
-static void signal_searchentry_changed(GtkSearchEntry *entry, MovieApplication *mapp) {
+static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) {
 
 }
+
+static void signal_searchentry_keyrelease(GtkEntry *entry, GdkEventKey *event, MovieApplication *mapp) {
+    if(event->keyval == GDK_KEY_Escape) {
+        gtk_entry_set_text(entry, "");
+    }
+}
+
+
+
 
 static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
+    int index = gtk_list_box_row_get_index(listrow);
 
+    g_message("select %i", index);
 }
 
 
 
+static GtkWidget *app_listbox_item_create(char *text) {
+
+    GtkWidget *label = gtk_label_new(text);
+    gtk_widget_set_name(label, "row");
+    gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
+    // gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+
+    // align left, verticial center
+    gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
+
+    GtkWidget *list_row = gtk_list_box_row_new();
+    widget_add_class(list_row, "category-item");
+    // gtk_widget_set_can_focus(list_row, FALSE);
+
+    gtk_container_add(GTK_CONTAINER(list_row), GTK_WIDGET(label));
+
+    return list_row;
+}
 
 static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
 
@@ -271,11 +341,21 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
 
     // Sidebar search
 
-    GtkWidget *search_enty = gtk_search_entry_new();
+    GtkWidget *search_enty = gtk_entry_new();
     widget_add_class(search_enty, "searchentry");
     gtk_entry_set_placeholder_text(GTK_ENTRY(search_enty), "Recherche");
 
-    g_signal_connect(search_enty, "search-changed",
+    char *search_icon = widget_get_iconpath("edit-find");
+    if(search_icon != NULL) {
+        GIcon *gicon = g_file_icon_new(g_file_new_for_path(search_icon));
+        gtk_entry_set_icon_from_gicon(GTK_ENTRY(search_enty), GTK_ENTRY_ICON_PRIMARY, gicon);
+    }
+
+    g_signal_connect(search_enty, "key-release-event",
+        G_CALLBACK(signal_searchentry_keyrelease), mapp
+    );
+
+    g_signal_connect(search_enty, "changed",
         G_CALLBACK(signal_searchentry_changed), mapp
     );
 
@@ -292,14 +372,13 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
 
     GtkWidget *list_box = gtk_list_box_new();
     widget_add_class(list_box, "categories");
-    gtk_widget_set_size_request(GTK_WIDGET(list_box), 300, -1);
+    gtk_widget_set_name(list_box, "categories");
 
-    g_signal_connect(list_box, "row-selected", // todo prefer row-activated
+    gtk_widget_set_size_request(GTK_WIDGET(list_box), 300, -1); // width height
+
+    g_signal_connect(list_box, "row-selected",
         G_CALLBACK(signal_listbox_entries_row_selected), mapp
     );
-    //set_header_func
-
-    mapp->listbox = list_box;
 
     gtk_container_add(GTK_CONTAINER(list_scroll), GTK_WIDGET(list_box));
 
@@ -410,10 +489,26 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     GtkWidget *sidebar = app_sidebar_create(mapp);
-    GtkWidget *separator = app_separator_create(mapp);
+    GtkWidget *listbox = widget_get_child(sidebar, "categories");
+    mapp->listbox = listbox;
 
     gtk_box_pack_start(GTK_BOX(main_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(main_box), separator, FALSE, FALSE, 0);
+    // gtk_box_pack_start(GTK_BOX(main_box), separator, FALSE, FALSE, 0);
+
+
+
+
+
+
+
+
+    GtkWidget *list_item = app_listbox_item_create("qsdsqsfsdsdsdfdsfd fsf sdfdsdfdsfdsfsfdsffsfdsdfsfdsq");
+    gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item));
+    GtkWidget *list_item2 = app_listbox_item_create("qsdsqdsq");
+    gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item2));
+    GtkWidget *list_item3 = app_listbox_item_create("OK OK TEST");
+    gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item3));
+
 
 
 
