@@ -1,3 +1,4 @@
+/* * {all: unset;} */
 
 /*reset header*/
 headerbar.titlebar,
@@ -5,7 +6,6 @@ button.headerbutton {
     /* all: unset; */
     background: transparent;
     background-image: none;
-    transition: all 200ms ease;
 }
 
 headerbar.titlebar {
@@ -22,6 +22,7 @@ button.headerbutton {
     border-radius: 4px;
     box-shadow: none;
     /* padding: 10px; */
+    transition: background-color 200ms ease;
 }
 button.headerbutton:hover {
     background-color: #1abc9c;
@@ -53,7 +54,6 @@ menu menuitem:hover:disabled {
 
 /* sidebar */
 
-
 .sidebar {
     color: #fff;
     background-color: #2b3032;
@@ -63,6 +63,18 @@ menu menuitem:hover:disabled {
 .searchbar  {
     padding: 20px;
     background-color: #373d41;
+}
+.searchentry {
+    padding: 1px 20px; /*10 20*/
+    color: #999;
+    background-color: #2c3133;
+    border: 1px solid transparent;
+    border-radius: 50px;
+    transition: border-color 200ms ease;
+    background-image: none;
+}
+.searchentry:focus {
+    border-color: #1abc9c;
 }
 
 /* categories list */
@@ -75,7 +87,7 @@ menu menuitem:hover:disabled {
     color: #fff;
     min-height: 40px;
     padding: 0 15px;
-    transition: all 200ms ease;
+    transition: background-color 200ms ease;
 }
 .category-item:hover {
     background-color: #34393b;
@@ -88,4 +100,13 @@ menu menuitem:hover:disabled {
 }
 .category-item:selected:active {
     background-color: #16a085;
+}
+
+/* status bar */
+
+.statusbar {
+    color: #fff;
+    background-color: #33393b;
+    padding: 0 15px;
+    min-height: 30px;
 }
