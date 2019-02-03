@@ -57,9 +57,35 @@ menu menuitem:hover:disabled {
 .sidebar {
     color: #fff;
     background-color: #2b3032;
+    border-right: 1px solid #1b1f20;
 }
 
 .searchbar  {
     padding: 20px;
     background-color: #373d41;
+}
+
+/* categories list */
+
+.categories {
+    background-color: #2b3032;
+}
+
+.category-item {
+    color: #fff;
+    min-height: 40px;
+    padding: 0 15px;
+    transition: all 200ms ease;
+}
+.category-item:hover {
+    background-color: #34393b;
+}
+.category-item:selected {
+    background-color: #1abc9c;
+}
+.category-item:selected:hover {
+    background-color: #48c9b0;
+}
+.category-item:selected:active {
+    background-color: #16a085;
 }
