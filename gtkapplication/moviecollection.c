@@ -91,7 +91,9 @@ static GtkWidget *widget_get_child(GtkWidget *parent, char *child_name) {
 
     if(GTK_IS_CONTAINER(parent)) {
         GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
-        while((children = g_list_next(children)) != NULL) {
+
+        // while((children = g_list_next(children)) != NULL) {
+        for ( ; children ; children = g_list_next(children)) {
             GtkWidget* widget = widget_get_child(children->data, child_name);
             if(widget != NULL) {
                 return widget;
@@ -329,7 +331,7 @@ static GtkWidget *app_listbox_item_create(char *text) {
     widget_add_class(list_row, "category-item");
     // gtk_widget_set_can_focus(list_row, FALSE);
 
-    gtk_container_add(GTK_CONTAINER(list_row), GTK_WIDGET(label));
+    gtk_container_add(GTK_CONTAINER(list_row), label);
 
     return list_row;
 }
@@ -363,7 +365,7 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
     widget_add_class(search_box, "searchbar");
     gtk_widget_set_hexpand(GTK_WIDGET(search_enty), FALSE);
 
-    gtk_container_add(GTK_CONTAINER(search_box), GTK_WIDGET(search_enty));
+    gtk_container_add(GTK_CONTAINER(search_box), search_enty);
 
     // Sidebar entries list
 
@@ -374,13 +376,13 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
     widget_add_class(list_box, "categories");
     gtk_widget_set_name(list_box, "categories");
 
-    gtk_widget_set_size_request(GTK_WIDGET(list_box), 300, -1); // width height
+    gtk_widget_set_size_request(list_box, 300, -1); // width height
 
     g_signal_connect(list_box, "row-selected",
         G_CALLBACK(signal_listbox_entries_row_selected), mapp
     );
 
-    gtk_container_add(GTK_CONTAINER(list_scroll), GTK_WIDGET(list_box));
+    gtk_container_add(GTK_CONTAINER(list_scroll), list_box);
 
     // Add all elements to sidebar
     gtk_box_pack_start(GTK_BOX(box), search_box, FALSE, FALSE, 0); // expand, fill, padding
@@ -389,13 +391,41 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
     return box;
 }
 
-static GtkWidget *app_separator_create(MovieApplication *mapp) {
+static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
 
-    GtkWidget *separator = gtk_separator_new(GTK_ORIENTATION_VERTICAL);
-    widget_add_class(separator, "separator");
+    GtkWidget *statusbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    widget_add_class(statusbar, "statusbar");
 
-    return separator;
+    GtkWidget *label = gtk_label_new("");
+    widget_add_class(label, "statusbarmessage");
+    gtk_widget_set_name(label, "statusbarmessage");
+
+    gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
+
+    // align left, verticial center
+    gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
+
+    gtk_widget_set_size_request(statusbar, -1, 30); // width height
+
+    gtk_container_add(GTK_CONTAINER(statusbar), label);
+
+    return statusbar;
 }
+
+static GtkWidget *app_panels_create(MovieApplication *mapp) {
+    GtkWidget *panels = gtk_notebook_new();
+
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), NULL);
+
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), NULL);
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test2"), NULL);
+
+
+
+    return panels;
+}
+
 
 
 
@@ -486,19 +516,27 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
 
     // Create main content
-    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-    GtkWidget *sidebar = app_sidebar_create(mapp);
-    GtkWidget *listbox = widget_get_child(sidebar, "categories");
+    GtkWidget *layout_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    GtkWidget *sidebar_box = app_sidebar_create(mapp);
+    GtkWidget *panels_box = app_panels_create(mapp);
+    gtk_box_pack_start(GTK_BOX(layout_box), sidebar_box, FALSE, FALSE, 0); //expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(layout_box), panels_box, TRUE, TRUE, 0);
+    
+    gtk_box_pack_start(GTK_BOX(main_box), layout_box, TRUE, TRUE, 0);
+
+    GtkWidget *statusbar = app_statusbar_create(mapp);
+    gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
+
+
+    GtkWidget *listbox = widget_get_child(sidebar_box, "categories");
+    GtkWidget *status_message = widget_get_child(statusbar, "statusbarmessage");
+
+    gtk_label_set_text(GTK_LABEL(status_message), "sqdqsds");
+
+
     mapp->listbox = listbox;
-
-    gtk_box_pack_start(GTK_BOX(main_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
-    // gtk_box_pack_start(GTK_BOX(main_box), separator, FALSE, FALSE, 0);
-
-
-
-
-
 
 
 
@@ -515,8 +553,7 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
 
     // Put the content area into the main window
-    gtk_container_add(GTK_CONTAINER(main_window), GTK_WIDGET(main_box));
-
+    gtk_container_add(GTK_CONTAINER(main_window), main_box);
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
     gtk_widget_grab_focus(GTK_WIDGET(main_box));
