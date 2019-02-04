@@ -9,10 +9,11 @@ coredumpctl list => gdb / coredumpctl gdb
 */
 
 #include <config.h> //build generated
-#include <stdlib.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <stdbool.h> 
+
+#include <stdlib.h>
+#include <stdbool.h>
 
 
 typedef struct {
@@ -64,7 +65,7 @@ static void widget_add_class(GtkWidget *widget, char *class_name) {
 }
 
 static char *widget_get_iconpath(char *icon_name) {
-    char icon_svg[20];
+    char icon_svg[20]; //todo
     sprintf(icon_svg, "%s.svg", icon_name);
 
     char *icon_path = g_build_filename(PACKAGE_RESSOURCES_DIR, icon_svg, NULL);
@@ -229,6 +230,7 @@ static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name,
 
 static void signal_headerbar_close(GtkButton* button, MovieApplication *mapp) {
     g_application_quit(G_APPLICATION(mapp));
+    // todo remove mapp var
 }
 
 static void signal_headerbar_minimize(GtkButton* button, MovieApplication *mapp) {
@@ -259,10 +261,8 @@ static GtkWidget *app_headerbar_create(MovieApplication *mapp) {
     gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), FALSE);
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
     gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), FALSE);
-
-    g_object_set(G_OBJECT(header_bar),
-        "height-request", 45, //prefered max header size
-    NULL);
+    // prefered min header height
+    gtk_widget_set_size_request(header_bar, -1, 45);
 
     // add buttons and callback on click (override gtk-decoration-layout property)
     GtkWidget *btn_close = app_headerbar_create_button(
@@ -301,7 +301,7 @@ static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) 
 
 static void signal_searchentry_keyrelease(GtkEntry *entry, GdkEventKey *event, MovieApplication *mapp) {
     if(event->keyval == GDK_KEY_Escape) {
-        gtk_entry_set_text(entry, "");
+        gtk_entry_set_text(entry, ""); // empty
     }
 }
 
