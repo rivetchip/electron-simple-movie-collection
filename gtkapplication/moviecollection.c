@@ -11,30 +11,15 @@ coredumpctl list => gdb / coredumpctl gdb
 #include <config.h> //build generated
 #include <glib.h>
 #include <gtk/gtk.h>
-
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "moviecollection.h"
 
-typedef struct {
-    GtkApplication parent_instance;
 
-    // application collection
-    GtkWidget *listbox;
 
-    // application main window
-    int win_height;
-    int win_width;
-    bool is_maximized;
-    bool is_fullscreen;
-
-} MovieApplication;
-
-// typedef GtkApplication MovieApplication;
-typedef GtkApplicationClass MovieApplicationClass;
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
-
 
 static void movie_application_init(MovieApplication *app) {
     g_message(__func__);
@@ -47,7 +32,7 @@ static void movie_application_class_init(MovieApplicationClass *class) {
     // app_class->activate = demo_application_activate;
 }
 
-MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
+static MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
     
     g_return_val_if_fail(g_application_id_is_valid(application_id), NULL);
     
@@ -56,6 +41,34 @@ MovieApplication *movie_application_new(const char *application_id, GApplication
         "flags", flags,
     NULL);
 }
+
+
+
+G_DEFINE_TYPE(WidgetMovieItem, widget_movie_item, GTK_TYPE_LIST_BOX_ROW);
+
+static void widget_movie_item_init(WidgetMovieItem *self) {
+    // gtk_widget_init_template(GTK_WIDGET(self));
+}
+
+static void widget_movie_item_class_init(WidgetMovieItemClass *klass) {
+    //
+}
+
+static WidgetMovieItem *widget_movie_item_new(char *movie_id, char *movie_title, bool is_favorite) {
+
+    return g_object_new(widget_movie_item_get_type(),
+        // "movie_id", movie_id,
+        // "movie_title", movie_title,
+        // "is_favorite", is_favorite,
+    NULL);
+}
+
+
+
+
+
+
+
 
 
 
@@ -309,17 +322,30 @@ static void signal_searchentry_keyrelease(GtkEntry *entry, GdkEventKey *event, M
 
 
 static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
-    int index = gtk_list_box_row_get_index(listrow);
-
-    g_message("select %i", index);
+    // GtkListBoxRow *list_row = gtk_list_box_get_selected_row(listbox);
+    WidgetMovieItem *movie_item = WIDGET_MOVIE_ITEM(listrow);
+    
+    
+    g_message("select %s", movie_item->movie_id);
 }
 
 
 
-static GtkWidget *app_listbox_item_create(char *text) {
+static GtkWidget *app_sidebar_rowitem_create(char *movie_id, char *movie_title, bool is_favorite) {
 
-    GtkWidget *label = gtk_label_new(text);
-    gtk_widget_set_name(label, "row");
+    WidgetMovieItem *list_row = widget_movie_item_new(
+        movie_id, movie_title, movie_title
+    );
+    list_row->movie_id = movie_id;
+    list_row->movie_title = movie_title;
+    list_row->movie_title = movie_title; //todo as prop
+
+
+    widget_add_class(GTK_WIDGET(list_row), "category-item");
+
+    GtkWidget *list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    GtkWidget *label = gtk_label_new(movie_title);
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
     // gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
 
@@ -327,19 +353,22 @@ static GtkWidget *app_listbox_item_create(char *text) {
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
     gtk_label_set_yalign(GTK_LABEL(label), 0.5);
 
-    GtkWidget *list_row = gtk_list_box_row_new();
-    widget_add_class(list_row, "category-item");
-    // gtk_widget_set_can_focus(list_row, FALSE);
+    char *favorite_icon = widget_get_iconpath("emblem-favorite");
+    GtkWidget *gtk_image = gtk_image_new_from_file(favorite_icon);
+    gtk_widget_set_visible(gtk_image, is_favorite);
 
-    gtk_container_add(GTK_CONTAINER(list_row), label);
+    gtk_box_pack_start(GTK_BOX(list_box), label, TRUE, TRUE, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(list_box), gtk_image, FALSE, FALSE, 0);
 
-    return list_row;
+    gtk_container_add(GTK_CONTAINER(list_row), list_box);
+
+    return GTK_WIDGET(list_row);
 }
 
 static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
 
-    GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    widget_add_class(box, "sidebar");
+    GtkWidget *sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(sidebar, "sidebar");
 
     // Sidebar search
 
@@ -373,6 +402,7 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(list_scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
     GtkWidget *list_box = gtk_list_box_new();
+    gtk_list_box_set_selection_mode(GTK_LIST_BOX(list_box), GTK_SELECTION_SINGLE);
     widget_add_class(list_box, "categories");
     gtk_widget_set_name(list_box, "categories");
 
@@ -385,10 +415,10 @@ static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
     gtk_container_add(GTK_CONTAINER(list_scroll), list_box);
 
     // Add all elements to sidebar
-    gtk_box_pack_start(GTK_BOX(box), search_box, FALSE, FALSE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(box), list_scroll, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(sidebar), search_box, FALSE, FALSE, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(sidebar), list_scroll, TRUE, TRUE, 0);
 
-    return box;
+    return sidebar;
 }
 
 static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
@@ -540,11 +570,11 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
 
 
-    GtkWidget *list_item = app_listbox_item_create("qsdsqsfsdsdsdfdsfd fsf sdfdsdfdsfdsfsfdsffsfdsdfsfdsq");
+    GtkWidget *list_item = app_sidebar_rowitem_create("11", "qsdsqsfsdsdsdfdsfd fsf sdfdsdfdsfdsfsfdsffsfdsdfsfdsq", TRUE);
     gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item));
-    GtkWidget *list_item2 = app_listbox_item_create("qsdsqdsq");
+    GtkWidget *list_item2 = app_sidebar_rowitem_create("22", "qsdsqdsq", FALSE);
     gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item2));
-    GtkWidget *list_item3 = app_listbox_item_create("OK OK TEST");
+    GtkWidget *list_item3 = app_sidebar_rowitem_create("33", "OK OK TEST", TRUE);
     gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item3));
 
 
