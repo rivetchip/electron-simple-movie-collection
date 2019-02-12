@@ -47,7 +47,7 @@ struct _WidgetMovieItem {
 
     char *movie_id;
     char *movie_title;
-    bool movie_favorite;
+    bool is_favorite;
 };
 
 typedef struct _WidgetMovieItem WidgetMovieItem;
