@@ -56,11 +56,14 @@ static void widget_movie_item_class_init(WidgetMovieItemClass *klass) {
 
 static WidgetMovieItem *widget_movie_item_new(char *movie_id, char *movie_title, bool is_favorite) {
 
-    return g_object_new(widget_movie_item_get_type(),
-        // "movie_id", movie_id,
-        // "movie_title", movie_title,
-        // "is_favorite", is_favorite,
-    NULL);
+    WidgetMovieItem *item = g_object_new(widget_movie_item_get_type(), NULL);
+
+    // todo use gobject props
+    item->movie_id = movie_id;
+    item->movie_title = movie_title;
+    item->is_favorite = is_favorite;
+
+    return item;
 }
 
 
@@ -333,13 +336,7 @@ static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxR
 
 static GtkWidget *app_sidebar_rowitem_create(char *movie_id, char *movie_title, bool is_favorite) {
 
-    WidgetMovieItem *list_row = widget_movie_item_new(
-        movie_id, movie_title, movie_title
-    );
-    list_row->movie_id = movie_id;
-    list_row->movie_title = movie_title;
-    list_row->movie_title = movie_title; //todo as prop
-
+    WidgetMovieItem *list_row = widget_movie_item_new(movie_id, movie_title, is_favorite);
 
     widget_add_class(GTK_WIDGET(list_row), "category-item");
 
@@ -446,11 +443,12 @@ static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
 static GtkWidget *app_panels_create(MovieApplication *mapp) {
     GtkWidget *panels = gtk_notebook_new();
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), NULL);
+    // show tabs only if dev mode
+    gtk_notebook_set_show_tabs(GTK_NOTEBOOK(panels), (PACKAGE_DEVELOPER_MODE));
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), NULL);
-    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test2"), NULL);
-
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), gtk_label_new("welcome"));
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), gtk_label_new("preview"));
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test2"), gtk_label_new("edition"));
 
 
     return panels;
