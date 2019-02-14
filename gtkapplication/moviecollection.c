@@ -445,6 +445,7 @@ static GtkWidget *app_panels_create(MovieApplication *mapp) {
 
     // show tabs only if dev mode
     gtk_notebook_set_show_tabs(GTK_NOTEBOOK(panels), (PACKAGE_DEVELOPER_MODE));
+    gtk_notebook_set_show_border(GTK_NOTEBOOK(panels), FALSE);
 
     gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), gtk_label_new("welcome"));
     gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), gtk_label_new("preview"));
