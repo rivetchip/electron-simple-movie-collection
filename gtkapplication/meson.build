@@ -3,6 +3,8 @@ project('moviecollection', 'c',
     version: '1.0.0',
 	meson_version: '>= 0.47.0',
 	default_options: [
+        'c_std=c11',
+        'cpp_std=c++11',
 		'buildtype=release',
         'developer_mode=false'
 	]
