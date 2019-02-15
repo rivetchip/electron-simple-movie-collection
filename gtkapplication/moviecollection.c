@@ -333,6 +333,44 @@ static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxR
 }
 
 
+static GtkWidget *app_toolbar_create() {
+
+    GtkWidget *toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    widget_add_class(toolbar, "toolbar");
+
+    GtkWidget *button_open = gtk_button_new_with_label("Ouvrir");
+    widget_add_class(button_open, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button_open), TRUE);
+
+    char *favorite_icon = widget_get_iconpath("emblem-favorite");
+    GtkWidget *gtk_image = gtk_image_new_from_file(favorite_icon);
+    gtk_button_set_image(GTK_BUTTON(button_open), GTK_WIDGET(gtk_image));
+
+
+
+    GtkWidget *button_save = gtk_button_new_with_label("Enregistrer");
+    widget_add_class(button_save, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button_save), TRUE);
+
+    GtkWidget *button_new = gtk_button_new_with_label("Ajouter un film");
+    widget_add_class(button_new, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button_new), TRUE);
+
+    gtk_box_pack_start(GTK_BOX(toolbar), button_open, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(toolbar), button_save, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(toolbar), button_new, FALSE, FALSE, 0);
+
+    // add movie provider selection
+
+
+    //todo
+
+
+    gtk_widget_set_size_request(toolbar, -1, 45); // width height
+
+    return toolbar;
+}
+
 
 static GtkWidget *app_sidebar_rowitem_create(char *movie_id, char *movie_title, bool is_favorite) {
 
@@ -546,6 +584,9 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
     // Create main content
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+    GtkWidget *toolbar = app_toolbar_create();
+    gtk_box_pack_start(GTK_BOX(main_box), toolbar, FALSE, FALSE, 0);
 
     GtkWidget *layout_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     GtkWidget *sidebar_box = app_sidebar_create(mapp);
