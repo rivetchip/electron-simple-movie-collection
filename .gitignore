@@ -14,3 +14,4 @@ android/**/R.java
 __ideas
 webkit2gtk/devbuild
 gtkapplication/devbuild
+gtkapplication/releasebuild
