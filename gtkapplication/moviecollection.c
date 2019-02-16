@@ -209,7 +209,7 @@ static void signal_mainwindow_destroy(GtkWidget *window) {
 }
 
 // create a gtk button with an icon inside
-static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name, void *click_event, MovieApplication *mapp) {
+static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name, void *click_event, gpointer user_data) {
     char icon_svg[20];
     sprintf(icon_svg, "%s.svg", icon_name);
 
@@ -222,7 +222,7 @@ static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name,
     }
 
     if(click_event != NULL) {
-        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), mapp);
+        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), user_data);
     }
 
     GtkWidget *gtk_image;
@@ -310,51 +310,82 @@ static void signal_app_startup(MovieApplication *mapp) {
 }
 
 
-
-static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) {
-
-}
-
 static void signal_searchentry_keyrelease(GtkEntry *entry, GdkEventKey *event, MovieApplication *mapp) {
     if(event->keyval == GDK_KEY_Escape) {
         gtk_entry_set_text(entry, ""); // empty
     }
 }
 
+static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) {
+    const char *keyword = gtk_entry_get_text(entry);
+
+    #if PACKAGE_DEVELOPER_MODE
+        g_message("%s %s", __func__, keyword);
+    #endif
+
+}
+
+
+
 
 
 
 static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
-    // GtkListBoxRow *list_row = gtk_list_box_get_selected_row(listbox);
     WidgetMovieItem *movie_item = WIDGET_MOVIE_ITEM(listrow);
-    
-    
-    g_message("select %s", movie_item->movie_id);
+
+    #if PACKAGE_DEVELOPER_MODE
+        g_message("%s %s", __func__, movie_item->movie_id);
+    #endif
+
+
 }
 
+static GtkWidget *app_toolbar_create_button(char *icon_name, char *label, void *click_event, gpointer user_data) {
+
+    GtkWidget *button = gtk_button_new_with_label(label);
+    widget_add_class(button, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button), TRUE);
+
+    char *icon_path = widget_get_iconpath(icon_name);
+    GtkWidget *image = gtk_image_new_from_file(icon_path);
+    gtk_button_set_image(GTK_BUTTON(button), GTK_WIDGET(image));
+
+    if(click_event != NULL) {
+        g_signal_connect(button, "clicked", G_CALLBACK(click_event), user_data);
+    }
+
+    return button;
+}
+
+static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char* provider_name) {
+    bool is_active = gtk_toggle_button_get_active(togglebutton);
+    
+    #if PACKAGE_DEVELOPER_MODE
+        g_message("%s %s %s", __func__, provider_name, (is_active?"on":"off"));
+    #endif
+
+
+
+}
 
 static GtkWidget *app_toolbar_create() {
 
     GtkWidget *toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     widget_add_class(toolbar, "toolbar");
+    gtk_widget_set_size_request(toolbar, -1, 45); // width height
 
-    GtkWidget *button_open = gtk_button_new_with_label("Ouvrir");
-    widget_add_class(button_open, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button_open), TRUE);
-
-    char *favorite_icon = widget_get_iconpath("emblem-favorite");
-    GtkWidget *gtk_image = gtk_image_new_from_file(favorite_icon);
-    gtk_button_set_image(GTK_BUTTON(button_open), GTK_WIDGET(gtk_image));
-
-
-
-    GtkWidget *button_save = gtk_button_new_with_label("Enregistrer");
-    widget_add_class(button_save, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button_save), TRUE);
-
-    GtkWidget *button_new = gtk_button_new_with_label("Ajouter un film");
-    widget_add_class(button_new, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button_new), TRUE);
+    GtkWidget *button_open = app_toolbar_create_button(
+        "toolbar-open", "Ouvrir",
+        NULL, NULL
+    );
+    GtkWidget *button_save = app_toolbar_create_button(
+        "toolbar-save", "Enregistrer",
+        NULL, NULL
+    );
+    GtkWidget *button_new = app_toolbar_create_button(
+        "toolbar-new", "Ajouter un film",
+        NULL, NULL
+    );
 
     gtk_box_pack_start(GTK_BOX(toolbar), button_open, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(toolbar), button_save, FALSE, FALSE, 0);
@@ -362,11 +393,18 @@ static GtkWidget *app_toolbar_create() {
 
     // add movie provider selection
 
+    GtkWidget *providers = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
-    //todo
+    GtkWidget *tmdben = gtk_radio_button_new_with_label(NULL, "TMDb EN");
+    g_signal_connect(tmdben, "toggled", G_CALLBACK(signal_toolbar_provider_change), "tmdb-en");
 
+    GtkWidget *tmdbfr = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(tmdben), "TMDb FR");
+    g_signal_connect(tmdbfr, "toggled", G_CALLBACK(signal_toolbar_provider_change), "tmdb-fr");
 
-    gtk_widget_set_size_request(toolbar, -1, 45); // width height
+    gtk_container_add(GTK_CONTAINER(providers), tmdben);
+    gtk_container_add(GTK_CONTAINER(providers), tmdbfr);
+
+    gtk_box_pack_end(GTK_BOX(toolbar), providers, FALSE, FALSE, 0);
 
     return toolbar;
 }
