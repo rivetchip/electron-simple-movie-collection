@@ -507,17 +507,20 @@ static void widget_sidebar_items_add(struct WidgetSidebar *sidebar, struct Widge
 
 
 
+static struct WidgetStatusbar *widget_statusbar_new() {
 
-
-static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
+    struct WidgetStatusbar *widget = malloc(sizeof(struct WidgetStatusbar));
 
     GtkWidget *statusbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     widget_add_class(statusbar, "statusbar");
 
+    widget->statusbar = statusbar;
+
     GtkWidget *label = gtk_label_new("");
     widget_add_class(label, "statusbar-message");
-
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
+
+    widget->label = label;
 
     // align left, verticial center
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
@@ -527,7 +530,11 @@ static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
 
     gtk_container_add(GTK_CONTAINER(statusbar), label);
 
-    return statusbar;
+    return widget;
+}
+
+static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char* text) {
+    gtk_label_set_text(GTK_LABEL(statusbar->label), text);
 }
 
 
@@ -693,6 +700,8 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     }
 
 
+
+
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     // Right Aside
@@ -714,7 +723,7 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
         G_CALLBACK(signal_searchentry_changed), mapp
     );
 
-    g_signal_connect(widget_sidebar->list_items, "row-selected",
+    g_signal_connect(widget_sidebar->list_items, "row-selected", // categories
         G_CALLBACK(signal_sidebar_list_items_selected), mapp
     );
 
@@ -727,15 +736,14 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     gtk_box_pack_start(GTK_BOX(layout_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
     gtk_box_pack_start(GTK_BOX(layout_box), panels, TRUE, TRUE, 0);
     
-    GtkWidget *statusbar = app_statusbar_create(mapp);
+    struct WidgetStatusbar *widget_statusbar = widget_statusbar_new();
+
+    GtkWidget *statusbar = widget_statusbar->statusbar;
 
     // Add all elements to main
     gtk_box_pack_start(GTK_BOX(main_box), toolbar, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(main_box), layout_box, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
-
-
-
 
 
 

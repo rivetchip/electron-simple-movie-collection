@@ -81,6 +81,13 @@ static struct WidgetPanelPreview *widget_panel_preview_new();
 static struct WidgetPanelEdition *widget_panel_edition_new();
 static struct WidgetPanels *widget_panels_new();
 
+struct WidgetStatusbar {
+    GtkWidget *statusbar; // container
+    GtkWidget *label;
+};
+
+static struct WidgetStatusbar *widget_statusbar_new();
+static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char* text);
 
 
 
