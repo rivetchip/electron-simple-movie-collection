@@ -1,4 +1,4 @@
-#!/usr/bin/env nodejs
+#!/usr/bin/env node
 
 const {readFile: fsreadFile, writeFile: fswriteFile} = require('fs')
 var {basename} = require('path')
@@ -219,10 +219,9 @@ function convertFromDomItem(domitem, index) {
             return [cols[0].textContent, cols[1].textContent] //[actor, role]
         }),
         rating: convertRating(
-            domitem.getAttribute('rating') > 0 ||
-            domitem.getAttribute('ratingpress')
+            domitem.getAttribute('rating') > 0 ? domitem.getAttribute('rating') : domitem.getAttribute('ratingpress')
         ),
-        ratingPress: convertRating(domitem.getAttribute('ratingpress')),
+        // ratingPress: convertRating(domitem.getAttribute('ratingpress')),
         dateCreated: convertSimpleDate(domitem.getAttribute('added')),
         dateModified: null,
         favorite: domitem.getAttribute('favourite') == 1,
