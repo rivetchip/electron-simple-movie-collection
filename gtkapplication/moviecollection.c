@@ -44,30 +44,18 @@ static MovieApplication *movie_application_new(const char *application_id, GAppl
 
 
 
-G_DEFINE_TYPE(WidgetMovieItem, widget_movie_item, GTK_TYPE_LIST_BOX_ROW);
 
-static void widget_movie_item_init(WidgetMovieItem *self) {
-    // gtk_widget_init_template(GTK_WIDGET(self));
+static bool movie_collection_get() {
+
 }
 
-static void widget_movie_item_class_init(WidgetMovieItemClass *klass) {
-    //
+static bool movie_collection_add() {
+
 }
 
-static WidgetMovieItem *widget_movie_item_new(char *movie_id, char *movie_title, bool is_favorite) {
-
-    WidgetMovieItem *item = g_object_new(widget_movie_item_get_type(), NULL);
-
-    // todo use gobject props
-    item->movie_id = movie_id;
-    item->movie_title = movie_title;
-    item->is_favorite = is_favorite;
-
-    return item;
+static bool movie_collection_remove() {
+    
 }
-
-
-
 
 
 
@@ -330,17 +318,17 @@ static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) 
 
 
 
-static void signal_listbox_entries_row_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
-    WidgetMovieItem *movie_item = WIDGET_MOVIE_ITEM(listrow);
+static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
+    // struct WidgetSidebarItem *list_item = WIDGET_SIDEBAR_ITEM(listrow);
 
     #if PACKAGE_DEVELOPER_MODE
-        g_message("%s %s", __func__, movie_item->movie_id);
+        // g_message("%s %s", __func__, list_item->item_id);
     #endif
 
 
 }
 
-static GtkWidget *app_toolbar_create_button(char *icon_name, char *label, void *click_event, gpointer user_data) {
+static GtkWidget *app_toolbar_button_new(char *icon_name, char *label, void *click_event, gpointer user_data) {
 
     GtkWidget *button = gtk_button_new_with_label(label);
     widget_add_class(button, "toolbar-button");
@@ -374,15 +362,15 @@ static GtkWidget *app_toolbar_create() {
     widget_add_class(toolbar, "toolbar");
     gtk_widget_set_size_request(toolbar, -1, 45); // width height
 
-    GtkWidget *button_open = app_toolbar_create_button(
+    GtkWidget *button_open = app_toolbar_button_new(
         "toolbar-open", "Ouvrir",
         NULL, NULL
     );
-    GtkWidget *button_save = app_toolbar_create_button(
+    GtkWidget *button_save = app_toolbar_button_new(
         "toolbar-save", "Enregistrer",
         NULL, NULL
     );
-    GtkWidget *button_new = app_toolbar_create_button(
+    GtkWidget *button_new = app_toolbar_button_new(
         "toolbar-new", "Ajouter un film",
         NULL, NULL
     );
@@ -396,9 +384,15 @@ static GtkWidget *app_toolbar_create() {
     GtkWidget *providers = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     GtkWidget *tmdben = gtk_radio_button_new_with_label(NULL, "TMDb EN");
+    widget_add_class(tmdben, "toolbar-button");
+    widget_add_class(tmdben, "toolbar-provider");
+    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(tmdben), FALSE);
     g_signal_connect(tmdben, "toggled", G_CALLBACK(signal_toolbar_provider_change), "tmdb-en");
 
     GtkWidget *tmdbfr = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(tmdben), "TMDb FR");
+    widget_add_class(tmdbfr, "toolbar-button");
+    widget_add_class(tmdbfr, "toolbar-provider");
+    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(tmdbfr), FALSE);
     g_signal_connect(tmdbfr, "toggled", G_CALLBACK(signal_toolbar_provider_change), "tmdb-fr");
 
     gtk_container_add(GTK_CONTAINER(providers), tmdben);
@@ -410,89 +404,103 @@ static GtkWidget *app_toolbar_create() {
 }
 
 
-static GtkWidget *app_sidebar_rowitem_create(char *movie_id, char *movie_title, bool is_favorite) {
 
-    WidgetMovieItem *list_row = widget_movie_item_new(movie_id, movie_title, is_favorite);
 
-    widget_add_class(GTK_WIDGET(list_row), "category-item");
+static struct WidgetSidebar *widget_sidebar_new() {
 
-    GtkWidget *list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    struct WidgetSidebar *widget = malloc(sizeof(struct WidgetSidebar));
 
-    GtkWidget *label = gtk_label_new(movie_title);
-    gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
-    // gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
-
-    // align left, verticial center
-    gtk_label_set_xalign(GTK_LABEL(label), 0.0);
-    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
-
-    char *favorite_icon = widget_get_iconpath("emblem-favorite");
-    GtkWidget *gtk_image = gtk_image_new_from_file(favorite_icon);
-    gtk_widget_set_visible(gtk_image, is_favorite);
-
-    gtk_box_pack_start(GTK_BOX(list_box), label, TRUE, TRUE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(list_box), gtk_image, FALSE, FALSE, 0);
-
-    gtk_container_add(GTK_CONTAINER(list_row), list_box);
-
-    return GTK_WIDGET(list_row);
-}
-
-static GtkWidget *app_sidebar_create(MovieApplication *mapp) {
+    // sidebar main container
 
     GtkWidget *sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     widget_add_class(sidebar, "sidebar");
+    gtk_widget_set_size_request(sidebar, 300, -1); // width, height
+
+    widget->sidebar = sidebar;
 
     // Sidebar search
 
-    GtkWidget *search_enty = gtk_entry_new();
-    widget_add_class(search_enty, "searchentry");
-    gtk_entry_set_placeholder_text(GTK_ENTRY(search_enty), "Recherche");
+    GtkWidget *search_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(search_box, "searchbar");
+
+    widget->search_box = search_box;
+
+    GtkWidget *search_entry = gtk_entry_new();
+    widget_add_class(search_entry, "searchbar-entry");
+    gtk_entry_set_placeholder_text(GTK_ENTRY(search_entry), "Recherche");
+
+    widget->search_entry = search_entry;
 
     char *search_icon = widget_get_iconpath("edit-find");
     if(search_icon != NULL) {
         GIcon *gicon = g_file_icon_new(g_file_new_for_path(search_icon));
-        gtk_entry_set_icon_from_gicon(GTK_ENTRY(search_enty), GTK_ENTRY_ICON_PRIMARY, gicon);
+        gtk_entry_set_icon_from_gicon(GTK_ENTRY(search_entry), GTK_ENTRY_ICON_PRIMARY, gicon);
     }
 
-    g_signal_connect(search_enty, "key-release-event",
-        G_CALLBACK(signal_searchentry_keyrelease), mapp
-    );
+    gtk_widget_set_hexpand(GTK_WIDGET(search_entry), FALSE);
 
-    g_signal_connect(search_enty, "changed",
-        G_CALLBACK(signal_searchentry_changed), mapp
-    );
+    gtk_container_add(GTK_CONTAINER(search_box), search_entry);
 
-    GtkWidget *search_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    widget_add_class(search_box, "searchbar");
-    gtk_widget_set_hexpand(GTK_WIDGET(search_enty), FALSE);
+    // sidebar categories
 
-    gtk_container_add(GTK_CONTAINER(search_box), search_enty);
+    GtkWidget *scrolled_frame = gtk_scrolled_window_new(NULL, NULL); // horiz, vertical adjustement
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_frame), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
-    // Sidebar entries list
+    GtkWidget *list_items = gtk_list_box_new();
+    gtk_list_box_set_selection_mode(GTK_LIST_BOX(list_items), GTK_SELECTION_SINGLE);
+    widget_add_class(list_items, "categories");
+    gtk_widget_set_size_request(list_items, 300, -1); // width height
+    // gtk_list_box_set_placeholder
 
-    GtkWidget *list_scroll = gtk_scrolled_window_new(NULL, NULL); // horiz, vertical adjustement
-    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(list_scroll), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    widget->list_items = list_items;
 
-    GtkWidget *list_box = gtk_list_box_new();
-    gtk_list_box_set_selection_mode(GTK_LIST_BOX(list_box), GTK_SELECTION_SINGLE);
-    widget_add_class(list_box, "categories");
-    gtk_widget_set_name(list_box, "categories");
-
-    gtk_widget_set_size_request(list_box, 300, -1); // width height
-
-    g_signal_connect(list_box, "row-selected",
-        G_CALLBACK(signal_listbox_entries_row_selected), mapp
-    );
-
-    gtk_container_add(GTK_CONTAINER(list_scroll), list_box);
+    gtk_container_add(GTK_CONTAINER(scrolled_frame), list_items);
 
     // Add all elements to sidebar
     gtk_box_pack_start(GTK_BOX(sidebar), search_box, FALSE, FALSE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(sidebar), list_scroll, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(sidebar), scrolled_frame, TRUE, TRUE, 0);
 
-    return sidebar;
+    return widget;
 }
+
+static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *label_text, bool is_favorite) {
+
+    struct WidgetSidebarItem *widget = malloc(sizeof(struct WidgetSidebarItem));
+
+    // list row
+    GtkWidget *list_row = gtk_list_box_row_new();
+    widget_add_class(list_row, "category-item");
+    gtk_widget_set_name(list_row, item_id); // set id (todo)
+
+    widget->list_row = list_row;
+
+    // elements inside row
+    GtkWidget *list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    GtkWidget *label = gtk_label_new(label_text);
+    gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
+    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    // align left, verticial center
+    gtk_label_set_xalign(GTK_LABEL(label), 0.0);
+    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
+
+    widget->label = label;
+
+    char *icon_path = widget_get_iconpath("emblem-favorite");
+    GtkWidget *favorite_icon = gtk_image_new_from_file(icon_path);
+    gtk_widget_set_visible(favorite_icon, (is_favorite));
+
+    widget->favorite_icon = favorite_icon;
+
+    gtk_box_pack_start(GTK_BOX(list_box), label, TRUE, TRUE, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(list_box), favorite_icon, FALSE, FALSE, 0);
+
+    gtk_container_add(GTK_CONTAINER(list_row), list_box);
+
+    return widget;
+}
+
+
 
 static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
 
@@ -500,8 +508,7 @@ static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
     widget_add_class(statusbar, "statusbar");
 
     GtkWidget *label = gtk_label_new("");
-    widget_add_class(label, "statusbarmessage");
-    gtk_widget_set_name(label, "statusbarmessage");
+    widget_add_class(label, "statusbar-message");
 
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
 
@@ -580,7 +587,7 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
         G_CALLBACK(signal_mainwindow_size_allocate), mapp
     );
 
-    // Load window preview state, if any
+    // Load window previous state, if any
 
     if(mapp->win_height > 0 && mapp->win_width > 0) {
         gtk_window_set_default_size(GTK_WINDOW(main_window),
@@ -620,40 +627,58 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     }
 
 
-    // Create main content
+    // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-
-    GtkWidget *toolbar = app_toolbar_create();
-    gtk_box_pack_start(GTK_BOX(main_box), toolbar, FALSE, FALSE, 0);
-
+    // Right Aside
     GtkWidget *layout_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    GtkWidget *sidebar_box = app_sidebar_create(mapp);
+
+    // Upper toolbar
+    GtkWidget *toolbar = app_toolbar_create();
+
+    // Sidebar
+    struct WidgetSidebar *widget_sidebar = widget_sidebar_new();
+
+    GtkWidget *sidebar = widget_sidebar->sidebar;
+
+    g_signal_connect(widget_sidebar->search_entry, "key-release-event",
+        G_CALLBACK(signal_searchentry_keyrelease), mapp
+    );
+
+    g_signal_connect(widget_sidebar->search_entry, "changed",
+        G_CALLBACK(signal_searchentry_changed), mapp
+    );
+
+    g_signal_connect(widget_sidebar->list_items, "row-selected",
+        G_CALLBACK(signal_sidebar_list_items_selected), mapp
+    );
+
+
+
     GtkWidget *panels_box = app_panels_create(mapp);
-    gtk_box_pack_start(GTK_BOX(layout_box), sidebar_box, FALSE, FALSE, 0); //expand, fill, padding
+
+    gtk_box_pack_start(GTK_BOX(layout_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
     gtk_box_pack_start(GTK_BOX(layout_box), panels_box, TRUE, TRUE, 0);
     
-    gtk_box_pack_start(GTK_BOX(main_box), layout_box, TRUE, TRUE, 0);
-
     GtkWidget *statusbar = app_statusbar_create(mapp);
+
+    // Add all elements to main
+    gtk_box_pack_start(GTK_BOX(main_box), toolbar, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(main_box), layout_box, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
 
 
-    GtkWidget *listbox = widget_get_child(sidebar_box, "categories");
-    GtkWidget *status_message = widget_get_child(statusbar, "statusbarmessage");
-
-    gtk_label_set_text(GTK_LABEL(status_message), "sqdqsds");
-
-
-    mapp->listbox = listbox;
 
 
 
-    GtkWidget *list_item = app_sidebar_rowitem_create("11", "qsdsqsfsdsdsdfdsfd fsf sdfdsdfdsfdsfsfdsffsfdsdfsfdsq", TRUE);
-    gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item));
-    GtkWidget *list_item2 = app_sidebar_rowitem_create("22", "qsdsqdsq", FALSE);
-    gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item2));
-    GtkWidget *list_item3 = app_sidebar_rowitem_create("33", "OK OK TEST", TRUE);
-    gtk_container_add(GTK_CONTAINER(listbox), GTK_WIDGET(list_item3));
+
+
+
+    // GtkWidget *list_item = app_sidebar_rowitem_create("11", "qsdsqsfsdsdsdfdsfd fsf sdfdsdfdsfdsfsfdsffsfdsdfsfdsq", TRUE);
+    // gtk_container_add(GTK_CONTAINER(list_items), GTK_WIDGET(list_item));
+    // GtkWidget *list_item2 = app_sidebar_rowitem_create("22", "qsdsqdsq", FALSE);
+    // gtk_container_add(GTK_CONTAINER(list_items), GTK_WIDGET(list_item2));
+    // GtkWidget *list_item3 = app_sidebar_rowitem_create("33", "OK OK TEST", TRUE);
+    // gtk_container_add(GTK_CONTAINER(list_items), GTK_WIDGET(list_item3));
 
 
 

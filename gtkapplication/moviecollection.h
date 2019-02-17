@@ -8,11 +8,9 @@
 G_BEGIN_DECLS
 
 
-// Type definition
+// Type definition (or move it for main c file)
 struct _MovieApplication {
     GtkApplication parent_instance;
-
-    GtkWidget *listbox;
 
     // window state
     int win_height;
@@ -35,34 +33,65 @@ static inline MovieApplication *MOVIE_APPLICATION(gpointer ptr) {
 // internal API
 static MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags);
 static void movie_application_init(MovieApplication *app);
-static void movie_application_class_init(MovieApplicationClass *class);
+static void movie_application_class_init(MovieApplicationClass *klass);
+
+////////////////////
+
+struct WidgetSidebar {
+    GtkWidget *sidebar; // container
+    GtkWidget *search_box;
+    GtkWidget *search_entry;
+    GtkWidget *list_items; // gtk_list
+};
+
+struct WidgetSidebarItem {
+    GtkWidget *list_row; // container
+    GtkWidget *label;
+    GtkWidget *favorite_icon;
+};
+
+
 
 
 
 
 ////////////////////
 
-struct _WidgetMovieItem {
-    GtkListBoxRow parent_instance;
 
-    char *movie_id;
-    char *movie_title;
-    bool is_favorite;
+struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
+    char *title;
+    bool favorite;
+    int rating;
+
+    char *tagline;
+    char *originalTitle;
+    int ratingPress;
+    int duration;
+    char *dateReleased;
+    char *dateCreated;
+    char *dateModified;
+    char *poster;
+    char *description;
+    char *comment;
+    char *director;
+    char *countries[255];
+    char *genres[255];
+    char *actors[255][2];
+    char *serie;
+    char *companies[255];
+    char *keywords[255];
+    char *source;
+    int sourceId;
+    char *webPage;
+
+    struct WidgetSidebarItem *widget_item;
 };
 
-typedef struct _WidgetMovieItem WidgetMovieItem;
-typedef GtkListBoxRowClass WidgetMovieItemClass;
+struct MovieCollection {
+    int version;
+    struct MovieCollectionItem movies[];
 
-GType widget_movie_item_get_type(void) G_GNUC_CONST;
-
-// Macro Functions G_DECLARE_FINAL_TYPE
-static inline WidgetMovieItem *WIDGET_MOVIE_ITEM(gpointer ptr) {
-    return G_TYPE_CHECK_INSTANCE_CAST(ptr, widget_movie_item_get_type(), WidgetMovieItem);
-}
-
-
-
-
+};
 
 
 
