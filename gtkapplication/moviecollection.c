@@ -33,7 +33,7 @@ static void movie_application_class_init(MovieApplicationClass *class) {
 }
 
 static MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
-    
+
     g_return_val_if_fail(g_application_id_is_valid(application_id), NULL);
     
     return g_object_new(movie_application_get_type(),
@@ -319,10 +319,10 @@ static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) 
 
 
 static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
-    // struct WidgetSidebarItem *list_item = WIDGET_SIDEBAR_ITEM(listrow);
+    const char *item_id = gtk_widget_get_name(GTK_WIDGET(listrow));
 
     #if PACKAGE_DEVELOPER_MODE
-        // g_message("%s %s", __func__, list_item->item_id);
+        g_message("%s %s", __func__, item_id);
     #endif
 
 
@@ -479,7 +479,7 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
 
     GtkWidget *label = gtk_label_new(label_text);
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
-    gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    // gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
     // align left, verticial center
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
     gtk_label_set_yalign(GTK_LABEL(label), 0.5);
@@ -499,6 +499,13 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
 
     return widget;
 }
+
+static void widget_sidebar_items_add(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item) {
+    // gtk_list_box_insert(GTK_LIST_BOX(sidebar->list_items), GTK_LIST_BOX_ROW(item->list_row), -1);
+    gtk_container_add(GTK_CONTAINER(sidebar->list_items), GTK_WIDGET(item->list_row));
+}
+
+
 
 
 
@@ -523,20 +530,79 @@ static GtkWidget *app_statusbar_create(MovieApplication *mapp) {
     return statusbar;
 }
 
-static GtkWidget *app_panels_create(MovieApplication *mapp) {
+
+
+
+static struct WidgetPanels *widget_panels_new() {
+
+    struct WidgetPanels *widget = malloc(sizeof(struct WidgetPanels));
+
     GtkWidget *panels = gtk_notebook_new();
 
     // show tabs only if dev mode
-    gtk_notebook_set_show_tabs(GTK_NOTEBOOK(panels), (PACKAGE_DEVELOPER_MODE));
+    #if !PACKAGE_DEVELOPER_MODE
+        gtk_notebook_set_show_tabs(GTK_NOTEBOOK(panels), FALSE);
+    #endif
     gtk_notebook_set_show_border(GTK_NOTEBOOK(panels), FALSE);
 
-    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), gtk_label_new("welcome"));
-    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test"), gtk_label_new("preview"));
-    gtk_notebook_append_page(GTK_NOTEBOOK(panels), gtk_label_new("test2"), gtk_label_new("edition"));
+    widget->panels = panels;
 
+    // create panels
 
-    return panels;
+    struct WidgetPanelWelcome *panel_welcome = widget_panel_welcome_new();
+    struct WidgetPanelPreview *panel_preview = widget_panel_preview_new();
+    struct WidgetPanelEdition *panel_edition = widget_panel_edition_new();
+
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), panel_welcome->panel, gtk_label_new("welcome"));
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), panel_preview->panel, gtk_label_new("preview"));
+    gtk_notebook_append_page(GTK_NOTEBOOK(panels), panel_edition->panel, gtk_label_new("edition"));
+
+    return widget;
 }
+
+static struct WidgetPanelWelcome *widget_panel_welcome_new() {
+
+    struct WidgetPanelWelcome *widget = malloc(sizeof(struct WidgetPanelWelcome));
+
+    GtkWidget *panel = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(panel, "panel-welcome");
+    widget->panel = panel;
+
+
+    gtk_container_add(GTK_CONTAINER(panel), gtk_label_new("HELLO!!"));
+
+
+    return widget;
+}
+
+static struct WidgetPanelPreview *widget_panel_preview_new() {
+
+    struct WidgetPanelPreview *widget = malloc(sizeof(struct WidgetPanelPreview));
+
+    GtkWidget *panel = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(panel, "panel-preview");
+    widget->panel = panel;
+
+
+
+
+    return widget;
+}
+
+static struct WidgetPanelEdition *widget_panel_edition_new() {
+
+    struct WidgetPanelEdition *widget = malloc(sizeof(struct WidgetPanelEdition));
+
+    GtkWidget *panel = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    widget_add_class(panel, "panel-edition");
+    widget->panel = panel;
+
+
+
+
+    return widget;
+}
+
 
 
 
@@ -652,12 +718,14 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
         G_CALLBACK(signal_sidebar_list_items_selected), mapp
     );
 
+    // All all elements to right content (aside)
 
+    struct WidgetPanels *widget_panels = widget_panels_new();
 
-    GtkWidget *panels_box = app_panels_create(mapp);
+    GtkWidget *panels = widget_panels->panels;
 
     gtk_box_pack_start(GTK_BOX(layout_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(layout_box), panels_box, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(layout_box), panels, TRUE, TRUE, 0);
     
     GtkWidget *statusbar = app_statusbar_create(mapp);
 
@@ -673,14 +741,16 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
 
 
-    // GtkWidget *list_item = app_sidebar_rowitem_create("11", "qsdsqsfsdsdsdfdsfd fsf sdfdsdfdsfdsfsfdsffsfdsdfsfdsq", TRUE);
-    // gtk_container_add(GTK_CONTAINER(list_items), GTK_WIDGET(list_item));
-    // GtkWidget *list_item2 = app_sidebar_rowitem_create("22", "qsdsqdsq", FALSE);
-    // gtk_container_add(GTK_CONTAINER(list_items), GTK_WIDGET(list_item2));
-    // GtkWidget *list_item3 = app_sidebar_rowitem_create("33", "OK OK TEST", TRUE);
-    // gtk_container_add(GTK_CONTAINER(list_items), GTK_WIDGET(list_item3));
 
 
+
+
+
+struct WidgetSidebarItem *xxx = widget_sidebar_item_new("qedeqerezrz", "XXX", FALSE);
+widget_sidebar_items_add(widget_sidebar, xxx);
+
+xxx = widget_sidebar_item_new("d", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", FALSE);
+widget_sidebar_items_add(widget_sidebar, xxx);
 
 
 

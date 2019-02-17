@@ -41,7 +41,7 @@ struct WidgetSidebar {
     GtkWidget *sidebar; // container
     GtkWidget *search_box;
     GtkWidget *search_entry;
-    GtkWidget *list_items; // gtk_list
+    GtkWidget *list_items; // movies
 };
 
 struct WidgetSidebarItem {
@@ -49,6 +49,38 @@ struct WidgetSidebarItem {
     GtkWidget *label;
     GtkWidget *favorite_icon;
 };
+
+static struct WidgetSidebar *widget_sidebar_new();
+static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *label_text, bool is_favorite);
+static void widget_sidebar_items_add(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item);
+
+struct WidgetPanels {
+    GtkWidget *panels; // container
+    GtkWidget *panel_welcome;
+    GtkWidget *panel_preview;
+    GtkWidget *panel_edition;
+};
+
+struct WidgetPanelWelcome {
+    GtkWidget *panel; // container
+
+};
+
+struct WidgetPanelPreview {
+    GtkWidget *panel; // container
+
+};
+
+struct WidgetPanelEdition {
+    GtkWidget *panel; // container
+
+};
+
+static struct WidgetPanelWelcome *widget_panel_welcome_new();
+static struct WidgetPanelPreview *widget_panel_preview_new();
+static struct WidgetPanelEdition *widget_panel_edition_new();
+static struct WidgetPanels *widget_panels_new();
+
 
 
 
