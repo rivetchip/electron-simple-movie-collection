@@ -311,3 +311,42 @@ g_dbus_connection_emit_signal (proxy_connection,
 
     g_message("proxy_address %s", proxy_address);
 */
+
+
+
+
+
+
+OK MAIS PAS DANS CURL !!
+
+char *stream = malloc(1);
+
+for(size_t i = 0; i < 50; i++){
+
+    g_message("- %i %s / %i", strlen(stream), stream, sizeof(stream));
+    g_message("- next: %i", strlen(stream) + 2 + 1);
+
+    stream = (char *) realloc(stream, strlen(stream) + 2 + 1); //+'\0'
+
+    if(stream == NULL) {
+        g_message("ERROR realloc");
+    }
+
+    strcat(stream, "ab");
+    // g_strlcat(stream, "a", 1);
+    // g_strlcat(stream, chunk, size_chunk);
+    // stream[strlen(stream) + 1] = 0;
+
+
+    g_message("X %i %s / %i", strlen(stream), stream, sizeof(stream));
+    g_message("X next: %i", strlen(stream) + 2 + 1);
+}
+
+exit(0);
+
+
+
+
+
+
+
