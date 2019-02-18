@@ -15,6 +15,7 @@ application_id = 'fr.spidery.moviecollection'
 # main app & extension dependencies
 depgtk = dependency('gtk+-3.0', version: '>= 3.22')
 depglib = dependency('glib-2.0', version: '>= 2.56')
+deplibcurl = dependency('libcurl', version : '>=7.60')
 
 # main project options
 project_name = meson.project_name()
@@ -95,7 +96,7 @@ add_project_arguments([
 
 executable('moviecollection',
     sources: [config_header, 'moviecollection.c'],
-    dependencies: [depgtk, depglib],
+    dependencies: [depgtk, depglib, deplibcurl],
     install_dir: pkgbindir,
     install: true
 )
