@@ -2,13 +2,11 @@
 
 const {readFile: fsreadFile, writeFile: fswriteFile} = require('fs')
 var {basename} = require('path')
-
 const {JSDOM: jsdom} = require('jsdom')
-
+const crypto = require('crypto')
 
 // get arguments and launch app
-
-let [nodeExec, script, sourceFile, destinationFile = 'simplemovie.json'] = process.argv
+let [nodeExec, script, sourceFile, destinationFile = 'simplemovie.ndjson'] = process.argv
 
 console.log('=====')
 console.log('Import from GCStar/GCfilms (may not work on all collections)')
@@ -21,7 +19,6 @@ if(!sourceFile) {
     process.exit(1)
 }
 
-
 app({sourceFile, destinationFile})
 .then((converted) => {
     console.log('=====')
@@ -32,25 +29,19 @@ app({sourceFile, destinationFile})
     console.log('Error:', error)
 })
 
-
 async function app({sourceFile, destinationFile}) {
 
-    let converted = {
-        version: 1,
-        metadata: {
-            imported: new Date(),
-            created: new Date(),
-            source: 'GCfilms'
-        },
-        collection : {}
+    let converted = [
+        // first line: metadata
+        {version: 1, created: new Date(), imported: new Date(), source: 'GCfilms'}
+    ]
+
+    try {
+        xml = await readFile(sourceFile)
     }
-
-
-    let [errorRead, xml] = await to(readFile(sourceFile))
-
-    if(errorRead) {
+    catch(err) {
         console.log('Cannot read file "'+sourceFile+'"')
-        console.log(errorRead)
+        console.log(err.message)
         process.exit(1)
     }
 
@@ -59,7 +50,6 @@ async function app({sourceFile, destinationFile}) {
     let domcollection = window.document.querySelector('collection')
 
     // get infos on collection
-
     let type = domcollection.getAttribute('type')
     let version = domcollection.getAttribute('version')
     let count = Number(domcollection.getAttribute('items'))
@@ -67,27 +57,23 @@ async function app({sourceFile, destinationFile}) {
     console.log('Start converting collection...', {type, version, count})
 
     // create progress
-
     let items = domcollection.querySelectorAll('item')
 
-    // start converting items
-
     items.forEach((item, index) => {
-        let [movieId, movie] = convertFromDomItem(item, index);
-    
-        converted.collection[movieId] = movie
+        converted.push(convertFromDomItem(item, index))
     })
 
+    converted = converted.map(JSON.stringify)
+
     // save the item
-
-    let [errorWrite] = await to(writeFile(destinationFile, JSON.stringify(converted)))
-
-    if(errorWrite) {
+    try {
+        await writeFile(destinationFile, converted.join("\n"))
+    }
+    catch(err) {
         console.log('Cannot write file "'+destinationFile+'"')
-        console.log(errorWrite)
+        console.log(err.message)
         process.exit(1)
     }
-
 
     return converted
 }
@@ -145,9 +131,7 @@ function convertSimpleDate(format) {
 }
 
 function convertPoster(image) {
-    image = String(image)
-    
-    return basename(image)
+    return basename(String(image))
 }
 
 function convertRating(rating) {
@@ -161,9 +145,7 @@ function convertRating(rating) {
 }
 
 function convertTags(tags) {
-    tags = String(tags)
-    
-    return tags.split(',')
+    return String(tags).split(',').filter(t => t.length && t.length > 0);
 }
 
 //webPage="http://www.themoviedb.org/movie/128##TMDb (FR)"
@@ -191,7 +173,7 @@ function concertSourceId(webPage) {
         let split = webPage.split('##')
         let pageUrl = split[0]
 
-        return basename(pageUrl)
+        return basename(pageUrl) // .../movie/68718
     }
 
     return null
@@ -199,9 +181,8 @@ function concertSourceId(webPage) {
 
 
 function convertFromDomItem(domitem, index) {
-    const movieId = domitem.getAttribute('id') || Date.now()
-
-    const result = {
+    return {
+        movieId: uuidv4(), //domitem.getAttribute('id') || Date.now(),
         title: domitem.getAttribute('title'),
         originalTitle: domitem.getAttribute('original'),
         tagline: null,//slogan
@@ -231,17 +212,8 @@ function convertFromDomItem(domitem, index) {
         webPage: convertWebPage(domitem.getAttribute('webPage')),
         sourceId: concertSourceId(domitem.getAttribute('webPage')),
     }
-
-    return [movieId, result]
 }
 
-
-function to(promise) {
-    return promise.then((response) => {
-       return [null, response];
-    })
-    .catch(error => [error]);
- }
 function readFile(filename) {
     return new Promise((resolve, reject) => {
         fsreadFile(filename, 'utf8', (error, data) => {
@@ -263,3 +235,30 @@ function mapObject(object, iteratee) {
     .map((key) => iteratee(object[key], key))
 }
 
+// Generate RFC-4122 compliant random UUIDs using crypto API
+function uuidv4() {
+    // WHATWG crypto RNG
+    // let b = window.crypto.getRandomValues(new Uint8Array(16))
+    let b = crypto.randomBytes(16)
+
+    // Per 4.4, set bits for version and 'clock_seq_hi_and_reserved'
+    b[6] = (b[6] & 0x0f) | 0x40
+    b[8] = (b[8] & 0x3f) | 0x80
+
+    // Cache toString(16)
+    let hexBytes = []
+    for(let i = 0; i < 256; i++) {
+        hexBytes[i] = (i + 0x100).toString(16).substr(1)
+    }
+
+    // bytesToUuid: convert array of 16 byte values to UUID string format of the form:
+    // XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
+    return hexBytes[b[0]] + hexBytes[b[1]] + 
+        hexBytes[b[2]] + hexBytes[b[3]] + '-' +
+        hexBytes[b[4]] + hexBytes[b[5]] + '-' +
+        hexBytes[b[6]] + hexBytes[b[7]] + '-' +
+        hexBytes[b[8]] + hexBytes[b[9]] + '-' +
+        hexBytes[b[10]] + hexBytes[b[11]] + 
+        hexBytes[b[12]] + hexBytes[b[13]] +
+        hexBytes[b[14]] + hexBytes[b[15]]
+}
