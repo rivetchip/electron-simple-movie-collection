@@ -13,127 +13,9 @@ coredumpctl list => gdb / coredumpctl gdb
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <curl/curl.h>
 
 #include "moviecollection.h"
-
-
-// static int writer(char *data, size_t size, size_t nmemb, char *buffer) {
-//     // strcat(new_str,str2);
-//     // data->append((char*) ptr, size * nmemb);
-//     return size * nmemb;
-// }
-
-
-
-// static struct FetchResponse {
-//     int size;
-//     char *response;
-// };
-
-
-
-
-static void fetch(const char *method, const char *uri) {
-
-    CURL *curl = curl_easy_init();
-    curl_easy_setopt(curl, CURLOPT_URL, uri);
-
-    char *stream = malloc(1);
-    int stream_size = 0;
-
-    // fix: cannot use as real function : buffer overflow with char *userp ??
-    int writer(char *chunk, int size, int size_chunk, void *userp) {
-        int realsize = size * size_chunk;
-
-        stream = (char *) realloc(stream, (stream_size + realsize + 1)); //+'\0'
-
-        memcpy(&(stream[stream_size]), chunk, realsize); // strcat
-        stream_size += realsize;
-        // stream[stream_size] = 0;
-
-        return realsize;
-    }
-
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, NULL);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writer);
-
-    // Add Headers
-    struct curl_slist *req_headers = NULL;
-    req_headers = curl_slist_append(req_headers, "User-Agent: Mozilla/5.0");
-    req_headers = curl_slist_append(req_headers, "Accept: application/json");
-    req_headers = curl_slist_append(req_headers, "Accept-Language: fr");
-    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, req_headers);
-
-    // include headers
-    curl_easy_setopt(curl, CURLOPT_HEADER, 1L);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-    curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L); // if >4XX
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L);
-
-    // curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    // curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-    // curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, sizeof long);
-
-    // allow redirect to http/https
-    curl_easy_setopt(curl, CURLOPT_REDIR_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
-
-    // verbose output
-    // curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-
-    CURLcode code = curl_easy_perform(curl);
-
-    curl_slist_free_all(req_headers);
-    curl_easy_cleanup(curl);
-
-    if(code != CURLE_OK) {
-        const char *error_msg = curl_easy_strerror(code);
-        // return NULL;
-    }
-
-    long header_size;
-    curl_easy_getinfo(curl, CURLINFO_HEADER_SIZE, &header_size);
-
-    long response_code;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-
-    char response_headers[header_size];
-    strncpy(response_headers, stream, header_size); // only first
-
-    // long body_size = strlen(stream) - header_size;
-    // char response_body[body_size];
-    // strcpy(response_body, stream + body_size); // only first
-
-
-
-
-
-    char result[] = {response_code, response_headers, response_body};
-
-
-
-// g_message("====>> %i", response->size);
-
-g_message("====>> %s", stream + body_size);
-
-
-// g_message("reponse");
-// g_message(response);
-
-
-
-    // return response;
-}
-
-
-
-
-
-
-
-
+#include "fetchmovie.c"
 
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
@@ -160,7 +42,7 @@ static MovieApplication *movie_application_new(const char *application_id, GAppl
 }
 
 
-
+/*
 
 static bool movie_collection_get() {
 
@@ -174,7 +56,7 @@ static bool movie_collection_remove() {
     
 }
 
-
+*/
 
 
 
@@ -952,19 +834,6 @@ static int signal_app_handle_local_options(MovieApplication* mapp, GVariantDict 
 
 
 int main(int argc, char* argv[]) {
-
-
-
-
-
-
-fetch("GET", "https://curl.haxx.se/libcurl/c/CURLOPT_WRITEDATA.html");
-
-g_message("====================");
-return 0;
-
-
-
 
     #if PACKAGE_DEVELOPER_MODE
         g_message("Dev mode");

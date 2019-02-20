@@ -37,6 +37,43 @@ static void movie_application_class_init(MovieApplicationClass *klass);
 
 ////////////////////
 
+struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
+    char *title;
+    bool favorite;
+    int rating;
+
+    char *tagline;
+    char *originalTitle;
+    int ratingPress;
+    int duration;
+    char *dateReleased;
+    char *dateCreated;
+    char *dateModified;
+    char *poster;
+    char *description;
+    char *comment;
+    char *director;
+    char *countries[255];
+    char *genres[255];
+    char *actors[255][2];
+    char *serie;
+    char *companies[255];
+    char *keywords[255];
+    char *source;
+    int sourceId;
+    char *webPage;
+
+    struct WidgetSidebarItem *widget_item;
+};
+
+struct MovieCollection {
+    int version;
+    struct MovieCollectionItem movies[];
+
+};
+
+////////////////////
+
 struct WidgetSidebar {
     GtkWidget *sidebar; // container
     GtkWidget *search_box;
@@ -96,41 +133,6 @@ static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const c
 
 ////////////////////
 
-
-struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
-    char *title;
-    bool favorite;
-    int rating;
-
-    char *tagline;
-    char *originalTitle;
-    int ratingPress;
-    int duration;
-    char *dateReleased;
-    char *dateCreated;
-    char *dateModified;
-    char *poster;
-    char *description;
-    char *comment;
-    char *director;
-    char *countries[255];
-    char *genres[255];
-    char *actors[255][2];
-    char *serie;
-    char *companies[255];
-    char *keywords[255];
-    char *source;
-    int sourceId;
-    char *webPage;
-
-    struct WidgetSidebarItem *widget_item;
-};
-
-struct MovieCollection {
-    int version;
-    struct MovieCollectionItem movies[];
-
-};
 
 
 
