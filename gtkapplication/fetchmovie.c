@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 #include <curl/curl.h>
 
 
@@ -68,7 +69,10 @@ static char *fetch(const char *method, const char *uri, char **error_msg) {
     curl_easy_cleanup(curl);
 
     if(curl_code != CURLE_OK) {
-        *error_msg = strdup(curl_easy_strerror(curl_code)); // duplicate, cannot use const on non-const
+        const char *curl_error = curl_easy_strerror(curl_code);
+        *error_msg = (char *) malloc(sizeof(curl_error));
+        strcpy(*error_msg, curl_error);
+
         return NULL;
     }
 
@@ -91,4 +95,9 @@ static char *fetch(const char *method, const char *uri, char **error_msg) {
     return response_body;
 }
 
+
+
+char *fetchmovie(char *source, char *action, char *keyword, char *lang) {
+
+}
 
