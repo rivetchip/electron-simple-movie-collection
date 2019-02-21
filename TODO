@@ -124,3 +124,5 @@ car pas possible de modifier une valeur NULL sur la quelle il n'y a pas de mémo
 function : tout est passé par valeur et non pas référence, mêmes les pointeurs,
 pour modifier une valeur d'origine : func( char **msg) { *msg = "ok" } ... func(&msg)
 
+"Multiple Definition" pas besoin de faire des #incldue de chaque fichier, meson include déjà en définissant sources:[]
+
