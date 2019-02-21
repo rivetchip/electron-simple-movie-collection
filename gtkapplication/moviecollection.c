@@ -9,13 +9,7 @@ coredumpctl list => gdb / coredumpctl gdb
 */
 
 #include <config.h> //build generated
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <stdlib.h>
-#include <stdbool.h>
-
 #include "moviecollection.h"
-#include "fetchmovie.c"
 
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
@@ -42,7 +36,6 @@ static MovieApplication *movie_application_new(const char *application_id, GAppl
 }
 
 
-/*
 
 static bool movie_collection_get() {
 
@@ -55,8 +48,6 @@ static bool movie_collection_add() {
 static bool movie_collection_remove() {
     
 }
-
-*/
 
 
 
@@ -844,7 +835,6 @@ int main(int argc, char* argv[]) {
         putenv("GOBJECT_DEBUG=instance-count");
         // putenv("G_ENABLE_DIAGNOSTIC=1");
     #endif
-
 
     int status;
 
