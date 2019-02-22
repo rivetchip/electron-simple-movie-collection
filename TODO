@@ -106,7 +106,8 @@ exports.createSnackbar = (() => {
     }
 })()
 
-
+static libcurl :
+libidn2-devel libnghttp2-devel openldap-devel libssh-devel libpsl-devel mbedtls-devel heimdal-devel krb5-devel openssl-devel brotli-devel
 
 
 
