@@ -146,6 +146,7 @@ static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rat
 static void widget_starrating_refresh(struct WidgetStarRating *stars);
 static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive);
 static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int pixel_size);
+static void widget_starrating_signal_clicked(GtkWidget *button, struct WidgetStarRating *stars);
 
 ////////////////////
 

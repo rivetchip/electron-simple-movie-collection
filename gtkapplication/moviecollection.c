@@ -309,7 +309,10 @@ static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) 
 
 
 static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
-    const char *item_id = gtk_widget_get_name(GTK_WIDGET(listrow));
+
+    const char *item_id = g_object_get_data(
+        G_OBJECT(GTK_WIDGET(listrow)), "WidgetSidebarItem::itemId"
+    );
 
     #if PACKAGE_DEVELOPER_MODE
         g_message("%s %s", __func__, item_id);
@@ -460,7 +463,10 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
     // list row
     GtkWidget *list_row = gtk_list_box_row_new();
     widget_add_class(list_row, "category-item");
-    gtk_widget_set_name(list_row, item_id); // set id (todo)
+    
+    g_object_set_data_full(G_OBJECT(list_row),
+        "WidgetSidebarItem::itemId", item_id, NULL //(GDestroyNotify) g_free
+    );
 
     widget->list_row = list_row;
 
@@ -584,12 +590,12 @@ static struct WidgetPanelPreview *widget_panel_preview_new() {
 
 
     struct WidgetStarRating *widget_starrating = widget_starrating_new();
-    GtkWidget *starrating = widget_starrating->starrating;
-
     widget->widget_starrating = widget_starrating;
 
-    // widget_starrating_set_rating(widget_starrating, 2);
-    // widget_starrating_set_interactive(widget_starrating, TRUE);
+    GtkWidget *starrating = widget_starrating->starrating;
+
+
+    // widget_starrating_set_rating(widget_starrating, 20);
 
 
 
@@ -624,34 +630,39 @@ static struct WidgetPanelEdition *widget_panel_edition_new() {
 
 
 
-
-
-static void
-remove_all_cb (GtkWidget *widget, gpointer user_data)
-{
-    GtkContainer *container = GTK_CONTAINER (user_data);
-    gtk_container_remove (container, widget);
-}
-
-void
-gs_container_remove_all (GtkContainer *container)
-{
-    gtk_container_foreach (container, remove_all_cb, container);
-}
-
 static struct WidgetStarRating *widget_starrating_new() {
 
     struct WidgetStarRating *widget = malloc(sizeof(struct WidgetStarRating));
+    widget->interactive = TRUE;
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     widget_add_class(box, "starrating");
     widget->starrating = box;
 
-    // create stars
-    // widget->gtkstars = calloc()
+    // create stars (already malloc)
+    const int rate_to_star[] = {20, 40, 60, 80, 100};
 
+    int i;
+    for(i = 0; i < 5; i++) {
 
+        GtkWidget *button = gtk_button_new_from_icon_name("starred-symbolic", GTK_ICON_SIZE_DIALOG);
 
+        g_signal_connect(button, "clicked",
+            G_CALLBACK(widget_starrating_signal_clicked), widget
+        );
+
+        g_object_set_data_full(G_OBJECT(button),
+            "WidgetStarRating::value", GINT_TO_POINTER(rate_to_star[i]), (GDestroyNotify) g_free
+        );
+
+        gtk_widget_set_sensitive(button, widget->interactive);
+        gtk_style_context_add_class(gtk_widget_get_style_context(button), "starrating-star");
+        
+        widget->gtkstars[i] = button;
+
+        gtk_widget_set_visible(button, TRUE);
+        gtk_container_add(GTK_CONTAINER(box), button);
+    }
 
     return widget;
 }
@@ -662,55 +673,39 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
         return;
     }
 
-    int rating = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(button), "WidgetStarRating::value"));
+    int rating = GPOINTER_TO_INT(g_object_get_data(
+        G_OBJECT(button), "WidgetStarRating::value")
+    );
 
-    //g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
+    #if PACKAGE_DEVELOPER_MODE
+        g_message("%s %i", __func__, rating);
+    #endif
+
     widget_starrating_set_rating(stars, rating);
+
+    //todo
+    // emit signal rating changed
+    g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
 }
 
-// todo optimisation : not destroy/recreate, rather store widgets in widgets[] inside struct
 static void widget_starrating_refresh(struct WidgetStarRating *stars) {
-    const int rate_to_star[] = {20, 40, 60, 80, 100, -1};
-
-    int i;
-    double rating;
+    const int rate_to_star[] = {20, 40, 60, 80, 100}; //todo
 
     // add fudge factor so we can actually get 5 stars in reality, and round up to nearest power of 10
-    rating = stars->rating + 10;
+    double rating = stars->rating + 10;
     rating = 10 * ceil(rating / 10);
 
+    int i;
     for(i = 0; i < 5; i++) {
 
-        GtkWidget *button;
-        GtkWidget *image = gtk_image_new_from_icon_name("starred-symbolic", GTK_ICON_SIZE_DIALOG);
-        gtk_image_set_pixel_size(GTK_IMAGE(image), stars->icon_size);
-
-        if(stars->interactive) {
-
-            button = gtk_button_new();
-
-            g_signal_connect(button, "clicked",
-                G_CALLBACK(widget_starrating_signal_clicked), stars
-            );
-
-            // g_object_set_data(G_OBJECT(button), "WidgetStarRating::value", GINT_TO_POINTER (rate_to_star[i]));
-            g_object_set_data_full(G_OBJECT(button),
-                "WidgetStarRating::value", GINT_TO_POINTER(rate_to_star[i]), (GDestroyNotify) g_free
-            );
-
-            gtk_container_add(GTK_CONTAINER(button), image);
-            gtk_widget_set_visible(image, TRUE);
-
-        } else {
-            button = image; // button = image with no click
-        }
-
+        GtkWidget *button = stars->gtkstars[i];
         gtk_widget_set_sensitive(button, stars->interactive);
-        gtk_style_context_add_class(gtk_widget_get_style_context(button), "star");
-        gtk_style_context_add_class(gtk_widget_get_style_context(image), rating >= rate_to_star[i] ? "star-enabled" : "star-disabled");
-        
-        gtk_widget_set_visible(button, TRUE);
-        gtk_container_add(GTK_CONTAINER(stars->starrating), button);
+
+        GtkStyleContext *style = gtk_widget_get_style_context(button);
+
+    // add or remove class if selected
+        gtk_style_context_remove_class(style, rating >= rate_to_star[i] ? "star-disabled" : "star-enabled");
+        gtk_style_context_add_class(style, rating >= rate_to_star[i] ? "star-enabled" : "star-disabled");
     }
 }
 
@@ -725,12 +720,11 @@ static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rat
 
 static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive) {
     stars->interactive = interactive;
-    widget_starrating_refresh(stars);
+    gtk_widget_set_sensitive(stars->starrating, interactive);
 }
 
 static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int pixel_size) {
     stars->icon_size = pixel_size;
-    widget_starrating_refresh(stars);
 }
 
     
@@ -888,11 +882,16 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
 
 
-struct WidgetSidebarItem *xxx = widget_sidebar_item_new("qedeqerezrz", "XXX", FALSE);
+struct WidgetSidebarItem *xxx = widget_sidebar_item_new("ID_1", "XXX", FALSE);
 widget_sidebar_items_add(widget_sidebar, xxx);
 
-xxx = widget_sidebar_item_new("d", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", FALSE);
+xxx = widget_sidebar_item_new("ID_2", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", FALSE);
 widget_sidebar_items_add(widget_sidebar, xxx);
+
+xxx = widget_sidebar_item_new("ID_3", "<>ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok", FALSE);
+widget_sidebar_items_add(widget_sidebar, xxx);
+
+
 
 
 
