@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 
 G_BEGIN_DECLS
 
@@ -53,7 +54,7 @@ struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
     char *description;
     char *comment;
     char *director;
-    char *countries[255];
+    char *countries; //[255];
     char *genres[255];
     char *actors[255][2];
     char *serie;
@@ -68,6 +69,7 @@ struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
 
 struct MovieCollection {
     int version;
+    int size;
     struct MovieCollectionItem movies[];
 
 };
@@ -105,11 +107,13 @@ struct WidgetPanelWelcome {
 
 struct WidgetPanelPreview {
     GtkWidget *panel; // container
+    struct WidgetStarRating *widget_starrating;
 
 };
 
 struct WidgetPanelEdition {
     GtkWidget *panel; // container
+    struct WidgetStarRating *widget_starrating;
 
 };
 
@@ -126,12 +130,26 @@ struct WidgetStatusbar {
 static struct WidgetStatusbar *widget_statusbar_new();
 static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char* text);
 
+////////////////////
 
+struct WidgetStarRating {
+    GtkWidget *starrating; // container
+    bool interactive;
+    int rating;
+    int icon_size;
+    GtkWidget *gtkstars[5];
+};
 
-
-
+static struct WidgetStarRating *widget_starrating_new();
+static int widget_starrating_get_rating(struct WidgetStarRating *stars);
+static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rating);
+static void widget_starrating_refresh(struct WidgetStarRating *stars);
+static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive);
+static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int pixel_size);
 
 ////////////////////
+
+
 
 
 
