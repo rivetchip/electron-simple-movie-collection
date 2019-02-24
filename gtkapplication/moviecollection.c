@@ -58,21 +58,6 @@ static void widget_add_class(GtkWidget *widget, char *class_name) {
     gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
 }
 
-static char *widget_get_iconpath(char *icon_name) {
-    char icon_svg[20]; //todo
-    sprintf(icon_svg, "%s.svg", icon_name);
-
-    char *icon_path = g_build_filename(PACKAGE_RESSOURCES_DIR, icon_svg, NULL);
-
-    if(g_file_test(icon_path, G_FILE_TEST_IS_REGULAR)) {
-        return icon_path;
-    }
-
-    g_free(icon_path);
-
-    return NULL;
-}
-
 static GtkWidget *widget_get_child(GtkWidget *parent, char *child_name) {
 
     if(strcmp(gtk_widget_get_name(parent), child_name) == 0) { 
@@ -186,40 +171,32 @@ static void signal_mainwindow_destroy(GtkWidget *window) {
     g_application_quit(G_APPLICATION(gtkapp));
 }
 
+static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error, gpointer user_data) {
+
+    g_warning("Theme parsing error: %u:%u %s",
+        gtk_css_section_get_end_line (section) + 1,
+        gtk_css_section_get_end_position (section),
+        error->message
+    );
+}
+
+
 // create a gtk button with an icon inside todo
 static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name, void *click_event, gpointer user_data) {
-    char icon_svg[20];
-    sprintf(icon_svg, "%s.svg", icon_name);
 
-    char *icon_path = g_build_filename(PACKAGE_RESSOURCES_DIR, icon_svg, NULL);
-
-    GtkWidget *gtk_button = gtk_button_new();
+    GtkWidget *button = gtk_button_new_from_icon_name(
+        g_strconcat("@", icon_name, NULL) , GTK_ICON_SIZE_BUTTON
+    );
 
     if(class_name != NULL) {
-        widget_add_class(gtk_button, class_name);
+        widget_add_class(button, class_name);
     }
 
     if(click_event != NULL) {
-        g_signal_connect(gtk_button, "clicked", G_CALLBACK(click_event), user_data);
+        g_signal_connect(button, "clicked", G_CALLBACK(click_event), user_data);
     }
 
-    GtkWidget *gtk_image;
-
-    if(g_file_test(icon_path, G_FILE_TEST_IS_REGULAR)) {
-        gtk_image = gtk_image_new_from_file(icon_path);
-    } else {
-        // default fallback picture (symbolic)
-        char icon_symbolic[25];
-        sprintf(icon_symbolic, "%s-symbolic", icon_name);
-
-        gtk_image = gtk_image_new_from_icon_name(icon_symbolic, GTK_ICON_SIZE_MENU);
-    }
-
-    g_free(icon_path);
-
-    gtk_container_add(GTK_CONTAINER(gtk_button), gtk_image);
-
-    return gtk_button;
+    return button;
 }
 
 static void signal_headerbar_close(GtkButton* button, MovieApplication *mapp) {
@@ -323,13 +300,12 @@ static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRo
 
 static GtkWidget *app_toolbar_button_new(char *icon_name, char *label, void *click_event, gpointer user_data) {
 
-    GtkWidget *button = gtk_button_new_with_label(label);
+    GtkWidget *button = gtk_button_new_from_icon_name(
+        g_strconcat("@", icon_name, NULL), GTK_ICON_SIZE_LARGE_TOOLBAR
+    );
+    gtk_button_set_label(GTK_BUTTON(button), label);
     widget_add_class(button, "toolbar-button");
     gtk_button_set_always_show_image(GTK_BUTTON(button), TRUE);
-
-    char *icon_path = widget_get_iconpath(icon_name);
-    GtkWidget *image = gtk_image_new_from_file(icon_path);
-    gtk_button_set_image(GTK_BUTTON(button), GTK_WIDGET(image));
 
     if(click_event != NULL) {
         g_signal_connect(button, "clicked", G_CALLBACK(click_event), user_data);
@@ -421,16 +397,10 @@ static struct WidgetSidebar *widget_sidebar_new() {
     GtkWidget *search_entry = gtk_entry_new();
     widget_add_class(search_entry, "searchbar-entry");
     gtk_entry_set_placeholder_text(GTK_ENTRY(search_entry), "Recherche");
+    gtk_entry_set_icon_from_icon_name(GTK_ENTRY(search_entry), GTK_ENTRY_ICON_PRIMARY, "@edit-find");
+    gtk_widget_set_hexpand(GTK_WIDGET(search_entry), FALSE);
 
     widget->search_entry = search_entry;
-
-    char *search_icon = widget_get_iconpath("edit-find");
-    if(search_icon != NULL) {
-        GIcon *gicon = g_file_icon_new(g_file_new_for_path(search_icon));
-        gtk_entry_set_icon_from_gicon(GTK_ENTRY(search_entry), GTK_ENTRY_ICON_PRIMARY, gicon);
-    }
-
-    gtk_widget_set_hexpand(GTK_WIDGET(search_entry), FALSE);
 
     gtk_container_add(GTK_CONTAINER(search_box), search_entry);
 
@@ -482,8 +452,7 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
 
     widget->label = label;
 
-    char *icon_path = widget_get_iconpath("emblem-favorite");
-    GtkWidget *favorite_icon = gtk_image_new_from_file(icon_path);
+    GtkWidget *favorite_icon = gtk_image_new_from_icon_name("@emblem-favorite", GTK_ICON_SIZE_SMALL_TOOLBAR);
     gtk_widget_set_visible(favorite_icon, (is_favorite));
 
     widget->favorite_icon = favorite_icon;
@@ -645,7 +614,10 @@ static struct WidgetStarRating *widget_starrating_new() {
     int i;
     for(i = 0; i < 5; i++) {
 
-        GtkWidget *button = gtk_button_new_from_icon_name("starred-symbolic", GTK_ICON_SIZE_DIALOG);
+        GtkWidget *button = gtk_button_new();
+        GtkWidget *image = gtk_image_new_from_icon_name("@emblem-staroff", GTK_ICON_SIZE_BUTTON);
+
+        gtk_container_add(GTK_CONTAINER(button), image);
 
         g_signal_connect(button, "clicked",
             G_CALLBACK(widget_starrating_signal_clicked), widget
@@ -655,6 +627,7 @@ static struct WidgetStarRating *widget_starrating_new() {
             "WidgetStarRating::value", GINT_TO_POINTER(rate_to_star[i]), (GDestroyNotify) g_free
         );
 
+        // todo
         gtk_widget_set_sensitive(button, widget->interactive);
         gtk_style_context_add_class(gtk_widget_get_style_context(button), "starrating-star");
         
@@ -685,7 +658,7 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
 
     //todo
     // emit signal rating changed
-    g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
+    // g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
 }
 
 static void widget_starrating_refresh(struct WidgetStarRating *stars) {
@@ -701,9 +674,15 @@ static void widget_starrating_refresh(struct WidgetStarRating *stars) {
         GtkWidget *button = stars->gtkstars[i];
         gtk_widget_set_sensitive(button, stars->interactive);
 
+        GtkWidget *image = gtk_bin_get_child(GTK_BIN(button));
+
+        gtk_image_set_from_icon_name(GTK_IMAGE(image),
+            (rating >= rate_to_star[i] ? "@emblem-star" : "@emblem-staroff"), GTK_ICON_SIZE_BUTTON
+        );
+
+        // add or remove class if selected
         GtkStyleContext *style = gtk_widget_get_style_context(button);
 
-    // add or remove class if selected
         gtk_style_context_remove_class(style, rating >= rate_to_star[i] ? "star-disabled" : "star-enabled");
         gtk_style_context_add_class(style, rating >= rate_to_star[i] ? "star-enabled" : "star-disabled");
     }
@@ -763,15 +742,8 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     // Set window settings
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
-        "gtk-application-prefer-dark-theme", TRUE, //because webview is dark :)
+        "gtk-application-prefer-dark-theme", TRUE,
     NULL);
-
-    // hide window decorations of main app and use our own
-    GtkWidget *header_bar = app_headerbar_create(mapp);
-
-    // header bar
-    gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
-    gtk_window_set_titlebar(GTK_WINDOW(main_window), header_bar);
 
     // Callback when the main window is closed
     g_signal_connect(main_window, "destroy",
@@ -789,7 +761,6 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     );
 
     // Load window previous state, if any
-
     if(mapp->win_height > 0 && mapp->win_width > 0) {
         gtk_window_set_default_size(GTK_WINDOW(main_window),
             mapp->win_width,
@@ -806,29 +777,33 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     }
 
     // Styling application (if file available)
+    GtkCssProvider *css_provider = gtk_css_provider_new();
 
-    char *window_style = g_build_filename(PACKAGE_STYLES_DIR, "style.css", NULL);
+    g_signal_connect(css_provider, "parsing-error",
+        G_CALLBACK(signal_css_provider_parsing_error), NULL
+    );
+    
+    gtk_css_provider_load_from_resource(
+        css_provider, "/shell/style.css"
+    );
 
-    if(g_file_test(window_style, G_FILE_TEST_IS_REGULAR)) {
+    gtk_style_context_add_provider_for_screen(
+        gdk_screen_get_default(),
+        GTK_STYLE_PROVIDER(css_provider),
+        GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
+    );
 
-        GtkCssProvider *css_provider = gtk_css_provider_new();
-
-        GError *css_error = NULL;
-        gtk_css_provider_load_from_path(css_provider, window_style, &css_error);
-
-        if(css_error != NULL) {
-            g_warning("app:import style.css %s", css_error->message);
-            g_clear_error(&css_error);
-        }
-
-        gtk_style_context_add_provider_for_screen(gdk_screen_get_default(),
-            GTK_STYLE_PROVIDER(css_provider),
-            GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
-        );
-    }
-
+    gtk_icon_theme_add_resource_path(
+        gtk_icon_theme_get_default(), "/icons"
+    );
 
 
+    ////////// WINDOW DESIGN //////////
+
+    // hide window decorations of main app and use our own todo
+    GtkWidget *widget_headerbar = app_headerbar_create(mapp);
+    gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
+    gtk_window_set_titlebar(GTK_WINDOW(main_window), widget_headerbar);
 
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
