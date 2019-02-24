@@ -138,7 +138,7 @@ struct WidgetStarRating {
     bool interactive;
     int rating;
     int icon_size;
-    GtkWidget *gtkstars[5];
+    GtkWidget *gtkstars[5]; //buttons
 };
 
 static struct WidgetStarRating *widget_starrating_new();

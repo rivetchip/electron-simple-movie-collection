@@ -171,7 +171,7 @@ static void signal_mainwindow_destroy(GtkWidget *window) {
     g_application_quit(G_APPLICATION(gtkapp));
 }
 
-static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error, gpointer user_data) {
+static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error) {
 
     g_warning("Theme parsing error: %u:%u %s",
         gtk_css_section_get_end_line (section) + 1,
@@ -180,40 +180,24 @@ static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSe
     );
 }
 
-
-// create a gtk button with an icon inside todo
-static GtkWidget *app_headerbar_create_button(char *icon_name, char *class_name, void *click_event, gpointer user_data) {
-
-    GtkWidget *button = gtk_button_new_from_icon_name(
-        g_strconcat("@", icon_name, NULL) , GTK_ICON_SIZE_BUTTON
-    );
-
-    if(class_name != NULL) {
-        widget_add_class(button, class_name);
-    }
-
-    if(click_event != NULL) {
-        g_signal_connect(button, "clicked", G_CALLBACK(click_event), user_data);
-    }
-
-    return button;
-}
-
-static void signal_headerbar_close(GtkButton* button, MovieApplication *mapp) {
-    g_application_quit(G_APPLICATION(mapp));
-    // todo remove mapp var
-}
-
-static void signal_headerbar_minimize(GtkButton* button, MovieApplication *mapp) {
+static void signal_headerbar_close(GtkButton* button) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
-        GtkWindow *gtk_window = GTK_WINDOW(toplevel);
-        gtk_window_iconify(gtk_window);
+        GtkApplication *gtk_app = gtk_window_get_application(GTK_WINDOW(toplevel));
+        g_application_quit(G_APPLICATION(gtk_app));
     }
 }
 
-static void signal_headerbar_maximize(GtkButton* button, MovieApplication *mapp) {
+static void signal_headerbar_minimize(GtkButton* button) {
+    GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
+
+    if(GTK_IS_WINDOW(toplevel)) {
+        gtk_window_iconify(GTK_WINDOW(toplevel));
+    }
+}
+
+static void signal_headerbar_maximize(GtkButton* button) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
@@ -222,7 +206,7 @@ static void signal_headerbar_maximize(GtkButton* button, MovieApplication *mapp)
     }
 }
 
-static GtkWidget *app_headerbar_create(MovieApplication *mapp) { //todo
+static GtkWidget *app_headerbar_create() { //todo
 
     // Set GTK CSD HeaderBar
     GtkWidget *header_bar = gtk_header_bar_new();
@@ -232,22 +216,21 @@ static GtkWidget *app_headerbar_create(MovieApplication *mapp) { //todo
     gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), FALSE);
     gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
     gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), FALSE);
-    // prefered min header height
-    gtk_widget_set_size_request(header_bar, -1, 45);
+    gtk_widget_set_size_request(header_bar, -1, 45); // width height
 
     // add buttons and callback on click (override gtk-decoration-layout property)
-    GtkWidget *btn_close = app_headerbar_create_button(
-        "window-close", "headerbutton",
-        signal_headerbar_close, mapp
-    );
-    GtkWidget *btn_minimize = app_headerbar_create_button(
-        "window-minimize", "headerbutton",
-        signal_headerbar_minimize, mapp
-    );
-    GtkWidget *btn_maximize = app_headerbar_create_button(
-        "window-maximize", "headerbutton",
-        signal_headerbar_maximize, mapp
-    );
+
+    GtkWidget *btn_close = gtk_button_new_from_icon_name("@window-close", GTK_ICON_SIZE_BUTTON);
+    widget_add_class(btn_close, "headerbutton");
+    g_signal_connect(btn_close, "clicked", G_CALLBACK(signal_headerbar_close), NULL);
+
+    GtkWidget *btn_minimize = gtk_button_new_from_icon_name("@window-minimize", GTK_ICON_SIZE_BUTTON);
+    widget_add_class(btn_minimize, "headerbutton");
+    g_signal_connect(btn_minimize, "clicked", G_CALLBACK(signal_headerbar_minimize), NULL);
+
+    GtkWidget *btn_maximize = gtk_button_new_from_icon_name("@window-maximize", GTK_ICON_SIZE_BUTTON);
+    widget_add_class(btn_maximize, "headerbutton");
+    g_signal_connect(btn_maximize, "clicked", G_CALLBACK(signal_headerbar_maximize), NULL);
 
     gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
     gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_minimize);
@@ -801,7 +784,7 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     ////////// WINDOW DESIGN //////////
 
     // hide window decorations of main app and use our own todo
-    GtkWidget *widget_headerbar = app_headerbar_create(mapp);
+    GtkWidget *widget_headerbar = app_headerbar_create();
     gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
     gtk_window_set_titlebar(GTK_WINDOW(main_window), widget_headerbar);
 
