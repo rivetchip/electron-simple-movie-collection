@@ -32,37 +32,35 @@ libdir = join_paths(prefix, get_option('libdir')) # lib
 
 # packages install directories
 pkgbindir = bindir # no sub-folder for /usr/bin folder
-pkgdatadir = join_paths(datadir, project_name)
+pkgdatadir = join_paths(datadir, project_name) # ressources
 pkglibdir = join_paths(libdir, project_name)
-
 pkgappsdir = join_paths(datadir, 'applications')
-pkgressourcesdir = join_paths(pkgdatadir, 'ressources')
-pkgstylesdir = join_paths(pkgdatadir, 'styles')
 
 if developer_mode # locally
     developer_prefix = build_root
     pkgbindir = join_paths(developer_prefix, 'bin')
     pkgappsdir = join_paths(developer_prefix, 'applications')
-    pkgressourcesdir = join_paths(source_root, 'ressources')
-    pkgstylesdir = source_root
 endif
 # todo cannot install on dev mode because of extension copy same location
 
-
 # generate config.h based on compilation options
 config_h = configuration_data()
+config_h.set10('PACKAGE_DEVELOPER_MODE', developer_mode)
 config_h.set_quoted('PACKAGE_APPLICATION_ID', application_id)
 config_h.set_quoted('PACKAGE_NAME', project_name)
 config_h.set_quoted('PACKAGE_VERSION', project_version)
 config_h.set_quoted('PACKAGE_SOURCE_ROOT', source_root)
 config_h.set_quoted('PACKAGE_BUILD_ROOT', build_root)
-config_h.set_quoted('PACKAGE_RESSOURCES_DIR', pkgressourcesdir)
-config_h.set_quoted('PACKAGE_STYLES_DIR', pkgstylesdir)
-# config_h.set('GTK_DISABLE_DEPRECATED', true)
-config_h.set10('PACKAGE_DEVELOPER_MODE', developer_mode)
 
 config_header = configure_file(output: 'config.h', configuration: config_h)
 
+# generate and link ressource styles & icons
+gnome = import('gnome')
+source_resources = gnome.compile_resources(
+    'movieapp-resources', 'gresource.xml',
+    source_dir: './',
+    c_name: 'shell'
+)
 
 # desktop file generation & check
 desktop_conf = configuration_data()
@@ -82,12 +80,6 @@ endif
 
 install_data(desktop_file, install_dir: pkgappsdir)
 
-if not developer_mode # locally
-    # add ressources files
-    install_data('style.css', install_dir: pkgstylesdir)
-    install_subdir('ressources', install_dir: pkgressourcesdir, strip_directory: true)
-endif
-
 
 
 add_project_arguments([
@@ -95,7 +87,7 @@ add_project_arguments([
 ], language: 'c')
 
 executable('moviecollection',
-    sources: [config_header, 'moviecollection.c', 'fetchmovie.c'],
+    sources: [config_header, source_resources, 'moviecollection.c', 'fetchmovie.c'],
     dependencies: [depgtk, depglib, deplibcurl],
     install_dir: pkgbindir,
     install: true

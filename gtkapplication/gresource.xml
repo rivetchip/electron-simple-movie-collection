@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+    <gresource prefix="/shell">
+        <file>style.css</file>
+        <file alias="monster-icon.svg">ressources/monster-icon-round.svg</file>
+    </gresource>
+
+    <!-- <gresource prefix="/org/id.gnome.app/icons"> -->
+    <gresource prefix="/icons/scalable/actions">
+        <file alias="@window-close.svg">ressources/window-close.svg</file>
+        <file alias="@window-minimize.svg">ressources/window-minimize.svg</file>
+        <file alias="@window-restore.svg">ressources/window-restore.svg</file>
+        <file alias="@window-maximize.svg">ressources/window-maximize.svg</file>
+
+        <file alias="@toolbar-new.svg">ressources/toolbar-new.svg</file>
+        <file alias="@toolbar-open.svg">ressources/toolbar-open.svg</file>
+        <file alias="@toolbar-save.svg">ressources/toolbar-save.svg</file>
+
+        <file alias="@emblem-grid.svg">ressources/emblem-grid.svg</file>
+        <file alias="@emblem-favorite.svg">ressources/emblem-favorite.svg</file>
+        <file alias="@edit-find.svg">ressources/edit-find.svg</file>
+        <file alias="@emblem-star.svg">ressources/emblem-star.svg</file>
+        <file alias="@emblem-staroff.svg">ressources/emblem-staroff.svg</file>
+        <file alias="@emblem-trash.svg">ressources/emblem-trash.svg</file>
+
+    </gresource>
+
+</gresources>
+
+
