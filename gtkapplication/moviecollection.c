@@ -934,8 +934,6 @@ int main(int argc, char* argv[]) {
 
     #if PACKAGE_DEVELOPER_MODE
         g_message("Dev mode");
-        // hacks workaround slow computers
-        putenv("WEBKIT_DISABLE_COMPOSITING_MODE=1");
         // inspector debug
         putenv("GTK_DEBUG=fatal-warnings");
         putenv("GOBJECT_DEBUG=instance-count");
