@@ -109,7 +109,10 @@ exports.createSnackbar = (() => {
 static libcurl :
 libidn2-devel libnghttp2-devel openldap-devel libssh-devel libpsl-devel mbedtls-devel heimdal-devel krb5-devel openssl-devel brotli-devel
 
-
+uri = g_strconcat ("resource://", escaped, NULL);
+file = g_file_new_for_uri (uri);
+g_free (uri);
+gtk_css_provider_load_from_file (css_provider, file);
 
 
 
