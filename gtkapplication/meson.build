@@ -36,13 +36,6 @@ pkgdatadir = join_paths(datadir, project_name) # ressources
 pkglibdir = join_paths(libdir, project_name)
 pkgappsdir = join_paths(datadir, 'applications')
 
-if developer_mode # locally
-    developer_prefix = build_root
-    pkgbindir = join_paths(developer_prefix, 'bin')
-    pkgappsdir = join_paths(developer_prefix, 'applications')
-endif
-# todo cannot install on dev mode because of extension copy same location
-
 # generate config.h based on compilation options
 config_h = configuration_data()
 config_h.set10('PACKAGE_DEVELOPER_MODE', developer_mode)
@@ -54,7 +47,7 @@ config_h.set_quoted('PACKAGE_BUILD_ROOT', build_root)
 
 config_header = configure_file(output: 'config.h', configuration: config_h)
 
-# generate and link ressource styles & icons
+# generate and link ressource styles & icons using glib-compile-resources
 gnome = import('gnome')
 source_resources = gnome.compile_resources(
     'movieapp-resources', 'gresource.xml',
