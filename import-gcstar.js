@@ -135,13 +135,7 @@ function convertPoster(image) {
 }
 
 function convertRating(rating) {
-    rating = Number(rating)
-
-    if(rating == 0) {
-        return 0
-    }
-    
-    return Math.floor(rating / 2) // GC on /10, here on /5
+    return (Number(rating) * 10) // GC on /10, here on /100
 }
 
 function convertTags(tags) {
