@@ -52,7 +52,49 @@ static bool movie_collection_remove() {
 
 
 
+size_t getlinex(char **lineptr, size_t *n, FILE *stream) {
+    // const char* endl[4] = {"\n", "\r", "\r\n", "\n"};
 
+    if(*lineptr == NULL) {
+        *lineptr = malloc(128); // default size
+        if(*lineptr == NULL) {
+            return -1;
+        }
+
+        *n = 128;
+    }
+
+    int c;
+    size_t pos = 0;
+
+    while((c = fgetc(stream)) != EOF) {
+        if(pos + 1 >= *n) {
+
+            size_t new_size = *n + (*n >> 2);
+
+            if (new_size < 128) {
+                new_size = 128;
+            }
+
+            char *new_ptr = realloc(*lineptr, new_size);
+            if(new_ptr == NULL) {
+                return -1;
+            }
+
+            *n = new_size;
+            *lineptr = new_ptr;
+        }
+
+        ((unsigned char *)(*lineptr))[pos++] = c;
+    
+        if(c == '\n') {
+            break;
+        }
+    }
+
+    (*lineptr)[pos] = '\0';
+    return pos;
+}
 
 static void widget_add_class(GtkWidget *widget, char *class_name) {
     gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
@@ -271,7 +313,7 @@ static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) 
 static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
 
     const char *item_id = g_object_get_data(
-        G_OBJECT(GTK_WIDGET(listrow)), "WidgetSidebarItem::itemId"
+        G_OBJECT(GTK_WIDGET(listrow)), "itemId"
     );
 
     #if PACKAGE_DEVELOPER_MODE
@@ -279,22 +321,6 @@ static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRo
     #endif
 
 
-}
-
-static GtkWidget *app_toolbar_button_new(char *icon_name, char *label, void *click_event, gpointer user_data) {
-
-    GtkWidget *button = gtk_button_new_from_icon_name(
-        g_strconcat("@", icon_name, NULL), GTK_ICON_SIZE_LARGE_TOOLBAR
-    );
-    gtk_button_set_label(GTK_BUTTON(button), label);
-    widget_add_class(button, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button), TRUE);
-
-    if(click_event != NULL) {
-        g_signal_connect(button, "clicked", G_CALLBACK(click_event), user_data);
-    }
-
-    return button;
 }
 
 static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char* provider_name) {
@@ -308,32 +334,54 @@ static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char* 
 
 }
 
-static GtkWidget *app_toolbar_create() { //todo
+static struct WidgetToolbar *widget_toolbar_new() {
+
+    struct WidgetToolbar *widget = malloc(sizeof(struct WidgetToolbar));
 
     GtkWidget *toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     widget_add_class(toolbar, "toolbar");
     gtk_widget_set_size_request(toolbar, -1, 45); // width height
 
-    GtkWidget *button_open = app_toolbar_button_new(
-        "toolbar-open", "Ouvrir",
-        NULL, NULL
+    widget->toolbar = toolbar;
+
+    // main buttons
+
+    GtkWidget *button_open = gtk_button_new_from_icon_name(
+        "@toolbar-open", GTK_ICON_SIZE_LARGE_TOOLBAR
     );
-    GtkWidget *button_save = app_toolbar_button_new(
-        "toolbar-save", "Enregistrer",
-        NULL, NULL
+    gtk_button_set_label(GTK_BUTTON(button_open), "Ouvrir");
+    widget_add_class(button_open, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button_open), TRUE);
+
+    widget->button_open = button_open;
+
+    GtkWidget *button_save = gtk_button_new_from_icon_name(
+        "@toolbar-save", GTK_ICON_SIZE_LARGE_TOOLBAR
     );
-    GtkWidget *button_new = app_toolbar_button_new(
-        "toolbar-new", "Ajouter un film",
-        NULL, NULL
+    gtk_button_set_label(GTK_BUTTON(button_save), "Enregistrer");
+    widget_add_class(button_save, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button_save), TRUE);
+
+    widget->button_save = button_save;
+
+    GtkWidget *button_new = gtk_button_new_from_icon_name(
+        "@toolbar-new", GTK_ICON_SIZE_LARGE_TOOLBAR
     );
+    gtk_button_set_label(GTK_BUTTON(button_new), "Ajouter un film");
+    widget_add_class(button_new, "toolbar-button");
+    gtk_button_set_always_show_image(GTK_BUTTON(button_new), TRUE);
+
+    widget->button_new = button_new;
 
     gtk_box_pack_start(GTK_BOX(toolbar), button_open, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(toolbar), button_save, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(toolbar), button_new, FALSE, FALSE, 0);
 
-    // add movie provider selection
+    // add movie provider selection todo
 
     GtkWidget *providers = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+
+    widget->providers = providers;
 
     GtkWidget *tmdben = gtk_radio_button_new_with_label(NULL, "TMDb EN");
     widget_add_class(tmdben, "toolbar-button");
@@ -352,7 +400,7 @@ static GtkWidget *app_toolbar_create() { //todo
 
     gtk_box_pack_end(GTK_BOX(toolbar), providers, FALSE, FALSE, 0);
 
-    return toolbar;
+    return widget;
 }
 
 
@@ -418,7 +466,7 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
     widget_add_class(list_row, "category-item");
     
     g_object_set_data_full(G_OBJECT(list_row),
-        "WidgetSidebarItem::itemId", item_id, NULL //(GDestroyNotify) g_free
+        "itemId", item_id, NULL //(GDestroyNotify) g_free
     );
 
     widget->list_row = list_row;
@@ -505,8 +553,13 @@ static struct WidgetPanels *widget_panels_new() {
     // create panels
 
     struct WidgetPanelWelcome *panel_welcome = widget_panel_welcome_new();
+    // widget->panel_welcome = panel_welcome;
+
     struct WidgetPanelPreview *panel_preview = widget_panel_preview_new();
+    // widget->panel_preview = panel_preview;
+
     struct WidgetPanelEdition *panel_edition = widget_panel_edition_new();
+    // widget->panel_edition = panel_edition;
 
     gtk_notebook_append_page(GTK_NOTEBOOK(panels), panel_welcome->panel, gtk_label_new("welcome"));
     gtk_notebook_append_page(GTK_NOTEBOOK(panels), panel_preview->panel, gtk_label_new("preview"));
@@ -607,7 +660,7 @@ static struct WidgetStarRating *widget_starrating_new() {
         );
 
         g_object_set_data_full(G_OBJECT(button),
-            "WidgetStarRating::value", GINT_TO_POINTER(rate_to_star[i]), (GDestroyNotify) g_free
+            "rating", GINT_TO_POINTER(rate_to_star[i]), (GDestroyNotify) g_free
         );
 
         // todo
@@ -630,7 +683,7 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
     }
 
     int rating = GPOINTER_TO_INT(g_object_get_data(
-        G_OBJECT(button), "WidgetStarRating::value")
+        G_OBJECT(button), "rating")
     );
 
     #if PACKAGE_DEVELOPER_MODE
@@ -652,7 +705,7 @@ static void widget_starrating_refresh(struct WidgetStarRating *stars) {
     rating = 10 * ceil(rating / 10);
 
     int i;
-    for(i = 0; i < 5; i++) {
+    for(i = 0; i < 5; i++) { //todo
 
         GtkWidget *button = stars->gtkstars[i];
         gtk_widget_set_sensitive(button, stars->interactive);
@@ -695,6 +748,62 @@ static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int 
 
 
 
+static char *show_open_dialog() {
+
+    char *filename = NULL;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+
+    GtkWidget *dialog = gtk_file_chooser_dialog_new(
+        "Ouvrir un fichier", NULL, action,
+        "Annuler", GTK_RESPONSE_CANCEL,
+        "Ouvrir", GTK_RESPONSE_ACCEPT,
+        NULL
+    );
+
+    int status = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if(status == GTK_RESPONSE_ACCEPT) {
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        filename = gtk_file_chooser_get_filename(chooser);
+    }
+
+    gtk_widget_destroy(dialog);
+
+    return filename;
+}
+
+
+
+
+
+
+
+
+
+
+
+static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
+
+    const char *filename = show_open_dialog();
+
+    if(filename == NULL) {
+        return;
+    }
+
+    FILE *stream = fopen(filename, "rb");
+    size_t line_size = 0;
+    unsigned char *line = NULL;
+    size_t read = 0;
+
+    while ((read = getlinex(&line, &line_size, stream)) > 0) {
+        printf(">>>> %i %i %s", read, line_size, line);
+ 
+        // break;
+    }
+
+    free(line);
+    fclose(stream);
+}
 
 
 
@@ -707,25 +816,25 @@ static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int 
 
 
 
-
-
-static void app_show_interactive_dialog(MovieApplication* mapp) {
+static void show_interactive_dialog(MovieApplication* mapp) {
     const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(GTK_APPLICATION(mapp));
 
     // Create an 800x600 window that will contain the browser instance
+    gtk_window_set_icon_name(GTK_WINDOW(main_window), appid);
     gtk_window_set_title(GTK_WINDOW(main_window), "Movie Collection");
     gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
+    gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
     gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(GTK_WINDOW(main_window), TRUE);
-    gtk_window_set_icon_name(GTK_WINDOW(main_window), appid);
 
     // Set window settings
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
         "gtk-application-prefer-dark-theme", TRUE,
+        // "gtk-font-name", "Lato 12",
     NULL);
 
     // Callback when the main window is closed
@@ -785,7 +894,6 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
 
     // hide window decorations of main app and use our own todo
     GtkWidget *widget_headerbar = app_headerbar_create();
-    gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
     gtk_window_set_titlebar(GTK_WINDOW(main_window), widget_headerbar);
 
     // Window Main
@@ -794,7 +902,17 @@ static void app_show_interactive_dialog(MovieApplication* mapp) {
     GtkWidget *layout_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     // Upper toolbar
-    GtkWidget *toolbar = app_toolbar_create();
+    struct WidgetToolbar *widget_toolbar = widget_toolbar_new();
+
+    GtkWidget *toolbar = widget_toolbar->toolbar;
+
+    g_signal_connect(widget_toolbar->button_open, "clicked",
+        G_CALLBACK(signal_toolbar_open), mapp
+    );
+
+
+
+
 
     // Sidebar
     struct WidgetSidebar *widget_sidebar = widget_sidebar_new();
@@ -875,7 +993,7 @@ static void signal_app_activate(MovieApplication* mapp) {
     }
 
     // Else, we show the main window
-    app_show_interactive_dialog(mapp);
+    show_interactive_dialog(mapp);
 }
 
 static void signal_app_shutdown(MovieApplication* mapp) {
