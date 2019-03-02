@@ -115,6 +115,30 @@ g_free (uri);
 gtk_css_provider_load_from_file (css_provider, file);
 
 
+// plus rapide que getline() mais super leak de mémoire ??
+
+//     GError *error = NULL;
+//     GFile *gfile = g_file_new_for_path(filename);
+//     GFileInputStream *stream = g_file_read(gfile, NULL, &error);
+
+//     GDataInputStream *datain = g_data_input_stream_new(G_INPUT_STREAM(stream));
+
+//     size_t line_size = 0;
+//     char *line = NULL;
+
+//     while((line = g_data_input_stream_read_line(datain, &line_size, NULL, &error)) != NULL) {
+
+// // g_message(line);
+//     }
+
+//     g_free(line);
+
+
+
+
+
+
+
 
 
 
