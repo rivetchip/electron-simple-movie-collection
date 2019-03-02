@@ -77,6 +77,18 @@ struct MovieCollection {
 
 ////////////////////
 
+struct WidgetToolbar {
+    GtkWidget *toolbar; // container
+    GtkWidget *button_open;
+    GtkWidget *button_save;
+    GtkWidget *button_new;
+    GtkWidget *providers;
+};
+
+static struct WidgetToolbar *widget_toolbar_new();
+
+////////////////////
+
 struct WidgetSidebar {
     GtkWidget *sidebar; // container
     GtkWidget *search_box;
@@ -93,6 +105,8 @@ struct WidgetSidebarItem {
 static struct WidgetSidebar *widget_sidebar_new();
 static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *label_text, bool is_favorite);
 static void widget_sidebar_items_add(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item);
+
+////////////////////
 
 struct WidgetPanels {
     GtkWidget *panels; // container
