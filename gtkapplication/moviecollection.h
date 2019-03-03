@@ -77,6 +77,15 @@ struct MovieCollection {
 
 ////////////////////
 
+struct WidgetHeaderbar {
+    GtkWidget *headerbar; // container
+    GtkWidget *button_close;
+    GtkWidget *button_minimize;
+    GtkWidget *button_maximize;
+};
+
+static struct WidgetHeaderbar *widget_headerbar_new();
+
 struct WidgetToolbar {
     GtkWidget *toolbar; // container
     GtkWidget *button_open;

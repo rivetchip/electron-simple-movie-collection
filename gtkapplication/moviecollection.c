@@ -248,37 +248,47 @@ static void signal_headerbar_maximize(GtkButton* button) {
     }
 }
 
-static GtkWidget *app_headerbar_create() { //todo
+static struct WidgetHeaderbar *widget_headerbar_new() {
+
+    struct WidgetHeaderbar *widget = malloc(sizeof(struct WidgetHeaderbar));
 
     // Set GTK CSD HeaderBar
-    GtkWidget *header_bar = gtk_header_bar_new();
-    gtk_widget_set_name(header_bar, "headerbar");
+    GtkWidget *headerbar = gtk_header_bar_new();
+    gtk_widget_set_name(headerbar, "headerbar");
+
+    widget->headerbar = headerbar;
 
     // hide window decorationq of header bar
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(header_bar), FALSE);
-    gtk_header_bar_set_title(GTK_HEADER_BAR(header_bar), "Movie Collection");
-    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(header_bar), FALSE);
-    gtk_widget_set_size_request(header_bar, -1, 45); // width height
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(headerbar), FALSE);
+    gtk_header_bar_set_title(GTK_HEADER_BAR(headerbar), "Movie Collection");
+    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(headerbar), FALSE);
+    gtk_widget_set_size_request(headerbar, -1, 45); // width height
 
     // add buttons and callback on click (override gtk-decoration-layout property)
 
-    GtkWidget *btn_close = gtk_button_new_from_icon_name("@window-close", GTK_ICON_SIZE_BUTTON);
-    widget_add_class(btn_close, "headerbutton");
-    g_signal_connect(btn_close, "clicked", G_CALLBACK(signal_headerbar_close), NULL);
+    GtkWidget *button_close = gtk_button_new_from_icon_name("@window-close", GTK_ICON_SIZE_BUTTON);
+    widget_add_class(button_close, "headerbutton");
+    g_signal_connect(button_close, "clicked", G_CALLBACK(signal_headerbar_close), NULL);
 
-    GtkWidget *btn_minimize = gtk_button_new_from_icon_name("@window-minimize", GTK_ICON_SIZE_BUTTON);
-    widget_add_class(btn_minimize, "headerbutton");
-    g_signal_connect(btn_minimize, "clicked", G_CALLBACK(signal_headerbar_minimize), NULL);
+    widget->button_close = button_close;
 
-    GtkWidget *btn_maximize = gtk_button_new_from_icon_name("@window-maximize", GTK_ICON_SIZE_BUTTON);
-    widget_add_class(btn_maximize, "headerbutton");
-    g_signal_connect(btn_maximize, "clicked", G_CALLBACK(signal_headerbar_maximize), NULL);
+    GtkWidget *button_minimize = gtk_button_new_from_icon_name("@window-minimize", GTK_ICON_SIZE_BUTTON);
+    widget_add_class(button_minimize, "headerbutton");
+    g_signal_connect(button_minimize, "clicked", G_CALLBACK(signal_headerbar_minimize), NULL);
 
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_close);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_minimize);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(header_bar), btn_maximize);
+    widget->button_minimize = button_minimize;
 
-    return header_bar;
+    GtkWidget *button_maximize = gtk_button_new_from_icon_name("@window-maximize", GTK_ICON_SIZE_BUTTON);
+    widget_add_class(button_maximize, "headerbutton");
+    g_signal_connect(button_maximize, "clicked", G_CALLBACK(signal_headerbar_maximize), NULL);
+
+    widget->button_maximize = button_maximize;
+
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_close);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_minimize);
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_maximize);
+
+    return widget;
 }
 
 static void signal_app_startup(MovieApplication *mapp) {
@@ -795,10 +805,18 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
     unsigned char *line = NULL;
     size_t read = 0;
 
+    unsigned int i = 0;
     while ((read = getlinex(&line, &line_size, stream)) > 0) {
-        printf(">>>> %i %i %s", read, line_size, line);
- 
-        // break;
+        if(i == 0) {
+            // first line : metadata
+            
+        
+        } else {
+
+        }
+
+
+        i++;
     }
 
     free(line);
@@ -892,9 +910,11 @@ static void show_interactive_dialog(MovieApplication* mapp) {
 
     ////////// WINDOW DESIGN //////////
 
-    // hide window decorations of main app and use our own todo
-    GtkWidget *widget_headerbar = app_headerbar_create();
-    gtk_window_set_titlebar(GTK_WINDOW(main_window), widget_headerbar);
+    // hide window decorations of main app and use our own
+    struct WidgetHeaderbar *widget_headerbar = widget_headerbar_new();
+
+    GtkWidget *headerbar = widget_headerbar->headerbar;
+    gtk_window_set_titlebar(GTK_WINDOW(main_window), headerbar);
 
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
