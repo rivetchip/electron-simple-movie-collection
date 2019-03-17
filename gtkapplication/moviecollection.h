@@ -3,9 +3,12 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <gio/gio.h>
+// #include <json-glib/json-glib.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+
+
 
 G_BEGIN_DECLS
 
@@ -55,17 +58,15 @@ struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
     char *description;
     char *comment;
     char *director;
-    char *countries; //[255];
-    char *genres[255];
-    char *actors[255][2];
-    char *serie;
-    char *companies[255];
-    char *keywords[255];
+    char *countries; // array
+    char *genres[255]; // array
+    char *actors[255][2]; // array[2]
+    char *serie; // array
+    char *companies[255]; // array
+    char *keywords[255]; // array
     char *source;
     int sourceId;
     char *webPage;
-
-    struct WidgetSidebarItem *widget_item;
 };
 
 struct MovieCollection {

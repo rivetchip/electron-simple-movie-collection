@@ -15,6 +15,7 @@ application_id = 'fr.spidery.moviecollection'
 # main app & extension dependencies
 depgtk = dependency('gtk+-3.0', version: '>= 3.22')
 depglib = dependency('glib-2.0', version: '>= 2.56')
+# depjsonglib = dependency('json-glib', version: '>= 2.56')
 deplibcurl = dependency('libcurl', version : '>=7.60')
 
 # main project options

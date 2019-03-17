@@ -15,6 +15,7 @@ coredumpctl list => gdb / coredumpctl gdb
 static char *storageFilename;
 static char *storageFolder;
 static char *storagePosters;
+static struct MovieCollection* storageMovieCollection;
 
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
@@ -103,32 +104,6 @@ size_t getlinex(char **lineptr, size_t *n, FILE *stream) {
 
 static void widget_add_class(GtkWidget *widget, char *class_name) {
     gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
-}
-
-static GtkWidget *widget_get_child(GtkWidget *parent, char *child_name) {
-
-    if(strcmp(gtk_widget_get_name(parent), child_name) == 0) { 
-        return parent;
-    }
-
-    if(GTK_IS_BIN(parent)) { // container with one child
-        GtkWidget *child = gtk_bin_get_child(GTK_BIN(parent));
-        return widget_get_child(child, child_name);
-    }
-
-    if(GTK_IS_CONTAINER(parent)) {
-        GList *children = gtk_container_get_children(GTK_CONTAINER(parent));
-
-        // while((children = g_list_next(children)) != NULL) {
-        for ( ; children ; children = g_list_next(children)) {
-            GtkWidget* widget = widget_get_child(children->data, child_name);
-            if(widget != NULL) {
-                return widget;
-            }
-        }
-    }
-
-    return NULL;
 }
 
 
@@ -756,9 +731,8 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
 
 
 static char *show_open_dialog() {
-
-    char *filename = NULL;
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+    char *filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
         "Ouvrir un fichier", NULL, action, // title
@@ -780,21 +754,33 @@ static char *show_open_dialog() {
     return filename;
 }
 
-static bool show_save_dialog() {
-    char *filename = NULL;
+static char *show_save_dialog() {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+    char *filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
-        "Ouvrir un fichier", NULL, action,
+        "Ouvrir un fichier", NULL, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
         "Ouvrir", GTK_RESPONSE_ACCEPT,
         NULL
     );
 
+    // GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+// gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+
+    // gtk_file_chooser_set_current_name(chooser, "Untitled document");
+    // gtk_file_chooser_set_filename(chooser, "existing_filename");
+
     int status = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if(status == GTK_RESPONSE_ACCEPT) {
+        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+        filename = gtk_file_chooser_get_filename(chooser);
+    }
+
     gtk_widget_destroy(dialog);
 
-    return (status == GTK_RESPONSE_ACCEPT);
+    return filename;
 }
 
 
@@ -823,6 +809,9 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
     while ((read = getlinex(&line, &line_size, stream)) > 0) {
         if(i >= 1) {
             
+            
+
+
         } else if(i == 0) {
             // first line : metadata
         
@@ -834,6 +823,25 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
 
     free(line);
     fclose(stream);
+}
+
+static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
+
+    const char *filename = show_save_dialog();
+
+    if(filename == NULL) {
+        return;
+    }
+
+
+//todo if already set
+
+g_message("filename %s", filename);
+}
+
+static void signal_toolbar_new(GtkButton *button, gpointer user_data) {
+
+//todo
 }
 
 
@@ -868,17 +876,14 @@ static void show_interactive_dialog(MovieApplication* mapp) {
         // "gtk-font-name", "Lato 12",
     NULL);
 
-    // Callback when the main window is closed
-    g_signal_connect(main_window, "destroy",
+    g_signal_connect(GTK_WIDGET(main_window), "destroy",
         G_CALLBACK(signal_mainwindow_destroy), mapp
     );
 
-    // on change state: minimize, maximize, etc
     g_signal_connect(GTK_WINDOW(main_window), "window-state-event",
         G_CALLBACK(signal_mainwindow_state_event), mapp
     );
 
-    // on change size
     g_signal_connect(GTK_WINDOW(main_window), "size-allocate",
         G_CALLBACK(signal_mainwindow_size_allocate), mapp
     );
@@ -932,13 +937,21 @@ static void show_interactive_dialog(MovieApplication* mapp) {
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
-    // Upper toolbar
+    // Toolbar
     struct WidgetToolbar *widget_toolbar = widget_toolbar_new();
 
     GtkWidget *toolbar = widget_toolbar->toolbar;
 
     g_signal_connect(widget_toolbar->button_open, "clicked",
         G_CALLBACK(signal_toolbar_open), mapp
+    );
+
+    g_signal_connect(widget_toolbar->button_save, "clicked",
+        G_CALLBACK(signal_toolbar_save), mapp
+    );
+
+    g_signal_connect(widget_toolbar->button_new, "clicked",
+        G_CALLBACK(signal_toolbar_new), mapp
     );
 
     // Panel between sidebar and content
@@ -1031,6 +1044,10 @@ static void signal_app_shutdown(MovieApplication* mapp) {
     mainwindow_store_state(mapp);
 }
 
+static void signal_app_open(MovieApplication* mapp) {
+    // todo
+}
+
 static int signal_app_command_line(MovieApplication* mapp, GApplicationCommandLine *cmdline) {
     return 0; // exit
 }
@@ -1082,7 +1099,7 @@ int main(int argc, char* argv[]) {
     g_signal_connect(mapp, "startup", G_CALLBACK(signal_app_startup), NULL);
     g_signal_connect(mapp, "activate", G_CALLBACK(signal_app_activate), NULL);
     g_signal_connect(mapp, "shutdown", G_CALLBACK(signal_app_shutdown), NULL);
-    // g_signal_connect(mapp, "open", G_CALLBACK(signal_app_open), NULL);
+    g_signal_connect(mapp, "open", G_CALLBACK(signal_app_open), NULL);
 
     // Add app main arguments
     GOptionEntry entries[] = {
