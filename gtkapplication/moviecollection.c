@@ -6,6 +6,8 @@ gcc moviecollection.c -o main `pkg-config --cflags --libs gtk+-3.0 webkit2gtk-4.
 /usr/local
 meson --buildtype
 coredumpctl list => gdb / coredumpctl gdb
+todo: check for :
+Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland display.
 */
 
 #include <config.h> //build generated
