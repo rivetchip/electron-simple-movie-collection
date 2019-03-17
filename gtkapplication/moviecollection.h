@@ -9,7 +9,6 @@
 #include <math.h>
 
 
-
 G_BEGIN_DECLS
 
 
@@ -22,6 +21,7 @@ struct _MovieApplication {
     int win_width;
     bool is_maximized;
     bool is_fullscreen;
+    int paned_position;
 };
 
 typedef struct _MovieApplication MovieApplication;

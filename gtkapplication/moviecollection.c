@@ -55,6 +55,15 @@ static bool movie_collection_remove() {
     
 }
 
+static char *movie_collection_stringify() {
+
+}
+
+
+
+
+
+
 
 
 
@@ -119,6 +128,7 @@ static void mainwindow_store_state(MovieApplication *mapp) {
     g_key_file_set_integer(keyfile, "WindowState", "width", mapp->win_width);
     g_key_file_set_boolean(keyfile, "WindowState", "maximized", mapp->is_maximized);
     g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", mapp->is_fullscreen);
+    g_key_file_set_integer(keyfile, "WindowState", "paned_position", mapp->paned_position);
 
     // save file under $XDG_CACHE_HOME
     char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
@@ -161,6 +171,9 @@ static void mainwindow_load_state(MovieApplication *mapp) {
 
         int state_fullscreen = g_key_file_get_boolean(keyfile, "WindowState", "fullscreen", &error_read);
         error_read == NULL ? (mapp->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
+
+        int paned_position = g_key_file_get_integer(keyfile, "WindowState", "paned_position", &error_read);
+        error_read == NULL ? (mapp->paned_position = paned_position) : g_clear_error(&error_read);
     }
 
     g_key_file_free(keyfile);
@@ -188,7 +201,12 @@ static void signal_mainwindow_size_allocate(GtkWidget *window, GdkRectangle *all
     }
 }
 
-static void signal_mainwindow_destroy(GtkWidget *window) {
+static void signal_mainwindow_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieApplication *mapp) {
+    mapp->paned_position = gtk_paned_get_position(paned);
+}
+
+
+static void signal_mainwindow_destroy(GtkWidget *window, MovieApplication *mapp) {
     GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
     g_application_quit(G_APPLICATION(gtkapp));
 }
@@ -234,7 +252,7 @@ static struct WidgetHeaderbar *widget_headerbar_new() {
 
     // Set GTK CSD HeaderBar
     GtkWidget *headerbar = gtk_header_bar_new();
-    gtk_widget_set_name(headerbar, "headerbar");
+    widget_add_class(headerbar, "headerbar");
 
     widget->headerbar = headerbar;
 
@@ -270,8 +288,17 @@ static struct WidgetHeaderbar *widget_headerbar_new() {
 
     // options buttons
     GtkWidget *button_menu = gtk_menu_button_new();
+    widget_add_class(button_menu, "headerbutton");
+
+    GtkWidget *popover = gtk_popover_new(button_menu);
+    gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_menu), popover);
 
 
+
+    // gtk_container_add(GTK_CONTAINER(popover), xxx);
+
+
+    // gtk_widget_show_all(xxx);
 
     gtk_header_bar_pack_end(GTK_HEADER_BAR(headerbar), button_menu);
 
@@ -433,7 +460,9 @@ static struct WidgetSidebar *widget_sidebar_new() {
     GtkWidget *list_items = gtk_list_box_new();
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(list_items), GTK_SELECTION_SINGLE);
     widget_add_class(list_items, "categories");
-    // gtk_list_box_set_placeholder todo
+    // todo
+    // gtk_list_box_set_placeholder(GTK_LIST_BOX(list_items), gtk_label_new("qsdqsd"))
+
 
     widget->list_items = list_items;
 
@@ -672,10 +701,6 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
     int rating = GPOINTER_TO_INT(g_object_get_data(
         G_OBJECT(button), "rating")
     );
-
-    #if PACKAGE_DEVELOPER_MODE
-        g_message("%s %i", __func__, rating);
-    #endif
 
     widget_starrating_set_rating(stars, rating);
 }
@@ -958,6 +983,13 @@ static void show_interactive_dialog(MovieApplication* mapp) {
     GtkWidget *layout_paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
     gtk_paned_set_position(GTK_PANED(layout_paned), 300);
 
+    g_signal_connect(GTK_PANED(layout_paned), "notify::position",
+        G_CALLBACK(signal_mainwindow_paned_move), mapp
+    );
+
+    if(mapp->paned_position > 0) {
+        gtk_paned_set_position(GTK_PANED(layout_paned), mapp->paned_position);
+    }
 
     // Sidebar
     struct WidgetSidebar *widget_sidebar = widget_sidebar_new();
