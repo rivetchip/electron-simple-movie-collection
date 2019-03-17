@@ -141,10 +141,10 @@ struct WidgetPanelEdition {
 
 };
 
+static struct WidgetPanels *widget_panels_new();
 static struct WidgetPanelWelcome *widget_panel_welcome_new();
 static struct WidgetPanelPreview *widget_panel_preview_new();
 static struct WidgetPanelEdition *widget_panel_edition_new();
-static struct WidgetPanels *widget_panels_new();
 
 struct WidgetStatusbar {
     GtkWidget *statusbar; // container
@@ -158,9 +158,8 @@ static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const c
 
 struct WidgetStarRating {
     GtkWidget *starrating; // container
-    bool interactive;
+    bool interactive; // can be clickable
     int rating;
-    int icon_size;
     GtkWidget *gtkstars[5]; //buttons
 };
 
@@ -169,7 +168,6 @@ static int widget_starrating_get_rating(struct WidgetStarRating *stars);
 static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rating);
 static void widget_starrating_refresh(struct WidgetStarRating *stars);
 static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive);
-static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int pixel_size);
 static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetStarRating *stars);
 
 ////////////////////

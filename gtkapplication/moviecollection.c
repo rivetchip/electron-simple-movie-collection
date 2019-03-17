@@ -11,6 +11,11 @@ coredumpctl list => gdb / coredumpctl gdb
 #include <config.h> //build generated
 #include "moviecollection.h"
 
+// todo
+static char *storageFilename;
+static char *storageFolder;
+static char *storagePosters;
+
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
@@ -149,7 +154,7 @@ static void mainwindow_store_state(MovieApplication *mapp) {
 
         GError *error_save = NULL;
         if(!g_key_file_save_to_file(keyfile, state_file, &error_save)) {
-            g_warning("app:window store state / %s", error_save->message);
+            g_warning("%s %s", __func__, error_save->message);
             g_clear_error(&error_save);
         }
     }
@@ -413,9 +418,6 @@ static struct WidgetToolbar *widget_toolbar_new() {
     return widget;
 }
 
-
-
-
 static struct WidgetSidebar *widget_sidebar_new() {
 
     struct WidgetSidebar *widget = malloc(sizeof(struct WidgetSidebar));
@@ -506,7 +508,7 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
     return widget;
 }
 
-static void widget_sidebar_items_add(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item) {
+static void widget_sidebar_add_item(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item) {
     // gtk_list_box_insert(GTK_LIST_BOX(sidebar->list_items), GTK_LIST_BOX_ROW(item->list_row), -1);
     gtk_container_add(GTK_CONTAINER(sidebar->list_items), GTK_WIDGET(item->list_row));
 }
@@ -654,7 +656,6 @@ static struct WidgetStarRating *widget_starrating_new() {
     widget_add_class(box, "starrating");
     widget->starrating = box;
 
-    // create stars (already malloc)
     const int rate_to_star[] = {20, 40, 60, 80, 100};
 
     int i;
@@ -673,7 +674,6 @@ static struct WidgetStarRating *widget_starrating_new() {
             "rating", GINT_TO_POINTER(rate_to_star[i]), (GDestroyNotify) g_free
         );
 
-        // todo
         gtk_widget_set_sensitive(button, widget->interactive);
         gtk_style_context_add_class(gtk_widget_get_style_context(button), "starrating-star");
         
@@ -707,49 +707,48 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
     // g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
 }
 
-static void widget_starrating_refresh(struct WidgetStarRating *stars) {
-    const int rate_to_star[] = {20, 40, 60, 80, 100}; //todo
-
-    // add fudge factor so we can actually get 5 stars in reality, and round up to nearest power of 10
-    double rating = stars->rating + 10;
-    rating = 10 * ceil(rating / 10);
-
-    int i;
-    for(i = 0; i < 5; i++) { //todo
-
-        GtkWidget *button = stars->gtkstars[i];
-        gtk_widget_set_sensitive(button, stars->interactive);
-
-        GtkWidget *image = gtk_bin_get_child(GTK_BIN(button));
-
-        gtk_image_set_from_icon_name(GTK_IMAGE(image),
-            (rating >= rate_to_star[i] ? "@emblem-star" : "@emblem-staroff"), GTK_ICON_SIZE_BUTTON
-        );
-
-        // add or remove class if selected
-        GtkStyleContext *style = gtk_widget_get_style_context(button);
-
-        gtk_style_context_remove_class(style, rating >= rate_to_star[i] ? "star-disabled" : "star-enabled");
-        gtk_style_context_add_class(style, rating >= rate_to_star[i] ? "star-enabled" : "star-disabled");
-    }
-}
-
 static int widget_starrating_get_rating(struct WidgetStarRating *stars) {
     return stars->rating;
 }
 
 static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rating) {
     stars->rating = rating;
-    widget_starrating_refresh(stars);
+    
+    // add fudge factor so we can actually get 5 stars in reality, and round up to nearest power of 10
+    double fudge_rating = rating + 10;
+    fudge_rating = 10 * ceil(fudge_rating / 10);
+
+    int i;
+    for(i = 0; i < 5; i++) { //todo
+
+        GtkWidget *button = stars->gtkstars[i];
+
+        int btn_rating = GPOINTER_TO_INT(g_object_get_data(
+            G_OBJECT(button), "rating")
+        );
+
+        GtkWidget *image = gtk_bin_get_child(GTK_BIN(button));
+
+        gtk_image_set_from_icon_name(GTK_IMAGE(image),
+            (fudge_rating >= btn_rating ? "@emblem-star" : "@emblem-staroff"), GTK_ICON_SIZE_BUTTON
+        );
+
+        // add or remove class if selected
+        GtkStyleContext *style = gtk_widget_get_style_context(button);
+
+        gtk_style_context_remove_class(style, fudge_rating >= btn_rating ? "star-disabled" : "star-enabled");
+        gtk_style_context_add_class(style, fudge_rating >= btn_rating ? "star-enabled" : "star-disabled");
+    }
 }
 
 static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive) {
     stars->interactive = interactive;
-    gtk_widget_set_sensitive(stars->starrating, interactive);
-}
 
-static void widget_starrating_set_icon_size(struct WidgetStarRating *stars, int pixel_size) {
-    stars->icon_size = pixel_size;
+    int i;
+    for(i = 0; i < 5; i++) { 
+        GtkWidget *button = stars->gtkstars[i];
+        gtk_widget_set_sensitive(button, interactive);
+    }
 }
 
     
@@ -764,11 +763,12 @@ static char *show_open_dialog() {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
-        "Ouvrir un fichier", NULL, action,
+        "Ouvrir un fichier", NULL, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
         "Ouvrir", GTK_RESPONSE_ACCEPT,
         NULL
     );
+    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), FALSE);
 
     int status = gtk_dialog_run(GTK_DIALOG(dialog));
 
@@ -782,6 +782,18 @@ static char *show_open_dialog() {
     return filename;
 }
 
+static bool show_save_dialog() {
+    char *filename = NULL;
+    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+
+    GtkWidget *dialog = gtk_file_chooser_dialog_new(
+        "Ouvrir un fichier", NULL, action,
+        "Annuler", GTK_RESPONSE_CANCEL,
+        "Ouvrir", GTK_RESPONSE_ACCEPT,
+        NULL
+    );
+
+}
 
 
 
@@ -802,19 +814,18 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
 
     FILE *stream = fopen(filename, "rb");
     size_t line_size = 0;
-    unsigned char *line = NULL;
+    char *line = NULL;
     size_t read = 0;
 
     unsigned int i = 0;
     while ((read = getlinex(&line, &line_size, stream)) > 0) {
-        if(i == 0) {
-            // first line : metadata
+        if(i >= 1) {
             
+        } else if(i == 0) {
+            // first line : metadata
         
-        } else {
 
         }
-
 
         i++;
     }
@@ -979,13 +990,13 @@ static void show_interactive_dialog(MovieApplication* mapp) {
 
 
 struct WidgetSidebarItem *xxx = widget_sidebar_item_new("ID_1", "XXX", FALSE);
-widget_sidebar_items_add(widget_sidebar, xxx);
+widget_sidebar_add_item(widget_sidebar, xxx);
 
 xxx = widget_sidebar_item_new("ID_2", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", FALSE);
-widget_sidebar_items_add(widget_sidebar, xxx);
+widget_sidebar_add_item(widget_sidebar, xxx);
 
 xxx = widget_sidebar_item_new("ID_3", "<>ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok", FALSE);
-widget_sidebar_items_add(widget_sidebar, xxx);
+widget_sidebar_add_item(widget_sidebar, xxx);
 
 
 
