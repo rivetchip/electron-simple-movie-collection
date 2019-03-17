@@ -135,6 +135,9 @@ gtk_css_provider_load_from_file (css_provider, file);
 
 
 
+// g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
+
+    // gtk_widget_set_size_request(sidebar, 300, -1); // width, height
 
 
 

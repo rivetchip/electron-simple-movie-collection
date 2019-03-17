@@ -293,6 +293,14 @@ static struct WidgetHeaderbar *widget_headerbar_new() {
     gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_minimize);
     gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_maximize);
 
+    // options buttons
+    GtkWidget *button_menu = gtk_menu_button_new();
+
+
+
+    gtk_header_bar_pack_end(GTK_HEADER_BAR(headerbar), button_menu);
+
+
     return widget;
 }
 
@@ -422,16 +430,12 @@ static struct WidgetSidebar *widget_sidebar_new() {
 
     struct WidgetSidebar *widget = malloc(sizeof(struct WidgetSidebar));
 
-    // sidebar main container
-
     GtkWidget *sidebar = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     widget_add_class(sidebar, "sidebar");
-    gtk_widget_set_size_request(sidebar, 300, -1); // width, height
 
     widget->sidebar = sidebar;
 
     // Sidebar search
-
     GtkWidget *search_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     widget_add_class(search_box, "searchbar");
 
@@ -448,15 +452,13 @@ static struct WidgetSidebar *widget_sidebar_new() {
     gtk_container_add(GTK_CONTAINER(search_box), search_entry);
 
     // sidebar categories
-
     GtkWidget *scrolled_frame = gtk_scrolled_window_new(NULL, NULL); // horiz, vertical adjustement
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scrolled_frame), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
 
     GtkWidget *list_items = gtk_list_box_new();
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(list_items), GTK_SELECTION_SINGLE);
     widget_add_class(list_items, "categories");
-    gtk_widget_set_size_request(list_items, 300, -1); // width height
-    // gtk_list_box_set_placeholder
+    // gtk_list_box_set_placeholder todo
 
     widget->list_items = list_items;
 
@@ -565,7 +567,7 @@ static struct WidgetPanels *widget_panels_new() {
     // create panels
 
     struct WidgetPanelWelcome *panel_welcome = widget_panel_welcome_new();
-    // widget->panel_welcome = panel_welcome;
+    // widget->panel_welcome = panel_welcome; todo
 
     struct WidgetPanelPreview *panel_preview = widget_panel_preview_new();
     // widget->panel_preview = panel_preview;
@@ -701,10 +703,6 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
     #endif
 
     widget_starrating_set_rating(stars, rating);
-
-    //todo
-    // emit signal rating changed
-    // g_signal_emit (star, signals[RATING_CHANGED], 0, priv->rating);
 }
 
 static int widget_starrating_get_rating(struct WidgetStarRating *stars) {
@@ -793,6 +791,10 @@ static bool show_save_dialog() {
         NULL
     );
 
+    int status = gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+
+    return (status == GTK_RESPONSE_ACCEPT);
 }
 
 
@@ -929,8 +931,6 @@ static void show_interactive_dialog(MovieApplication* mapp) {
 
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    // Right Aside
-    GtkWidget *layout_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     // Upper toolbar
     struct WidgetToolbar *widget_toolbar = widget_toolbar_new();
@@ -941,8 +941,9 @@ static void show_interactive_dialog(MovieApplication* mapp) {
         G_CALLBACK(signal_toolbar_open), mapp
     );
 
-
-
+    // Panel between sidebar and content
+    GtkWidget *layout_paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+    gtk_paned_set_position(GTK_PANED(layout_paned), 300);
 
 
     // Sidebar
@@ -962,25 +963,22 @@ static void show_interactive_dialog(MovieApplication* mapp) {
         G_CALLBACK(signal_sidebar_list_items_selected), mapp
     );
 
-    // All all elements to right content (aside)
-
     struct WidgetPanels *widget_panels = widget_panels_new();
 
     GtkWidget *panels = widget_panels->panels;
 
-    gtk_box_pack_start(GTK_BOX(layout_box), sidebar, FALSE, FALSE, 0); //expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(layout_box), panels, TRUE, TRUE, 0);
-    
+    gtk_paned_pack1(GTK_PANED(layout_paned), sidebar, TRUE, FALSE); // resize, shrink
+    gtk_paned_pack2(GTK_PANED(layout_paned), panels, TRUE, FALSE);
+
+
     struct WidgetStatusbar *widget_statusbar = widget_statusbar_new();
 
     GtkWidget *statusbar = widget_statusbar->statusbar;
 
     // Add all elements to main
     gtk_box_pack_start(GTK_BOX(main_box), toolbar, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(main_box), layout_box, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(main_box), layout_paned, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
-
-
 
 
 

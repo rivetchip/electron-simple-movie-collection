@@ -113,7 +113,7 @@ struct WidgetSidebarItem {
 
 static struct WidgetSidebar *widget_sidebar_new();
 static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *label_text, bool is_favorite);
-static void widget_sidebar_items_add(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item);
+static void widget_sidebar_add_item(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item);
 
 ////////////////////
 
@@ -166,7 +166,6 @@ struct WidgetStarRating {
 static struct WidgetStarRating *widget_starrating_new();
 static int widget_starrating_get_rating(struct WidgetStarRating *stars);
 static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rating);
-static void widget_starrating_refresh(struct WidgetStarRating *stars);
 static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive);
 static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetStarRating *stars);
 
