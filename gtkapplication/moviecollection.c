@@ -757,7 +757,7 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
 
 
 
-static char *show_open_dialog() {
+static char *show_open_dialog(char *existing_filename) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
     char *filename = NULL;
 
@@ -769,10 +769,21 @@ static char *show_open_dialog() {
     );
     gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), FALSE);
 
+    GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
+
+    GtkFileFilter *filter = gtk_file_filter_new();
+    gtk_file_filter_add_mime_type(filter, "application/ndjson");
+    gtk_file_filter_add_mime_type(filter, "application/json");
+    gtk_file_filter_add_mime_type(filter, "text/plain");
+    gtk_file_chooser_set_filter(chooser, filter);
+
+    if(existing_filename != NULL) { // file already exist
+        gtk_file_chooser_set_filename(chooser, existing_filename);
+    }
+
     int status = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if(status == GTK_RESPONSE_ACCEPT) {
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
         filename = gtk_file_chooser_get_filename(chooser);
     }
 
@@ -781,27 +792,35 @@ static char *show_open_dialog() {
     return filename;
 }
 
-static char *show_save_dialog() {
+static char *show_save_dialog(char *existing_filename) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
     char *filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
         "Ouvrir un fichier", NULL, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
-        "Ouvrir", GTK_RESPONSE_ACCEPT,
+        "Enregistrer", GTK_RESPONSE_ACCEPT,
         NULL
     );
 
-    // GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-// gtk_file_chooser_set_do_overwrite_confirmation (chooser, TRUE);
+    GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
 
-    // gtk_file_chooser_set_current_name(chooser, "Untitled document");
-    // gtk_file_chooser_set_filename(chooser, "existing_filename");
+    GtkFileFilter *filter = gtk_file_filter_new();
+    gtk_file_filter_add_mime_type(filter, "application/ndjson");
+    gtk_file_filter_add_mime_type(filter, "application/json");
+    gtk_file_filter_add_mime_type(filter, "text/plain");
+    gtk_file_chooser_set_filter(chooser, filter);
+
+    if(existing_filename != NULL) { // file already exist
+        gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
+        gtk_file_chooser_set_filename(chooser, existing_filename);
+    } else {
+        gtk_file_chooser_set_current_name(chooser, "MyCollection.ndjson");
+    }
 
     int status = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if(status == GTK_RESPONSE_ACCEPT) {
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
         filename = gtk_file_chooser_get_filename(chooser);
     }
 
@@ -821,7 +840,7 @@ static char *show_save_dialog() {
 
 static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
 
-    const char *filename = show_open_dialog();
+    const char *filename = show_open_dialog(NULL);
 
     if(filename == NULL) {
         return;
@@ -854,7 +873,7 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
 
 static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
 
-    const char *filename = show_save_dialog();
+    const char *filename = show_save_dialog(NULL);
 
     if(filename == NULL) {
         return;
