@@ -1,7 +1,7 @@
 project('moviecollection', 'c',
     license: 'MIT',
     version: '1.0.0',
-    meson_version: '>= 0.47.0',
+    meson_version: '>= 0.50',
     default_options: [
         'c_std=c11',
         'cpp_std=c++11',
@@ -15,7 +15,7 @@ application_id = 'fr.spidery.moviecollection'
 # main app & extension dependencies
 depgtk = dependency('gtk+-3.0', version: '>= 3.22')
 depglib = dependency('glib-2.0', version: '>= 2.56')
-# depjsonglib = dependency('json-glib', version: '>= 2.56')
+depjsonglib = dependency('json-glib-1.0', version: '>= 1.4')
 deplibcurl = dependency('libcurl', version : '>=7.60')
 
 # main project options
