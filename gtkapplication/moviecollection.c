@@ -931,6 +931,7 @@ static void show_interactive_dialog(MovieApplication* mapp) {
 
     // Initialize GTK+
     GtkWidget *main_window = gtk_application_window_new(GTK_APPLICATION(mapp));
+    widget_add_class(main_window, "main_window");
 
     // Create an 800x600 window that will contain the browser instance
     gtk_window_set_icon_name(GTK_WINDOW(main_window), appid);

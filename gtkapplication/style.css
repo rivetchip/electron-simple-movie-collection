@@ -1,9 +1,10 @@
-/* * {all: unset;} */
-
 @define-color color_hover #1abc9c;
 @define-color color_active #16a085;
 @define-color color_active_hover #48c9b0;
 
+.main_window {
+    all: unset;
+}
 
 /*reset header*/
 .headerbar,
@@ -27,6 +28,7 @@
     border-radius: 4px;
     box-shadow: none;
     padding: 4px 8px;
+    margin: 6px 0;
     transition: background-color 200ms ease;
 }
 .headerbutton:hover {
