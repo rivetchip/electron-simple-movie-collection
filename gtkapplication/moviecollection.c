@@ -17,7 +17,7 @@ Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland disp
 static char *storageFilename;
 static char *storageFolder;
 static char *storagePosters;
-static struct MovieCollection* storageMovieCollection;
+static struct MovieCollection *storageMovieCollection;
 
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
@@ -35,7 +35,7 @@ static void movie_application_class_init(MovieApplicationClass *class) {
 
 static MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
 
-    g_return_val_if_fail(g_application_id_is_valid(application_id), NULL);
+    g_return_val_if_fail(g_application_id_is_valid(application_id), NULL); // normal comportment
     
     return g_object_new(movie_application_get_type(),
         "application-id", application_id,
@@ -65,10 +65,6 @@ static char *movie_collection_stringify() {
 
 
 
-
-
-
-
 size_t getlinex(char **lineptr, size_t *n, FILE *stream) {
     // const char* endl[4] = {"\n", "\r", "\r\n", "\n"};
 
@@ -85,11 +81,11 @@ size_t getlinex(char **lineptr, size_t *n, FILE *stream) {
     size_t pos = 0;
 
     while((c = fgetc(stream)) != EOF) {
-        if(pos + 1 >= *n) {
 
+        if(pos + 1 >= *n) {
             size_t new_size = *n + (*n >> 2);
 
-            if (new_size < 128) {
+            if(new_size < 128) {
                 new_size = 128;
             }
 
@@ -116,6 +112,49 @@ size_t getlinex(char **lineptr, size_t *n, FILE *stream) {
 static void widget_add_class(GtkWidget *widget, char *class_name) {
     gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
 }
+
+
+
+
+
+
+static bool movie_collection_read(const char *filename, GError **error) {
+
+    FILE *stream = fopen(filename, "rb");
+    size_t line_size = 0;
+    char *line = NULL;
+    size_t read = 0;
+
+    unsigned int i = 0;
+    while ((read = getlinex(&line, &line_size, stream)) > 0) {
+        if(i >= 1) {
+            
+            
+
+
+        } else if(i == 0) {
+            // first line : metadata
+        
+
+        }
+
+        i++;
+    }
+
+    free(line);
+    fclose(stream);
+}
+
+static bool movie_collection_save(const char *filename, GError **error) {
+
+}
+
+
+
+
+
+
+
 
 
 
@@ -759,7 +798,7 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
 
 static char *show_open_dialog(char *existing_filename) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    char *filename = NULL;
+    char *selected_filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
         "Ouvrir un fichier", NULL, action, // title
@@ -784,17 +823,17 @@ static char *show_open_dialog(char *existing_filename) {
     int status = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if(status == GTK_RESPONSE_ACCEPT) {
-        filename = gtk_file_chooser_get_filename(chooser);
+        selected_filename = gtk_file_chooser_get_filename(chooser);
     }
 
     gtk_widget_destroy(dialog);
 
-    return filename;
+    return selected_filename;
 }
 
 static char *show_save_dialog(char *existing_filename) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
-    char *filename = NULL;
+    char *selected_filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
         "Ouvrir un fichier", NULL, action, // title
@@ -821,12 +860,12 @@ static char *show_save_dialog(char *existing_filename) {
     int status = gtk_dialog_run(GTK_DIALOG(dialog));
 
     if(status == GTK_RESPONSE_ACCEPT) {
-        filename = gtk_file_chooser_get_filename(chooser);
+        selected_filename = gtk_file_chooser_get_filename(chooser);
     }
 
     gtk_widget_destroy(dialog);
 
-    return filename;
+    return selected_filename;
 }
 
 
@@ -846,29 +885,12 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
         return;
     }
 
-    FILE *stream = fopen(filename, "rb");
-    size_t line_size = 0;
-    char *line = NULL;
-    size_t read = 0;
-
-    unsigned int i = 0;
-    while ((read = getlinex(&line, &line_size, stream)) > 0) {
-        if(i >= 1) {
-            
-            
+    GError *error = NULL;
+    bool read = movie_collection_read(filename, &error);
 
 
-        } else if(i == 0) {
-            // first line : metadata
-        
 
-        }
 
-        i++;
-    }
-
-    free(line);
-    fclose(stream);
 }
 
 static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
@@ -878,6 +900,9 @@ static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
     if(filename == NULL) {
         return;
     }
+
+    GError *error = NULL;
+    bool save = movie_collection_save(filename, &error);
 
 
 //todo if already set
