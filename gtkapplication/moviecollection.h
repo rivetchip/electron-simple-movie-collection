@@ -42,15 +42,15 @@ static void movie_application_class_init(MovieApplicationClass *klass);
 
 ////////////////////
 
-struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
+struct MovieCollectionItem {
     char *title;
     bool favorite;
-    int rating;
+    int rating; // /100
 
     char *tagline;
     char *originalTitle;
     int ratingPress;
-    int duration;
+    int duration; // minutes
     char *dateReleased;
     char *dateCreated;
     char *dateModified;
@@ -59,11 +59,11 @@ struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
     char *comment;
     char *director;
     char *countries; // array
-    char *genres[255]; // array
-    char *actors[255][2]; // array[2]
+    char *genres; // array
+    char *actors; // array[2]
     char *serie; // array
-    char *companies[255]; // array
-    char *keywords[255]; // array
+    char *companies; // array
+    char *keywords; // array
     char *source;
     int sourceId;
     char *webPage;
@@ -71,9 +71,8 @@ struct MovieCollectionItem { //fixme: multiple flexible array+check overflow
 
 struct MovieCollection {
     int version;
-    int size;
-    struct MovieCollectionItem movies[];
-
+    size_t size;
+    GHashTable *movies; // array[MovieCollectionItem]
 };
 
 ////////////////////
