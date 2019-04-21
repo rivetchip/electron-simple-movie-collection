@@ -24,6 +24,7 @@ project_version = meson.project_version()
 source_root = meson.source_root()
 build_root = meson.build_root()
 developer_mode = get_option('developer_mode')
+build_date = run_command('date', '+%Y%m%d').stdout().strip()
 
 # standard install directories
 prefix = get_option('prefix') # /usr
@@ -45,6 +46,7 @@ config_h.set_quoted('PACKAGE_NAME', project_name)
 config_h.set_quoted('PACKAGE_VERSION', project_version)
 config_h.set_quoted('PACKAGE_SOURCE_ROOT', source_root)
 config_h.set_quoted('PACKAGE_BUILD_ROOT', build_root)
+config_h.set_quoted('PACKAGE_BUILD_DATE', build_date)
 
 config_header = configure_file(output: 'config.h', configuration: config_h)
 
