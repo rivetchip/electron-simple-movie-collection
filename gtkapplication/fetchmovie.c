@@ -72,7 +72,7 @@ static char *fetch(const char *method, const char *uri, char **error_msg) {
         const char *curl_error = curl_easy_strerror(curl_code);
         *error_msg = (char *) malloc(sizeof(curl_error));
         strcpy(*error_msg, curl_error);
-
+//todo
         return NULL;
     }
 
