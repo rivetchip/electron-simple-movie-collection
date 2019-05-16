@@ -261,7 +261,7 @@ static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSe
     );
 }
 
-static void signal_headerbar_close(GtkButton* button) {
+static void signal_headerbar_close(GtkButton *button) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
@@ -270,7 +270,7 @@ static void signal_headerbar_close(GtkButton* button) {
     }
 }
 
-static void signal_headerbar_minimize(GtkButton* button) {
+static void signal_headerbar_minimize(GtkButton *button) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
@@ -278,7 +278,7 @@ static void signal_headerbar_minimize(GtkButton* button) {
     }
 }
 
-static void signal_headerbar_maximize(GtkButton* button) {
+static void signal_headerbar_maximize(GtkButton *button) {
     GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
 
     if(GTK_IS_WINDOW(toplevel)) {
@@ -389,7 +389,7 @@ static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRo
 
 }
 
-static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char* provider_name) {
+static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char *provider_name) {
     bool is_active = gtk_toggle_button_get_active(togglebutton);
     
     #if PACKAGE_DEVELOPER_MODE
@@ -588,7 +588,7 @@ static struct WidgetStatusbar *widget_statusbar_new() {
     return widget;
 }
 
-static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char* text) {
+static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char *text) {
     gtk_label_set_text(GTK_LABEL(statusbar->label), text);
 }
 
@@ -926,7 +926,7 @@ static void signal_toolbar_new(GtkButton *button, gpointer user_data) {
 
 
 
-static void show_interactive_dialog(MovieApplication* mapp) {
+static void show_interactive_dialog(MovieApplication *mapp) {
     const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
     // Initialize GTK+
@@ -1103,7 +1103,7 @@ widget_sidebar_add_item(widget_sidebar, xxx);
     gtk_widget_show_all(main_window);
 }
 
-static void signal_app_activate(MovieApplication* mapp) {
+static void signal_app_activate(MovieApplication *mapp) {
 
     // Check if window is already active
     GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(mapp));
@@ -1117,21 +1117,21 @@ static void signal_app_activate(MovieApplication* mapp) {
     show_interactive_dialog(mapp);
 }
 
-static void signal_app_shutdown(MovieApplication* mapp) {
+static void signal_app_shutdown(MovieApplication *mapp) {
 
     // save current window state
     mainwindow_store_state(mapp);
 }
 
-static void signal_app_open(MovieApplication* mapp) {
+static void signal_app_open(MovieApplication *mapp) {
     // todo
 }
 
-static int signal_app_command_line(MovieApplication* mapp, GApplicationCommandLine *cmdline) {
+static int signal_app_command_line(MovieApplication *mapp, GApplicationCommandLine *cmdline) {
     return 0; // exit
 }
 
-static void app_commandline_print_version(MovieApplication* mapp) {
+static void app_commandline_print_version(MovieApplication *mapp) {
     const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
 
     g_print("%s - GTK:%d.%d.%d \n", appid,
@@ -1139,7 +1139,7 @@ static void app_commandline_print_version(MovieApplication* mapp) {
     );
 }
 
-static int signal_app_handle_local_options(MovieApplication* mapp, GVariantDict *options) {
+static int signal_app_handle_local_options(MovieApplication *mapp, GVariantDict *options) {
     // handle command lines locally
 
     if(g_variant_dict_lookup(options, "version", "b", NULL)) {
@@ -1156,7 +1156,7 @@ static int signal_app_handle_local_options(MovieApplication* mapp, GVariantDict 
 
 
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
     #if PACKAGE_DEVELOPER_MODE
         g_message("Dev mode");
@@ -1199,3 +1199,6 @@ int main(int argc, char* argv[]) {
     return status;
 }
 
+
+
+headerbar spacing 5
