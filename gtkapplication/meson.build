@@ -84,7 +84,7 @@ add_project_arguments([
 
 executable('moviecollection',
     sources: [config_header, source_resources, 'moviecollection.c', 'fetchmovie.c'],
-    dependencies: [depgtk, depglib, deplibcurl],
+    dependencies: [depgtk, depglib, depjsonglib, deplibcurl],
     install_dir: pkgbindir,
     install: true
 )

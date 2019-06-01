@@ -1,12 +1,13 @@
 #pragma once
 
-#include <glib.h>
-#include <gtk/gtk.h>
-#include <gio/gio.h>
-// #include <json-glib/json-glib.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
+
+#include <glib.h>
+#include <gtk/gtk.h>
+#include <gio/gio.h>
+#include <json-glib/json-glib.h>
 
 
 G_BEGIN_DECLS
