@@ -13,12 +13,12 @@ Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland disp
 #include <config.h> //build generated
 #include "moviecollection.h"
 
-// todo
+// todo: set custom windows with private properties
 static char *storageFilename;
 static char *storageFolder;
 static char *storagePosters;
 static struct MovieCollection *storageMovieCollection;
-
+//default_location
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
@@ -45,15 +45,15 @@ static MovieApplication *movie_application_new(const char *application_id, GAppl
 
 
 
-static bool movie_collection_get() {
+static bool movie_collection_get(char *movieId, struct MovieCollectionItem *item) {
 
 }
 
-static bool movie_collection_add() {
+static bool movie_collection_add(char *movieId, struct MovieCollectionItem *item) {
 
 }
 
-static bool movie_collection_remove() {
+static bool movie_collection_remove(char *movieId) {
     
 }
 
@@ -118,23 +118,36 @@ static void widget_add_class(GtkWidget *widget, char *class_name) {
 
 
 
-static bool movie_collection_read(const char *filename, GError **error) {
+static bool movie_collection_open(const char *filename, GError **error) {
 
     FILE *stream = fopen(filename, "rb");
     size_t line_size = 0;
     char *line = NULL;
     size_t read = 0;
 
+    JsonParser *parser = json_parser_new();
+    JsonObject *rootnode;
+
+    GError *error_read = NULL;
+
     unsigned int i = 0;
     while ((read = getlinex(&line, &line_size, stream)) > 0) {
-        if(i >= 1) {
+
+        if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
+            return FALSE;
+        }
+
+        rootnode = json_node_get_object(json_parser_get_root(parser));
+
+        if(i >= 1) { // movies
             
-            
+            const char *movieId = json_object_get_string_member(rootnode, "movieId");
 
 
-        } else if(i == 0) {
-            // first line : metadata
-        
+//todo
+
+        } else if(i == 0) { // first line : metadata
+
 
         }
 
@@ -143,6 +156,9 @@ static bool movie_collection_read(const char *filename, GError **error) {
 
     free(line);
     fclose(stream);
+    g_object_unref(parser);
+
+    return TRUE;
 }
 
 static bool movie_collection_save(const char *filename, GError **error) {
@@ -793,8 +809,24 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
     
 
 
+// simple message dialog
 
+static void message_dialog(GtkWidget *window, char *message, char *message2) {
 
+    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW (window),
+        GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
+        GTK_MESSAGE_INFO,
+        GTK_BUTTONS_OK,
+        message
+    );
+
+    if(message2 != NULL) {
+        gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s", message2);
+    }
+
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
+}
 
 static char *show_open_dialog(char *existing_filename) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
@@ -877,6 +909,7 @@ static char *show_save_dialog(char *existing_filename) {
 
 
 
+
 static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
 
     const char *filename = show_open_dialog(NULL);
@@ -886,11 +919,20 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
     }
 
     GError *error = NULL;
-    bool read = movie_collection_read(filename, &error);
 
+    if(!movie_collection_open(filename, &error)) {
 
+        #if PACKAGE_DEVELOPER_MODE
+            g_message("%s %s", __func__, error->message);
+        #endif
+        
+        GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
+        message_dialog(GTK_WINDOW(toplevel), "Could not open file", error->message);
+    
+        g_clear_error(error);
+    }
 
-
+    g_free(filename);
 }
 
 static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
@@ -1201,4 +1243,4 @@ int main(int argc, char *argv[]) {
 
 
 
-headerbar spacing 5
+// headerbar spacing 5
