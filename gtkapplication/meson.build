@@ -78,9 +78,7 @@ install_data(desktop_file, install_dir: pkgappsdir)
 
 
 
-add_project_arguments([
-    '-I' + build_root,
-], language: 'c')
+add_project_arguments(['-save-temps', '-I' + build_root], language: 'c')
 
 executable('moviecollection',
     sources: [config_header, source_resources, 'moviecollection.c', 'fetchmovie.c'],

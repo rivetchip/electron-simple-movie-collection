@@ -12,6 +12,7 @@ Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland disp
 
 #include <config.h> //build generated
 #include "moviecollection.h"
+#include "macros.h"
 
 // todo: set custom windows with private properties
 static char *storageFilename;
@@ -128,8 +129,6 @@ static bool movie_collection_open(const char *filename, GError **error) {
     JsonParser *parser = json_parser_new();
     JsonObject *rootnode;
 
-    GError *error_read = NULL;
-
     unsigned int i = 0;
     while ((read = getlinex(&line, &line_size, stream)) > 0) {
 
@@ -139,14 +138,14 @@ static bool movie_collection_open(const char *filename, GError **error) {
 
         rootnode = json_node_get_object(json_parser_get_root(parser));
 
-        if(i >= 1) { // movies
+        if(i > 0) { // movies
             
             const char *movieId = json_object_get_string_member(rootnode, "movieId");
 
 
 //todo
 
-        } else if(i == 0) { // first line : metadata
+        } else { // first line : metadata
 
 
         }
@@ -568,6 +567,9 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
 
     gtk_container_add(GTK_CONTAINER(list_row), list_box);
 
+    // fixme
+    gtk_widget_show_all(list_row);
+
     return widget;
 }
 
@@ -811,9 +813,9 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
 
 // simple message dialog
 
-static void message_dialog(GtkWidget *window, char *message, char *message2) {
+static void message_dialog(GtkWindow *window, char *message, char *message2) {
 
-    GtkWidget *dialog = gtk_message_dialog_new(GTK_WINDOW (window),
+    GtkWidget *dialog = gtk_message_dialog_new(window,
         GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO,
         GTK_BUTTONS_OK,
@@ -929,7 +931,7 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
         GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
         message_dialog(GTK_WINDOW(toplevel), "Could not open file", error->message);
     
-        g_clear_error(error);
+        g_clear_error(error); //todo
     }
 
     g_free(filename);
@@ -1025,9 +1027,7 @@ static void show_interactive_dialog(MovieApplication *mapp) {
         G_CALLBACK(signal_css_provider_parsing_error), NULL
     );
     
-    gtk_css_provider_load_from_resource(
-        css_provider, "/shell/style.css"
-    );
+    gtk_css_provider_load_from_resource(css_provider, "/shell/style.css");
 
     gtk_style_context_add_provider_for_screen(
         gdk_screen_get_default(),
@@ -1035,9 +1035,7 @@ static void show_interactive_dialog(MovieApplication *mapp) {
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
     );
 
-    gtk_icon_theme_add_resource_path(
-        gtk_icon_theme_get_default(), "/icons"
-    );
+    gtk_icon_theme_add_resource_path(gtk_icon_theme_get_default(), "/icons");
 
 
     ////////// WINDOW DESIGN //////////

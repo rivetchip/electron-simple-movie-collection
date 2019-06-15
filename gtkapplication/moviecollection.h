@@ -9,8 +9,9 @@
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
 
-
-G_BEGIN_DECLS
+#ifdef  __cplusplus
+    extern "C" {
+#endif
 
 
 // Type definition (or move it for main c file)
@@ -174,7 +175,6 @@ static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetSta
 
 
 
-
-
-
-G_END_DECLS
+#ifdef  __cplusplus
+    } // extern c
+#endif
