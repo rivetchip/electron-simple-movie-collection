@@ -15,7 +15,7 @@ if(!sourceFile) {
     console.log('=====')
     console.log('Missing sourceFile argument')
     console.log('Usage:')
-    console.log('$ ./import-gcstar.js source.gcs  [destination.json]')
+    console.log('$ ./import-gcstar.js source.gcs  [destination.ndjson]')
     process.exit(1)
 }
 

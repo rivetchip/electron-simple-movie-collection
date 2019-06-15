@@ -6,7 +6,7 @@
         {
             "label": "meson:dev",
             "type": "shell",
-            "command": "meson -Ddeveloper_mode=true $builddir --buildtype=debugoptimized && ninja -C $builddir",
+            "command": "meson -Ddeveloper_mode=true --buildtype=debugoptimized $builddir && ninja -C $builddir",
             "options": {
                 "env": {
                     "builddir": "devbuild"
