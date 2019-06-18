@@ -19,6 +19,8 @@ depjsonglib = dependency('json-glib-1.0', version: '>= 1.4')
 deplibcurl = dependency('libcurl', version : '>=7.60')
 
 # main project options
+cc = meson.get_compiler('c')
+host_system = host_machine.system()
 project_name = meson.project_name()
 project_version = meson.project_version()
 source_root = meson.source_root()

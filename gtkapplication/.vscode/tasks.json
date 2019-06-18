@@ -12,6 +12,9 @@
                     "builddir": "devbuild"
                 },
                 "cwd": "${workspaceFolder}/",
+            },
+            "presentation": {
+                "clear": true
             }
         },
         {
@@ -30,6 +33,9 @@
                     "builddir": "releasebuild"
                 },
                 "cwd": "${workspaceFolder}/",
+            },
+            "presentation": {
+                "clear": true
             }
         },
     ]
