@@ -1,7 +1,10 @@
 #pragma once
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
+#include <float.h>
 #include <math.h>
 
 #include <glib.h>
