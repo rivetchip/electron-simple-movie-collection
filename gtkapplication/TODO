@@ -1,0 +1,54 @@
+static
+
+meson -Ddefault_library=static _build .
+ninja -C _build
+
+copie le .a,
+-L. définir le chemin des library dans le dossier de compilation
+-I include header
+
+gcc ../test2.c `pkg-config --cflags --libs glib-2.0 json-glib-1.0` -L. -l:libjson-glib-1.0.a -g -o main && ./main
+
+==========
+
+env = environment()
+env.set('CXX', ' '.join(meson.get_compiler('cpp').cmd_array()))
+env.set('CXXFLAGS', ' '.join(get_option('cpp_args')))
+env.set('LDFLAGS', ' '.join(get_option('cpp_link_args')))
+
+# Question 2
+if meson.is_cross_build()
+  # e.g. 'arm-linux-gnueabihf-'
+  cross_base = meson.get_cross_property('cross_base')
+else 
+  cross_base = ''
+endif
+
+env.set('LD', cross_base + 'ld')
+env.set('AR', cross_base + 'ar')
+env.set('RANLIB', cross_base + 'ranlib')
+env.set('STRIP', cross_base + 'strip')
+env.set('OBJCOPY', cross_base + 'objcopy')
+
+==========
+
+# libostd_static = declare_dependency(
+#     include_directories: libostd_includes,
+#     link_with: libostd_lib.get_static_lib()
+# )
+
+# dep = dependency('foo', fallback : [subproject_name, variable_name])
+
+libgvc = subproject('json-glib',
+  default_options: [
+    'package-name=' + meson.project_name(),
+    'package-version=' + meson.project_version(),
+    # 'pkgdatadir=' + pkgdatadir,
+    # 'pkglibdir=' + pkglibdir,
+    'static=true',
+    'with-introspection=true',
+    'buildtype=static_library'
+  ]
+)
+
+
