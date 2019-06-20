@@ -51,4 +51,25 @@ libgvc = subproject('json-glib',
   ]
 )
 
+my_inc = include_directories(...)
+my_lib = static_library(...)
+my_dep = declare_dependency(link_with : my_lib, include_directories : my_inc)
+
+========
+
+workaround : https://gitlab.gnome.org/GNOME/libgnome-volume-control/blob/eeaffe5c3da4ff720402ff6aab13e76c6c273403/meson.build
+https://gitlab.gnome.org/GNOME/gnome-shell/blob/de0e21612c89d55e8833cb0d321ffc1c5e35fe3f/meson.build#L230
+
+meson_options txt :
+option('static',   type: 'boolean',   value: false,   description: 'Build as a static library.' )
+
+projeect => default_options: ['static=true']
+
+enable_static = get_option('static')
+
+if(enable_static) ... static_library(...)
+
+Append custom library path #3926
+https://github.com/mesonbuild/meson/issues/3926
+deps += [compiler.find_library(libname, dirs : [devkitpro_dir + '/libnds/lib'])]
 
