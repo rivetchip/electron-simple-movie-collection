@@ -13,10 +13,10 @@ project('moviecollection', 'c',
 application_id = 'fr.spidery.moviecollection'
 
 # main app & extension dependencies
-depgtk = dependency('gtk+-3.0', version: '>= 3.22')
-depglib = dependency('glib-2.0', version: '>= 2.56')
-depjsonglib = dependency('json-glib-1.0', version: '>= 1.4')
-deplibcurl = dependency('libcurl', version : '>=7.60')
+depgtk = dependency('gtk+-3.0', version: '>= 3.22', required: true)
+depglib = dependency('glib-2.0', version: '>= 2.56', required: true)
+depjsonglib = dependency('json-glib-1.0', version: '>= 1.4', required: true)
+deplibcurl = dependency('libcurl', version : '>=7.60', required: true)
 
 # main project options
 cc = meson.get_compiler('c')
