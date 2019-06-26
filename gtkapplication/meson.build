@@ -40,25 +40,28 @@ pkgdatadir = join_paths(datadir, project_name) # ressources
 pkglibdir = join_paths(libdir, project_name)
 pkgappsdir = join_paths(datadir, 'applications')
 
-# generate config.h based on compilation options
-config_h = configuration_data()
-config_h.set10('PACKAGE_DEVELOPER_MODE', developer_mode)
-config_h.set_quoted('PACKAGE_APPLICATION_ID', application_id)
-config_h.set_quoted('PACKAGE_NAME', project_name)
-config_h.set_quoted('PACKAGE_VERSION', project_version)
-config_h.set_quoted('PACKAGE_SOURCE_ROOT', source_root)
-config_h.set_quoted('PACKAGE_BUILD_ROOT', build_root)
-config_h.set_quoted('PACKAGE_BUILD_DATE', build_date)
+# C source files
+csources = ['moviecollection.c', 'fetchmovie.c']
 
-config_header = configure_file(output: 'config.h', configuration: config_h)
+# generate config.h based on compilation options
+hconfig = configuration_data()
+hconfig.set10('PACKAGE_DEVELOPER_MODE', developer_mode)
+hconfig.set_quoted('PACKAGE_APPLICATION_ID', application_id)
+hconfig.set_quoted('PACKAGE_NAME', project_name)
+hconfig.set_quoted('PACKAGE_VERSION', project_version)
+hconfig.set_quoted('PACKAGE_BUILD_DATE', build_date)
+
+csources += configure_file(output: 'config.h', configuration: hconfig)
 
 # generate and link ressource styles & icons using glib-compile-resources
 gnome = import('gnome')
-source_resources = gnome.compile_resources(
+cresources = gnome.compile_resources(
     'movieapp-resources', 'gresource.xml',
     source_dir: './',
     c_name: 'shell'
 )
+
+csources += cresources
 
 # desktop file generation & check
 desktop_conf = configuration_data()
@@ -83,7 +86,7 @@ install_data(desktop_file, install_dir: pkgappsdir)
 add_project_arguments(['-save-temps', '-I' + build_root], language: 'c')
 
 executable('moviecollection',
-    sources: [config_header, source_resources, 'moviecollection.c', 'fetchmovie.c'],
+    sources: csources,
     dependencies: [depgtk, depglib, depjsonglib, deplibcurl],
     install_dir: pkgbindir,
     install: true
