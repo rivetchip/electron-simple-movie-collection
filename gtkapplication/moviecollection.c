@@ -9,10 +9,16 @@ coredumpctl list => gdb / coredumpctl gdb
 todo: check for :
 Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland display.
 */
+// #define _g_object_unref0(var) ((var == NULL) ? NULL : (var = (g_object_unref (var), NULL)))
+
+// __HAVE_DISTINCT_FLOAT128
 
 #include <config.h> //build generated
 #include "moviecollection.h"
 #include "macros.h"
+#include <time.h>
+
+
 
 // todo: set custom windows with private properties
 static char *storageFilename;
@@ -66,7 +72,12 @@ static char *movie_collection_stringify() {
 
 
 
-size_t getlinex(char **lineptr, size_t *n, FILE *stream) {
+
+/**
+ * Read up to (and including) a newline from *stream into *lineptr (and null-terminate it).
+ * lineptr is a pointer returned from malloc (or NULL), pointing to *n characters of space.
+ */
+size_t getline(FILE *stream, char **lineptr, size_t *n) {
     // const char* endl[4] = {"\n", "\r", "\r\n", "\n"};
 
     if(*lineptr == NULL) {
@@ -130,9 +141,12 @@ static bool movie_collection_open(const char *filename, GError **error) {
     JsonObject *rootnode;
 
     unsigned int i = 0;
-    while ((read = getlinex(&line, &line_size, stream)) > 0) {
+    while ((read = getline(stream, &line, &line_size)) > 0) {
 
         if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
+            free(line);
+            fclose(stream);
+            g_object_unref(parser);
             return FALSE;
         }
 
@@ -142,7 +156,7 @@ static bool movie_collection_open(const char *filename, GError **error) {
             
             const char *movieId = json_object_get_string_member(rootnode, "movieId");
 
-
+            g_message("%s", movieId);
 //todo
 
         } else { // first line : metadata
@@ -813,7 +827,7 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
 
 // simple message dialog
 
-static void message_dialog(GtkWindow *window, char *message, char *message2) {
+static void dialog_message(GtkWindow *window, char *message, char *message2) {
 
     GtkWidget *dialog = gtk_message_dialog_new(window,
         GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -830,7 +844,7 @@ static void message_dialog(GtkWindow *window, char *message, char *message2) {
     gtk_widget_destroy(dialog);
 }
 
-static char *show_open_dialog(char *existing_filename) {
+static char *dialog_file_chooser(char *existing_filename) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
     char *selected_filename = NULL;
 
@@ -914,7 +928,7 @@ static char *show_save_dialog(char *existing_filename) {
 
 static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
 
-    const char *filename = show_open_dialog(NULL);
+    const char *filename = dialog_file_chooser(NULL);
 
     if(filename == NULL) {
         return;
@@ -929,12 +943,12 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
         #endif
         
         GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
-        message_dialog(GTK_WINDOW(toplevel), "Could not open file", error->message);
+        dialog_message(GTK_WINDOW(toplevel), "Could not open file", error->message);
     
-        g_clear_error(error); //todo
+        g_clear_error(&error); //todo check
     }
 
-    g_free(filename);
+    g_free((char*) filename);
 }
 
 static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
