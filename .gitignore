@@ -1,8 +1,9 @@
 node_modules/
 package-lock.json
-release-builds/
 .cache
 bundle/
+**/devbuild
+**/releasebuild
 android/obj/
 android/apk/
 android/classes.dex
@@ -12,7 +13,4 @@ android/store-icon.png
 android/res/mipmap-*
 android/**/R.java
 __ideas
-webkit2gtk/devbuild
-gtkapplication/devbuild
-gtkapplication/releasebuild
-gtkapplication/.vscode/ipch/
+**/.vscode/ipch/
