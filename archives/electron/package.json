@@ -1,9 +1,30 @@
 {
     "name": "movie-collection",
     "productName": "Movie Collection",
-    "description": "Simple movie collection app",
+    "description": "Simple movie collection app (electron)",
     "version": "1.0.0",
     "author": "rivetchip",
     "license": "MIT",
-    "main": "index.js"
+    "main": "index.js",
+	"scripts": {
+		"electron": "electron index.js",
+		"electron-debug": "NODE_ENV=development electron index.js --inspect-brk=12345",
+		"build-clean": "rm -rf ./release-builds/*",
+		"build-electron": "npm run pack:linux32 && npm run pack:linux64 && npm run pack:win32 && npm run pack:win64 && npm run pack:osx",
+		"pack-linux32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=ia32 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
+		"pack-linux64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=linux --arch=x64 --icon=app-icon.png --prune=true --enable-transparent-visuals --disable-gpu",
+		"pack-win32": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=ia32 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
+		"pack-win64": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=win32 --arch=x64 --icon=app-icon.ico --prune=true --version-string.CompanyName='CE' --version-string.FileDescription='Electron app' --version-string.ProductName='Electron app'",
+		"pack-mac": "electron-packager . $npm_package_name --out=release-builds --overwrite --asar --platform=darwin --arch=x64 --icon=app-icon.icns --prune=true",
+		"build-linux32": "npm run build-clean && npm run bundle-electron && npm run pack-linux32",
+		"build-linux64": "npm run build-clean && npm run bundle-electron && npm run pack-linux64",
+		"build-win32": "npm run build-clean && npm run bundle-electron && npm run pack-win32",
+		"build-win64": "npm run build-clean && npm run bundle-electron && npm run pack-win64",
+		"build-mac": "npm run build-clean && npm run bundle-electron && npm run pack-mac"
+	},
+	"devDependencies": {
+		"asar": "^0.14.6",
+		"electron": "^2.0.16",
+		"electron-packager": "^11.2.1"
+	}
 }
