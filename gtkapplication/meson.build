@@ -17,6 +17,7 @@ depgtk = dependency('gtk+-3.0', version: '>= 3.22', required: true)
 depglib = dependency('glib-2.0', version: '>= 2.56', required: true)
 depjsonglib = dependency('json-glib-1.0', version: '>= 1.4', required: true)
 deplibcurl = dependency('libcurl', version : '>=7.60', required: true)
+git_command = find_program('git', required: false)
 
 # main project options
 cc = meson.get_compiler('c')
@@ -26,7 +27,12 @@ project_version = meson.project_version()
 source_root = meson.source_root()
 build_root = meson.build_root()
 developer_mode = get_option('developer_mode')
-build_date = run_command('date', '+%Y%m%d').stdout().strip()
+
+build_version = 'unknown'
+if git_command.found()
+    git_run = run_command('git', ['-C', source_root, 'log', '-1', '--pretty=%ad--%h', '--date=short'])
+    build_version = git_run.stdout().strip()
+endif
 
 # standard install directories
 prefix = get_option('prefix') # /usr
@@ -49,7 +55,7 @@ hconfig.set10('PACKAGE_DEVELOPER_MODE', developer_mode)
 hconfig.set_quoted('PACKAGE_APPLICATION_ID', application_id)
 hconfig.set_quoted('PACKAGE_NAME', project_name)
 hconfig.set_quoted('PACKAGE_VERSION', project_version)
-hconfig.set_quoted('PACKAGE_BUILD_DATE', build_date)
+hconfig.set_quoted('PACKAGE_BUILD_VERSION', build_version)
 
 csources += configure_file(output: 'config.h', configuration: hconfig)
 
