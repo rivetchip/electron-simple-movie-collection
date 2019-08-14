@@ -47,7 +47,7 @@ static void movie_application_class_init(MovieApplicationClass *klass);
 
 ////////////////////
 
-struct MovieCollectionItem {
+struct Movie {
     char *title;
     bool favorite;
     int rating; // /100
@@ -67,8 +67,8 @@ struct MovieCollectionItem {
     char *genres; // array
     char *actors; // array[2]
     char *serie; // array
-    char *companies; // array
-    char *keywords; // array
+    char *companies[]; // array
+    char *keywords[]; // array
     char *source;
     int sourceId;
     char *webPage;
