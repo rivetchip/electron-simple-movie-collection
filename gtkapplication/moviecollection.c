@@ -16,8 +16,6 @@ Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland disp
 #include <config.h> //build generated
 #include "moviecollection.h"
 #include "macros.h"
-#include <time.h>
-
 
 
 // todo: set custom windows with private properties
@@ -52,21 +50,6 @@ static MovieApplication *movie_application_new(const char *application_id, GAppl
 
 
 
-static bool movie_collection_get(char *movieId, struct MovieCollectionItem *item) {
-
-}
-
-static bool movie_collection_add(char *movieId, struct MovieCollectionItem *item) {
-
-}
-
-static bool movie_collection_remove(char *movieId) {
-    
-}
-
-static char *movie_collection_stringify() {
-
-}
 
 
 
@@ -125,9 +108,143 @@ static void widget_add_class(GtkWidget *widget, char *class_name) {
     gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
 }
 
+static char* strdup(const char *str) {
+    if(!str) return NULL;
+
+    size_t length = strlen(str) + 1;
+    char *new_str = malloc(length * sizeof(char));
+    memcpy(new_str, str, length);
+
+    return new_str;
+}
 
 
 
+
+static bool movie_collection_get(char *movieId, struct Movie *movie) {
+
+}
+
+static bool movie_collection_add(char *movieId, struct Movie *movie) {
+
+}
+
+static bool movie_collection_remove(char *movieId) {
+    
+}
+
+static char *movie_collection_stringify() {
+
+}
+
+static bool movie_collection_metadata_parse(JsonObject *object, struct MoviesMetadata *metadata) {
+    JsonNode *node;
+
+    if((node = json_object_get_member(object, "version")) != NULL) {
+        metadata->version = strdup(json_node_get_string(node));
+    }
+    if((node = json_object_get_member(object, "source")) != NULL) {
+        metadata->source = strdup(json_node_get_string(node));
+    }
+    if((node = json_object_get_member(object, "created")) != NULL) {
+        metadata->created = strdup(json_node_get_string(node));
+    }
+    if((node = json_object_get_member(object, "imported")) != NULL) {
+        metadata->imported = strdup(json_node_get_string(node));
+    }
+
+    return TRUE;
+}
+
+static bool movie_collection_item_parse(JsonObject *object, struct Movie *movie) {
+    JsonNode *node; JsonArray *array;
+
+    const char *movieId = json_object_get_string_member(object, "movieId");
+
+    if((node = json_object_get_member(object, "title")) != NULL) {
+        movie->title = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "favorite")) != NULL) {
+        movie->favorite = json_node_get_boolean(node);
+    }
+    if((node = json_object_get_member(object, "rating")) != NULL) {
+        movie->rating = json_node_get_int(node);
+    }
+    if((node = json_object_get_member(object, "tagline")) != NULL) {
+        movie->tagline = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "originalTitle")) != NULL) {
+        movie->originalTitle = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "ratingPress")) != NULL) {
+        movie->ratingPress = json_node_get_int(node);
+    }
+    if((node = json_object_get_member(object, "duration")) != NULL) {
+        movie->duration = json_node_get_int(node);
+    }
+    if((node = json_object_get_member(object, "dateReleased")) != NULL) {
+        movie->dateReleased = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "dateCreated")) != NULL) {
+        movie->dateCreated = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "dateModified")) != NULL) {
+        movie->dateModified = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "poster")) != NULL) {
+        movie->poster = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "description")) != NULL) {
+        movie->description = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "comment")) != NULL) {
+        movie->comment = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "director")) != NULL) {
+        movie->director = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "countries")) != NULL) {
+        array = json_node_get_array(node);
+
+        int i; int length = json_array_get_length(array);
+        for (i = 0; i < length; i++) {
+            node = json_array_get_element(array, i);
+
+
+
+
+            g_message("counttry %s", json_node_dup_string(node));
+        }
+    }
+    if((node = json_object_get_member(object, "genres")) != NULL) {
+        array = json_node_get_array(node);
+
+    }
+    if((node = json_object_get_member(object, "actors")) != NULL) {
+        array = json_node_get_array(node);
+
+    }
+    if((node = json_object_get_member(object, "serie")) != NULL) {
+        movie->serie = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "companies")) != NULL) {
+
+    }
+    if((node = json_object_get_member(object, "keywords")) != NULL) {
+
+    }
+    if((node = json_object_get_member(object, "source")) != NULL) {
+        movie->source = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "sourceId")) != NULL) {
+        movie->sourceId = json_node_dup_string(node);
+    }
+    if((node = json_object_get_member(object, "webPage")) != NULL) {
+        movie->webPage = json_node_dup_string(node);
+    }
+
+    return TRUE;
+}
 
 
 static bool movie_collection_open(const char *filename, GError **error) {
@@ -152,16 +269,21 @@ static bool movie_collection_open(const char *filename, GError **error) {
 
         rootnode = json_node_get_object(json_parser_get_root(parser));
 
-        if(i > 0) { // movies
-            
-            const char *movieId = json_object_get_string_member(rootnode, "movieId");
-
-            g_message("%s", movieId);
-//todo
-
-        } else { // first line : metadata
+        if(i == 0) { // metadata
+            struct MoviesMetadata *metadata = malloc(sizeof(*metadata));
+            if(!movie_collection_metadata_parse(rootnode, metadata)) {
+                continue;
+            }
 
 
+
+        } else { // movies
+            struct Movie *movie = malloc(sizeof(*movie));
+            if(!movie_collection_item_parse(rootnode, movie)) {
+                continue;
+            }
+
+//@todo
         }
 
         i++;
@@ -284,8 +406,8 @@ static void signal_mainwindow_destroy(GtkWidget *window, MovieApplication *mapp)
 static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error) {
 
     g_warning("Theme parsing error: %u:%u %s",
-        gtk_css_section_get_end_line (section) + 1,
-        gtk_css_section_get_end_position (section),
+        gtk_css_section_get_end_line(section) + 1,
+        gtk_css_section_get_end_position(section),
         error->message
     );
 }
@@ -572,8 +694,6 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
     widget->label = label;
 
     GtkWidget *favorite_icon = gtk_image_new_from_icon_name("@emblem-favorite", GTK_ICON_SIZE_SMALL_TOOLBAR);
-    gtk_widget_set_visible(favorite_icon, (is_favorite));
-
     widget->favorite_icon = favorite_icon;
 
     gtk_box_pack_start(GTK_BOX(list_box), label, TRUE, TRUE, 0); // expand, fill, padding
@@ -581,8 +701,8 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
 
     gtk_container_add(GTK_CONTAINER(list_row), list_box);
 
-    // fixme
     gtk_widget_show_all(list_row);
+    gtk_widget_set_visible(favorite_icon, is_favorite);
 
     return widget;
 }
@@ -1126,7 +1246,14 @@ static void show_interactive_dialog(MovieApplication *mapp) {
     gtk_box_pack_start(GTK_BOX(main_box), layout_paned, TRUE, TRUE, 0);
     gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
 
+    // Put the content area into the main window
+    gtk_container_add(GTK_CONTAINER(main_window), main_box);
 
+    // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
+    gtk_widget_grab_focus(GTK_WIDGET(main_box));
+
+    // Make sure the main window and all its contents are visible
+    gtk_widget_show_all(main_window);
 
 
 
@@ -1139,7 +1266,7 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 xxx = widget_sidebar_item_new("ID_2", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", FALSE);
 widget_sidebar_add_item(widget_sidebar, xxx);
 
-xxx = widget_sidebar_item_new("ID_3", "<>ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok", FALSE);
+xxx = widget_sidebar_item_new("ID_3", "<>ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok", TRUE);
 widget_sidebar_add_item(widget_sidebar, xxx);
 
 
@@ -1147,14 +1274,9 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
 
 
-    // Put the content area into the main window
-    gtk_container_add(GTK_CONTAINER(main_window), main_box);
 
-    // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
-    gtk_widget_grab_focus(GTK_WIDGET(main_box));
 
-    // Make sure the main window and all its contents are visible
-    gtk_widget_show_all(main_window);
+
 }
 
 static void signal_app_activate(MovieApplication *mapp) {
@@ -1213,7 +1335,7 @@ static int signal_app_handle_local_options(MovieApplication *mapp, GVariantDict 
 int main(int argc, char *argv[]) {
 
     #if PACKAGE_DEVELOPER_MODE
-        g_message("Dev mode");
+        MESSAGE("Dev mode");
         // inspector debug
         putenv("GTK_DEBUG=fatal-warnings");
         putenv("GOBJECT_DEBUG=instance-count");
