@@ -47,11 +47,17 @@ static void movie_application_class_init(MovieApplicationClass *klass);
 
 ////////////////////
 
+struct MoviesMetadata {
+    int version;
+    char *created;
+    char *imported;
+    char *source;
+};
+
 struct Movie {
     char *title;
     bool favorite;
     int rating; // /100
-
     char *tagline;
     char *originalTitle;
     int ratingPress;
@@ -66,9 +72,9 @@ struct Movie {
     char *countries; // array
     char *genres; // array
     char *actors; // array[2]
-    char *serie; // array
-    char *companies[]; // array
-    char *keywords[]; // array
+    char *serie;
+    char *companies; // array
+    char *keywords; // array
     char *source;
     int sourceId;
     char *webPage;
@@ -77,7 +83,7 @@ struct Movie {
 struct MovieCollection {
     int version;
     size_t size;
-    GHashTable *movies; // array[MovieCollectionItem]
+    GHashTable *movies; // array[Movie]
 };
 
 ////////////////////
