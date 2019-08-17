@@ -87,9 +87,14 @@ endif
 
 install_data(desktop_file, install_dir: pkgappsdir)
 
+project_arguments = ['-I' + build_root]
+
+if(developer_mode)
+    project_arguments += ['-save-temps']
+endif
 
 
-add_project_arguments(['-save-temps', '-I' + build_root], language: 'c')
+add_project_arguments(project_arguments, language: 'c')
 
 executable('moviecollection',
     sources: csources,
