@@ -15,14 +15,41 @@ Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland disp
 
 #include <config.h> //build generated
 #include "moviecollection.h"
-#include "macros.h"
+
+// internal API
+static MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags);
+static void movie_application_init(MovieApplication *app);
+static void movie_application_class_init(MovieApplicationClass *klass);
+
+static struct WidgetHeaderbar *widget_headerbar_new();
+
+static struct WidgetToolbar *widget_toolbar_new();
+
+static struct WidgetSidebar *widget_sidebar_new();
+static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *label_text, bool is_favorite);
+static void widget_sidebar_add_item(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item);
+
+static struct WidgetPanels *widget_panels_new();
+static struct WidgetPanelWelcome *widget_panel_welcome_new();
+static struct WidgetPanelPreview *widget_panel_preview_new();
+static struct WidgetPanelEdition *widget_panel_edition_new();
+static struct WidgetStatusbar *widget_statusbar_new();
+static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char* text);
+
+static struct WidgetStarRating *widget_starrating_new();
+static int widget_starrating_get_rating(struct WidgetStarRating *stars);
+static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rating);
+static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive);
+static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetStarRating *stars);
+
+
+
 
 
 // todo: set custom windows with private properties
 static char *storageFilename;
 static char *storageFolder;
 static char *storagePosters;
-static struct MovieCollection *storageMovieCollection;
 //default_location
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
@@ -141,7 +168,7 @@ static bool movie_collection_metadata_parse(JsonObject *object, struct MoviesMet
     JsonNode *node;
 
     if((node = json_object_get_member(object, "version")) != NULL) {
-        metadata->version = strdup(json_node_get_string(node));
+        metadata->version = json_node_get_int(node);
     }
     if((node = json_object_get_member(object, "source")) != NULL) {
         metadata->source = strdup(json_node_get_string(node));
@@ -159,7 +186,8 @@ static bool movie_collection_metadata_parse(JsonObject *object, struct MoviesMet
 static bool movie_collection_item_parse(JsonObject *object, struct Movie *movie) {
     JsonNode *node; JsonArray *array;
 
-    const char *movieId = json_object_get_string_member(object, "movieId");
+    //todo remove
+    // const char *movieId = json_object_get_string_member(object, "movieId");
 
     if((node = json_object_get_member(object, "title")) != NULL) {
         movie->title = json_node_dup_string(node);
@@ -203,41 +231,46 @@ static bool movie_collection_item_parse(JsonObject *object, struct Movie *movie)
     if((node = json_object_get_member(object, "director")) != NULL) {
         movie->director = json_node_dup_string(node);
     }
-    if((node = json_object_get_member(object, "countries")) != NULL) {
+    if((node = json_object_get_member(object, "countries")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
         array = json_node_get_array(node);
 
-        int i; int length = json_array_get_length(array);
-        for (i = 0; i < length; i++) {
-            node = json_array_get_element(array, i);
+        int i; int length;
+        if((length = json_array_get_length(array)) > 0) {
+            char **values = malloc((length + 1) * sizeof(*values)); // +sentinel
 
+            for (i = 0; i < length; i++) {
+                node = json_array_get_element(array, i);
+                values[i] = json_node_dup_string(node);
+            }
+            values[i++] = NULL;
 
-
-
-            g_message("counttry %s", json_node_dup_string(node));
+            movie->countries = values;
         }
     }
-    if((node = json_object_get_member(object, "genres")) != NULL) {
+    if((node = json_object_get_member(object, "genres")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
         array = json_node_get_array(node);
 
     }
-    if((node = json_object_get_member(object, "actors")) != NULL) {
+    if((node = json_object_get_member(object, "actors")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
         array = json_node_get_array(node);
 
     }
     if((node = json_object_get_member(object, "serie")) != NULL) {
         movie->serie = json_node_dup_string(node);
     }
-    if((node = json_object_get_member(object, "companies")) != NULL) {
+    if((node = json_object_get_member(object, "companies")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
 
     }
-    if((node = json_object_get_member(object, "keywords")) != NULL) {
+    if((node = json_object_get_member(object, "keywords")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
+        // todo cehck movie->keyword if nothing defined
+
 
     }
     if((node = json_object_get_member(object, "source")) != NULL) {
         movie->source = json_node_dup_string(node);
     }
     if((node = json_object_get_member(object, "sourceId")) != NULL) {
-        movie->sourceId = json_node_dup_string(node);
+        movie->sourceId = json_node_get_int(node);
     }
     if((node = json_object_get_member(object, "webPage")) != NULL) {
         movie->webPage = json_node_dup_string(node);
@@ -247,18 +280,28 @@ static bool movie_collection_item_parse(JsonObject *object, struct Movie *movie)
 }
 
 
-static bool movie_collection_open(const char *filename, GError **error) {
+GHashTable *g_hash_table_new(GHashFunc hash_func, GEqualFunc key_equal_func) {
+    return g_hash_table_new_full (hash_func, key_equal_func, NULL, NULL);
+}
 
-    FILE *stream = fopen(filename, "rb");
+
+static bool movie_collection_new_from(FILE *stream, GError **error) {
+
     size_t line_size = 0;
     char *line = NULL;
     size_t read = 0;
 
     JsonParser *parser = json_parser_new();
-    JsonObject *rootnode;
+    JsonObject *jsonnode;
+
+    struct MoviesStorage *storage = malloc(sizeof(*storage));
+
+    vector *movies = vector_new();
+    storage->movies = movies;
+
 
     unsigned int i = 0;
-    while ((read = getline(stream, &line, &line_size)) > 0) {
+    while((read = getline(stream, &line, &line_size)) > 0) {
 
         if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
             free(line);
@@ -267,30 +310,37 @@ static bool movie_collection_open(const char *filename, GError **error) {
             return FALSE;
         }
 
-        rootnode = json_node_get_object(json_parser_get_root(parser));
+        jsonnode = json_node_get_object(json_parser_get_root(parser));
 
-        if(i == 0) { // metadata
-            struct MoviesMetadata *metadata = malloc(sizeof(*metadata));
-            if(!movie_collection_metadata_parse(rootnode, metadata)) {
-                continue;
+        switch(i) {
+            case 0: { // first line: metadata
+                struct MoviesMetadata *metadata = malloc(sizeof(*metadata));
+                if(!movie_collection_metadata_parse(jsonnode, metadata)) {
+                    continue;
+                }
+                storage->metadata = metadata;
             }
+            break;
+
+            default: { // movies
+                struct Movie *movie = malloc(sizeof(*movie));
+                if(!movie_collection_item_parse(jsonnode, movie)) {
+                    continue;
+                }
+
+                int key = vector_add(movies, movie);
 
 
 
-        } else { // movies
-            struct Movie *movie = malloc(sizeof(*movie));
-            if(!movie_collection_item_parse(rootnode, movie)) {
-                continue;
+
             }
-
-//@todo
+            break;
         }
 
         i++;
     }
 
     free(line);
-    fclose(stream);
     g_object_unref(parser);
 
     return TRUE;
@@ -1054,9 +1104,12 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
         return;
     }
 
-    GError *error = NULL;
+    // struct MovieCollection *storageMovies = NULL;
 
-    if(!movie_collection_open(filename, &error)) {
+    GError *error = NULL;
+    FILE *stream = fopen(filename, "rb");
+
+    if(!movie_collection_new_from(stream, &error)) {
 
         #if PACKAGE_DEVELOPER_MODE
             g_message("%s %s", __func__, error->message);
@@ -1068,6 +1121,7 @@ static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
         g_clear_error(&error); //todo check
     }
 
+    fclose(stream);
     g_free((char*) filename);
 }
 
