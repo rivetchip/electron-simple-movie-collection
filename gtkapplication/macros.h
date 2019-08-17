@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdarg.h>
 #include <time.h>
 #include <sys/time.h>
 
@@ -10,7 +12,7 @@
 #endif
 
 
-#define array_length(A) (sizeof(A) / sizeof(A[0]))
+#define array_size(A) (sizeof(A) / sizeof(A[0]))
 
 
 #define MESSAGE(...) _message(__FILE__, __func__, __LINE__, __VA_ARGS__)
