@@ -47,7 +47,7 @@ pkglibdir = join_paths(libdir, project_name)
 pkgappsdir = join_paths(datadir, 'applications')
 
 # C source files
-csources = ['moviecollection.c', 'fetchmovie.c']
+csources = ['moviecollection.c', 'fetchmovie.c', 'vector.c']
 
 # generate config.h based on compilation options
 hconfig = configuration_data()
