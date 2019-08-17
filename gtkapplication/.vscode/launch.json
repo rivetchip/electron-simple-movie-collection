@@ -7,7 +7,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/devbuild/moviecollection",
-            "args": ["--inspect"],
+            // "args": ["--inspect"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/",
             "environment": [],
