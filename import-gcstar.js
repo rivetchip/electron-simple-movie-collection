@@ -146,7 +146,7 @@ function convertTags(tags) {
 function convertSource(webPage) {
     webPage = String(webPage)
     
-    if(webPage.includes('themoviedb')) {
+    if(webPage.includes('themoviedb.org')) {
         return 'tmdb'
     }
 
@@ -163,7 +163,7 @@ function convertWebPage(webPage) {
 function concertSourceId(webPage) {
     webPage = String(webPage)
 
-    if(webPage.includes('themoviedb')) {
+    if(webPage.includes('themoviedb.org')) {
         let split = webPage.split('##')
         let pageUrl = split[0]
 
@@ -196,7 +196,7 @@ function convertFromDomItem(domitem, index) {
         rating: convertRating(
             domitem.getAttribute('rating') > 0 ? domitem.getAttribute('rating') : domitem.getAttribute('ratingpress')
         ),
-        // ratingPress: convertRating(domitem.getAttribute('ratingpress')),
+        ratingPress: convertRating(domitem.getAttribute('ratingpress')),
         dateCreated: convertSimpleDate(domitem.getAttribute('added')),
         dateModified: null,
         favorite: domitem.getAttribute('favourite') == 1,
