@@ -1,6 +1,13 @@
-@define-color color_hover #1abc9c;
-@define-color color_active #16a085;
-@define-color color_active_hover #48c9b0;
+@define-color theme_color #1abc9c;
+@define-color theme_hover shade(@theme_color, 1.1);
+@define-color theme_active shade(@theme_color, 0.8);
+
+/* * {
+    transition-property: color, background-color, border-color, background-image, padding, border-width;
+    transition-duration: 1s;
+
+    font: 20px Cantarell;
+} */
 
 .main_window {
     all: unset;
@@ -35,10 +42,10 @@ decoration {
     transition: background-color 200ms ease;
 }
 .headerbutton:hover {
-    background-color: @color_hover;
+    background-color: @theme_hover;
 }
 .headerbutton:active {
-    background-color: @color_active;
+    background-color: @theme_active;
 }
 .headerbutton image {
     -gtk-icon-shadow: none;
@@ -58,7 +65,7 @@ menu menuitem {
     background-color: #2c3133;
 }
 menu menuitem:hover {
-    background-color: @color_hover;
+    background-color: @theme_hover;
 }
 menu menuitem:disabled {
     color: #555;
@@ -87,10 +94,10 @@ menu menuitem:hover:disabled {
     transition: background-color 200ms ease;
 }
 .toolbar-button:hover {
-    background-color: @color_hover;
+    background-color: @theme_hover;
 }
 .toolbar-button:active {
-    background-color: @color_active;
+    background-color: @theme_active;
 }
 
 .toolbar-provider {
@@ -98,11 +105,11 @@ menu menuitem:hover:disabled {
     margin-left: 5px;
 }
 .toolbar-provider:checked {
-    background-color: @color_hover;
+    background-color: @theme_hover;
 }
-.toolbar-provider:checked:hover {
+/* .toolbar-provider:checked:hover {
     background-color: @color_active_hover;
-}
+} */
 
 
 
@@ -130,7 +137,7 @@ menu menuitem:hover:disabled {
     box-shadow: none;
 }
 .searchbar-entry:focus {
-    border-color: #1abc9c;
+    border-color: @theme_color;
 }
 
 /* categories list */
@@ -149,13 +156,13 @@ menu menuitem:hover:disabled {
     background-color: #34393b;
 }
 .category-item:selected {
-    background-color: #1abc9c;
+    background-color: @theme_color;
 }
 .category-item:selected:hover {
-    background-color: #48c9b0;
+    background-color: @theme_hover;
 }
 .category-item:selected:active {
-    background-color: #16a085;
+    background-color: @theme_active;
 }
 
 /* status bar */
