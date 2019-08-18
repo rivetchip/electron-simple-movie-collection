@@ -1,15 +1,11 @@
-
-#include <config.h>
 #include "window.h"
 
 G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
 
-static void signal_destroy(MovieWindow *window, MovieApplication *app);
+static void signal_destroy(MovieWindow *window);
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event);
 static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation);
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
-static void load_state(MovieApplication *app, MovieWindow *window);
-
 
 
 static void movie_window_init(MovieWindow *window) {
@@ -17,8 +13,8 @@ static void movie_window_init(MovieWindow *window) {
 }
 
 static void movie_window_class_init(MovieWindowClass *klass) {
-	GObjectClass *object_class = G_OBJECT_CLASS(klass);
-	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+	// GObjectClass *object_class = G_OBJECT_CLASS(klass);
+	// GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 
 
 
@@ -39,7 +35,7 @@ MovieWindow *movie_window_new(MovieApplication *application) {
 
 MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *screen) {
     const char *appid = g_application_get_application_id(G_APPLICATION(app));
-
+    
     // initialize GTK+
     MovieWindow *window = movie_window_new(app);
     // widget_add_class(GTK_WIDGET(window), "movie_window");
@@ -52,32 +48,24 @@ MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
 
+	if(screen != NULL) {
+		gtk_window_set_screen(GTK_WINDOW(window), screen);
+	}
+
     // set window settings
-    GtkSettings *window_settings = gtk_settings_get_default();
-    g_object_set(G_OBJECT(window_settings),
+    GtkSettings *settings = gtk_settings_get_default();
+    g_object_set(G_OBJECT(settings),
         "gtk-application-prefer-dark-theme", TRUE,
         // "gtk-font-name", "Lato 12",
     NULL);
 
-/*
     g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(signal_destroy), NULL);
     g_signal_connect(GTK_WINDOW(window), "window-state-event", G_CALLBACK(signal_state_event), NULL);
     g_signal_connect(GTK_WINDOW(window), "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
 
-    // restore previous state
-    if(window->win_height > 0 && window->win_width > 0) {
-        gtk_window_set_default_size(GTK_WINDOW(window),
-            app->win_width,
-            app->win_height
-        );
-    }
-    if(window->is_maximized) {
-        gtk_window_maximize(GTK_WINDOW(window));
-    }
-    if(window->is_fullscreen) {
-        gtk_window_fullscreen(GTK_WINDOW(window));
-    }
 
+
+/*
     ////////// WINDOW DESIGN //////////
 
     // hide window decorations of main app and use our own
@@ -179,10 +167,10 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
 */
 
-
+    return window;
 }
 
-static void signal_destroy(MovieWindow *window, MovieApplication *app) {
+static void signal_destroy(MovieWindow *window) {
     GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
     g_application_quit(G_APPLICATION(gtkapp));
 }
@@ -217,35 +205,6 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
 }
 
 
-static void load_state(MovieApplication *app, MovieWindow *window) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
-    char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
-
-    GKeyFile *keyfile = g_key_file_new();
-/*
-    if(g_key_file_load_from_file(keyfile, state_file, G_KEY_FILE_NONE, NULL)) {
-
-        GError *error_read = NULL;
-
-        int state_height = g_key_file_get_integer(keyfile, "WindowState", "height", &error_read);
-        error_read == NULL ? (app->height = state_height) : g_clear_error(&error_read);
-
-        int state_width = g_key_file_get_integer(keyfile, "WindowState", "width", &error_read);
-        error_read == NULL ? (app->width = state_width) : g_clear_error(&error_read);
-
-        bool state_maximized = g_key_file_get_boolean(keyfile, "WindowState", "maximized", &error_read);
-        error_read == NULL ? (app->is_maximized = state_maximized) : g_clear_error(&error_read);
-
-        int state_fullscreen = g_key_file_get_boolean(keyfile, "WindowState", "fullscreen", &error_read);
-        error_read == NULL ? (app->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
-
-        int paned_position = g_key_file_get_integer(keyfile, "WindowState", "paned_position", &error_read);
-        error_read == NULL ? (app->paned_position = paned_position) : g_clear_error(&error_read);
-    }
-*/
-    g_key_file_free(keyfile);
-    g_free(state_file);
-}
-
-
+// static void
+// save_panels_state (GeditWindow *window)

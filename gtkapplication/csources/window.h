@@ -1,6 +1,6 @@
 #pragma once
 
-#include <stddef.h>
+#include <stdbool.h>
 
 #include <glib.h>
 #include <gtk/gtk.h>

@@ -1,5 +1,3 @@
-
-#include <config.h>
 #include "application.h"
 #include "window.h"
 
@@ -15,6 +13,7 @@ static void signal_network_changed(GNetworkMonitor *monitor, bool available, Mov
 static GtkCssProvider *load_styles_resources();
 static void signal_css_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error);
 static void commandline_print_version(MovieApplication *app);
+static void window_restore_state(MovieWindow *window);
 
 
 static void movie_application_class_init(MovieApplicationClass *klass) {
@@ -88,6 +87,8 @@ static void signal_activate(MovieApplication *app) {
     if((window = gtk_application_get_active_window(GTK_APPLICATION(app))) == NULL) {
         // create if not exist
         window = GTK_WINDOW(movie_appplication_create_window(app, NULL));
+        window_restore_state(MOVIE_WINDOW(window));
+
         gtk_widget_show(GTK_WIDGET(window));
     }
 
@@ -165,4 +166,52 @@ static void commandline_print_version(MovieApplication *app) {
         gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version()
     );
 }
+
+
+static void window_restore_state(MovieWindow *window) {
+    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
+    const char *appid = g_application_get_application_id(G_APPLICATION(gtkapp));
+    
+    char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
+
+    GKeyFile *keyfile = g_key_file_new();
+
+    if(g_key_file_load_from_file(keyfile, state_file, G_KEY_FILE_NONE, NULL)) {
+        int state;
+
+        if((state = g_key_file_get_integer(keyfile, "WindowState", "height", NULL)) != NULL) {
+            window->height = state;
+        }
+        if((state = g_key_file_get_integer(keyfile, "WindowState", "width", NULL)) != NULL) {
+            window->width = state;
+        }
+        if((state = g_key_file_get_integer(keyfile, "WindowState", "maximized", NULL)) != NULL) {
+            window->is_maximized = state;
+        }
+        if((state = g_key_file_get_integer(keyfile, "WindowState", "fullscreen", NULL)) != NULL) {
+            window->is_fullscreen = state;
+        }
+        if((state = g_key_file_get_integer(keyfile, "WindowState", "paned_position", NULL)) != NULL) {
+            window->paned_position = state;
+        }
+    }
+
+    g_key_file_free(keyfile);
+    g_free(state_file);
+}
+
+static void window_resize(MovieWindow *window, int height, int width, bool is_maximized, bool is_fullscreen) {
+    // restore previous state
+    if(width > 0 && height > 0) {
+        gtk_window_set_default_size(GTK_WINDOW(window), width, height);
+    }
+    if(is_maximized) {
+        gtk_window_maximize(GTK_WINDOW(window));
+    }
+    if(is_fullscreen) {
+        gtk_window_fullscreen(GTK_WINDOW(window));
+    }
+}
+
+todo todo();
 
