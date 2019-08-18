@@ -1,6 +1,7 @@
 
 #include <config.h>
 #include "application.h"
+#include "window.h"
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
@@ -17,6 +18,8 @@ static void commandline_print_version(MovieApplication *app);
 
 
 static void movie_application_class_init(MovieApplicationClass *klass) {
+    g_message(__func__);
+
 	// GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	// GApplicationClass *app_class = G_APPLICATION_CLASS (klass);
 
@@ -50,6 +53,7 @@ static void movie_application_init(MovieApplication *app) {
 }
 
 MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
+    g_message(__func__);
 
     g_return_val_if_fail(g_application_id_is_valid(application_id), NULL); // normal comportment
     
@@ -60,6 +64,7 @@ MovieApplication *movie_application_new(const char *application_id, GApplication
 }
 
 static void signal_startup(MovieApplication *app) {
+    g_message(__func__);
 
     // set application main config variables
 
@@ -79,16 +84,14 @@ static void signal_startup(MovieApplication *app) {
 static void signal_activate(MovieApplication *app) {
     g_message(__func__);
 
-    // Check if window is already active
-    // MovieWindow *window = gtk_application_get_active_window(GTK_APPLICATION(app));
+    GtkWindow *window;
+    if((window = gtk_application_get_active_window(GTK_APPLICATION(app))) == NULL) {
+        // create if not exist
+        window = GTK_WINDOW(movie_appplication_create_window(app, NULL));
+        gtk_widget_show(GTK_WIDGET(window));
+    }
 
-    // if(window != NULL) {
-    //     // create if not exist
-    //     window = movie_appplication_create_window(app, NULL);
-    //     gtk_widget_show(GTK_WIDGET(window));
-    // }
-
-    // gtk_window_present(GTK_WINDOW(window));
+    gtk_window_present(window);
 }
 
 static void signal_shutdown(MovieApplication *app) {
