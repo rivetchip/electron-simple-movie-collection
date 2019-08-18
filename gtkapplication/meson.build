@@ -48,11 +48,12 @@ pkgappsdir = join_paths(datadir, 'applications')
 
 # C source files
 csources = [
+    'main.c',
+    'csources/vector.c',
+    'csources/fetchmovie.c',
     'csources/application.c',
     'csources/window.c',
-    'csources/fetchmovie.c',
-    'csources/vector.c',
-    'main.c'
+    'csources/widgets.c',
 ]
 csources_headers = include_directories('csources')
 

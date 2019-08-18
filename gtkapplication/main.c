@@ -4,7 +4,7 @@
 #include "application.h"
 
 
-int main(int argc, char *argv[]) {
+int main(int argc, char **argv) {
 
     #if PACKAGE_DEVELOPER_MODE
         MESSAGE("DEV MODE");
