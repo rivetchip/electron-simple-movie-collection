@@ -47,7 +47,6 @@ pkglibdir = join_paths(libdir, project_name)
 pkgappsdir = join_paths(datadir, 'applications')
 
 # C source files
-
 csources = [
     'csources/application.c',
     'csources/window.c',
@@ -98,7 +97,7 @@ install_data(desktop_file, install_dir: pkgappsdir)
 project_arguments = ['-I' + build_root]
 
 if(developer_mode)
-    project_arguments += ['-save-temps']
+    project_arguments += ['-save-temps', '-P']
 endif
 
 
