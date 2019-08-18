@@ -20,54 +20,10 @@
 #endif
 
 
-// type definition
-struct _MovieApplication {
-    GtkApplication parent_instance;
 
-};
-
-typedef struct _MovieApplication MovieApplication;
-typedef GtkApplicationClass MovieApplicationClass;
-
-G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
-
-// public api
-GType movie_application_get_type(void) G_GNUC_CONST;
-
-// macro function G_DECLARE_FINAL_TYPE
-inline MovieApplication *MOVIE_APPLICATION(gpointer ptr) {
-    return G_TYPE_CHECK_INSTANCE_CAST(ptr, movie_application_get_type(), MovieApplication);
-}
 
 ////////////////////
 
-// type definition
-struct _MovieWindow {
-    GtkApplicationWindow parent_instance;
-
-    // window state
-    int win_height;
-    int win_width;
-    bool is_maximized;
-    bool is_fullscreen;
-
-    // widgets
-    int paned_position;
-};
-
-typedef struct _MovieWindow MovieWindow;
-typedef GtkApplicationWindowClass MovieWindowClass;
-
-G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
-
-// public api
-GType movie_window_get_type(void) G_GNUC_CONST;
-#define MOVIE_TYPE_WINDOW (gedit_window_get_type())
-
-// macro function G_DECLARE_FINAL_TYPE
-inline MovieWindow *MOVIE_WINDOW(gpointer ptr) {
-    return G_TYPE_CHECK_INSTANCE_CAST(ptr, movie_window_get_type(), MovieWindow);
-}
 
 
 ////////////////////
