@@ -47,7 +47,15 @@ pkglibdir = join_paths(libdir, project_name)
 pkgappsdir = join_paths(datadir, 'applications')
 
 # C source files
-csources = ['moviecollection.c', 'fetchmovie.c', 'vector.c']
+
+csources = [
+    'csources/application.c',
+    'csources/window.c',
+    'csources/fetchmovie.c',
+    'csources/vector.c',
+    'main.c'
+]
+csources_headers = include_directories('csources')
 
 # generate config.h based on compilation options
 hconfig = configuration_data()
@@ -98,6 +106,7 @@ add_project_arguments(project_arguments, language: 'c')
 
 executable('moviecollection',
     sources: csources,
+    include_directories: csources_headers,
     dependencies: [depgtk, depglib, depjsonglib, deplibcurl],
     install_dir: pkgbindir,
     install: true
