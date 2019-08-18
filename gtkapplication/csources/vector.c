@@ -3,6 +3,9 @@
 
 #include "vector.h"
 
+#include <stddef.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 vector *vector_new() {
     vector *v = malloc(sizeof(*v));
