@@ -80,4 +80,8 @@ int vector_delete(vector *v, int index) {
 void vector_free(vector *v) {
     free(v->items);
     free(v);
+
+    // while(v->total > 0){
+    //     free(v->items[--v->size]);
+    // }
 }

@@ -52,14 +52,13 @@ static char *storageFolder;
 static char *storagePosters;
 //default_location
 
-G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
 static void movie_application_init(MovieApplication *app) {
     g_message(__func__);
 }
 
-static void movie_application_class_init(MovieApplicationClass *class) {
-    // GApplicationClass *app_class = G_APPLICATION_CLASS(class);
+static void movie_application_class_init(MovieApplicationClass *klass) {
+    // GApplicationClass *app_class = G_APPLICATION_CLASS(klass);
 
     // app_class->startup = demo_application_startup;
     // app_class->activate = demo_application_activate;
@@ -76,7 +75,29 @@ static MovieApplication *movie_application_new(const char *application_id, GAppl
 }
 
 
+static void movie_window_init(MovieWindow *window) {
+    g_message(__func__);
+}
 
+static void movie_window_class_init(MovieWindowClass *klass) {
+	GObjectClass *object_class = G_OBJECT_CLASS(klass);
+	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+
+
+
+  // virtual function overrides go here
+  // property and signal definitions go here
+}
+
+static MovieWindow *movie_window_new(MovieApplication *application) {
+
+    g_return_val_if_fail(GTK_IS_APPLICATION(application), NULL);
+
+    return g_object_new(movie_window_get_type(),
+        "application", application,
+        "show-menubar", FALSE,
+    NULL);
+}
 
 
 
@@ -183,7 +204,7 @@ static bool movie_collection_metadata_parse(JsonObject *object, struct MoviesMet
     return TRUE;
 }
 
-static bool movie_collection_item_parse(JsonObject *object, struct Movie *movie) {
+static bool movie_collection_node_parse(JsonObject *object, struct Movie *movie) {
     JsonNode *node; JsonArray *array;
 
     //todo remove
@@ -305,7 +326,6 @@ static bool movie_collection_new_from(FILE *stream, GError **error) {
 
         if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
             free(line);
-            fclose(stream);
             g_object_unref(parser);
             return FALSE;
         }
@@ -324,13 +344,19 @@ static bool movie_collection_new_from(FILE *stream, GError **error) {
 
             default: { // movies
                 struct Movie *movie = malloc(sizeof(*movie));
-                if(!movie_collection_item_parse(jsonnode, movie)) {
+                if(!movie_collection_node_parse(jsonnode, movie)) {
                     continue;
                 }
 
-                int key = vector_add(movies, movie);
+                int key;
+                if((key = vector_add(movies, movie)) == 0) {
+                    return FALSE; // cannot allocate
+                }
 
 
+
+
+// todo
 
 
             }
@@ -361,16 +387,16 @@ static bool movie_collection_save(const char *filename, GError **error) {
 
 
 
-static void mainwindow_store_state(MovieApplication *mapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
+static void mainwindow_store_state(MovieApplication *app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
     GKeyFile *keyfile = g_key_file_new();
 
-    g_key_file_set_integer(keyfile, "WindowState", "height", mapp->win_height);
-    g_key_file_set_integer(keyfile, "WindowState", "width", mapp->win_width);
-    g_key_file_set_boolean(keyfile, "WindowState", "maximized", mapp->is_maximized);
-    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", mapp->is_fullscreen);
-    g_key_file_set_integer(keyfile, "WindowState", "paned_position", mapp->paned_position);
+    g_key_file_set_integer(keyfile, "WindowState", "height", app->win_height);
+    g_key_file_set_integer(keyfile, "WindowState", "width", app->win_width);
+    g_key_file_set_boolean(keyfile, "WindowState", "maximized", app->is_maximized);
+    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", app->is_fullscreen);
+    g_key_file_set_integer(keyfile, "WindowState", "paned_position", app->paned_position);
 
     // save file under $XDG_CACHE_HOME
     char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
@@ -391,8 +417,8 @@ static void mainwindow_store_state(MovieApplication *mapp) {
     g_free(state_file);
 }
 
-static void mainwindow_load_state(MovieApplication *mapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
+static void mainwindow_load_state(MovieApplication *app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
     char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
 
@@ -403,55 +429,42 @@ static void mainwindow_load_state(MovieApplication *mapp) {
         GError *error_read = NULL;
 
         int state_height = g_key_file_get_integer(keyfile, "WindowState", "height", &error_read);
-        error_read == NULL ? (mapp->win_height = state_height) : g_clear_error(&error_read);
+        error_read == NULL ? (app->win_height = state_height) : g_clear_error(&error_read);
 
         int state_width = g_key_file_get_integer(keyfile, "WindowState", "width", &error_read);
-        error_read == NULL ? (mapp->win_width = state_width) : g_clear_error(&error_read);
+        error_read == NULL ? (app->win_width = state_width) : g_clear_error(&error_read);
 
         bool state_maximized = g_key_file_get_boolean(keyfile, "WindowState", "maximized", &error_read);
-        error_read == NULL ? (mapp->is_maximized = state_maximized) : g_clear_error(&error_read);
+        error_read == NULL ? (app->is_maximized = state_maximized) : g_clear_error(&error_read);
 
         int state_fullscreen = g_key_file_get_boolean(keyfile, "WindowState", "fullscreen", &error_read);
-        error_read == NULL ? (mapp->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
+        error_read == NULL ? (app->is_fullscreen = state_fullscreen) : g_clear_error(&error_read);
 
         int paned_position = g_key_file_get_integer(keyfile, "WindowState", "paned_position", &error_read);
-        error_read == NULL ? (mapp->paned_position = paned_position) : g_clear_error(&error_read);
+        error_read == NULL ? (app->paned_position = paned_position) : g_clear_error(&error_read);
     }
 
     g_key_file_free(keyfile);
     g_free(state_file);
 }
 
-static bool signal_mainwindow_state_event(GtkWidget *window, GdkEventWindowState *event, MovieApplication *mapp) {
+static bool signal_mainwindow_state_event(GtkWidget *window, GdkEventWindowState *event, MovieApplication *app) {
     GdkWindowState window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
-    mapp->is_maximized = (window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
+    app->is_maximized = (window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
 
-    mapp->is_fullscreen = (window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+    app->is_fullscreen = (window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 
     return GDK_EVENT_PROPAGATE;
 }
 
-static void signal_mainwindow_size_allocate(GtkWidget *window, GdkRectangle *allocation, MovieApplication *mapp) {
-    // save the window geometry only if we are not maximized of fullscreen
-    if(!(mapp->is_maximized || mapp->is_fullscreen)) {
-        // use gtk_ ; Using the allocation directly can lead to growing windows with client-side decorations
-        gtk_window_get_size(GTK_WINDOW(window),
-            &mapp->win_width,
-            &mapp->win_height
-        );
-    }
-}
 
-static void signal_mainwindow_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieApplication *mapp) {
-    mapp->paned_position = gtk_paned_get_position(paned);
+static void signal_mainwindow_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieApplication *app) {
+    app->paned_position = gtk_paned_get_position(paned);
 }
 
 
-static void signal_mainwindow_destroy(GtkWidget *window, MovieApplication *mapp) {
-    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
-    g_application_quit(G_APPLICATION(gtkapp));
-}
+
 
 static void signal_css_provider_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error) {
 
@@ -548,22 +561,22 @@ static struct WidgetHeaderbar *widget_headerbar_new() {
     return widget;
 }
 
-static void signal_app_startup(MovieApplication *mapp) {
+static void signal_app_startup(MovieApplication *app) {
 
     // set application main config variables
 
     // load previous window state, if any
-    mainwindow_load_state(mapp);
+    mainwindow_load_state(app);
 }
 
 
-static void signal_searchentry_keyrelease(GtkEntry *entry, GdkEventKey *event, MovieApplication *mapp) {
+static void signal_searchentry_keyrelease(GtkEntry *entry, GdkEventKey *event, MovieApplication *app) {
     if(event->keyval == GDK_KEY_Escape) {
         gtk_entry_set_text(entry, ""); // empty
     }
 }
 
-static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) {
+static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *app) {
     const char *keyword = gtk_entry_get_text(entry);
 
     #if PACKAGE_DEVELOPER_MODE
@@ -577,7 +590,8 @@ static void signal_searchentry_changed(GtkEntry *entry, MovieApplication *mapp) 
 
 
 
-static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *mapp) {
+
+static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRow *listrow, MovieApplication *app) {
 
     const char *item_id = g_object_get_data(
         G_OBJECT(GTK_WIDGET(listrow)), "itemId"
@@ -1158,54 +1172,56 @@ static void signal_toolbar_new(GtkButton *button, gpointer user_data) {
 
 
 
-static void show_interactive_dialog(MovieApplication *mapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
+static void show_interactive_dialog(MovieApplication *app) {
 
-    // Initialize GTK+
-    GtkWidget *main_window = gtk_application_window_new(GTK_APPLICATION(mapp));
-    widget_add_class(main_window, "main_window");
 
-    // Create an 800x600 window that will contain the browser instance
-    gtk_window_set_icon_name(GTK_WINDOW(main_window), appid);
-    gtk_window_set_title(GTK_WINDOW(main_window), "Movie Collection");
-    gtk_window_set_default_size(GTK_WINDOW(main_window), 800, 600);
-    gtk_container_set_border_width(GTK_CONTAINER(main_window), 0);
-    gtk_window_set_position(GTK_WINDOW(main_window), GTK_WIN_POS_CENTER);
-    gtk_window_set_resizable(GTK_WINDOW(main_window), TRUE);
 
-    // Set window settings
+
+
+
+}
+
+
+static MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *screen) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
+
+    // initialize GTK+
+    MovieWindow *window = movie_window_new(app);
+    widget_add_class(GTK_WIDGET(window), "movie_window");
+
+    // create an 800x600 window
+    gtk_window_set_icon_name(GTK_WINDOW(window), appid);
+    gtk_window_set_title(GTK_WINDOW(window), "Movie Collection");
+    gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+    gtk_container_set_border_width(GTK_CONTAINER(window), 0);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+
+    // set window settings
     GtkSettings *window_settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(window_settings),
         "gtk-application-prefer-dark-theme", TRUE,
         // "gtk-font-name", "Lato 12",
     NULL);
 
-    g_signal_connect(GTK_WIDGET(main_window), "destroy",
-        G_CALLBACK(signal_mainwindow_destroy), mapp
-    );
-
-    g_signal_connect(GTK_WINDOW(main_window), "window-state-event",
-        G_CALLBACK(signal_mainwindow_state_event), mapp
-    );
-
-    g_signal_connect(GTK_WINDOW(main_window), "size-allocate",
-        G_CALLBACK(signal_mainwindow_size_allocate), mapp
-    );
+    g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(signal_moviewindow_destroy), app);
+    g_signal_connect(GTK_WINDOW(window), "window-state-event", G_CALLBACK(signal_moviewindow_state_event), app);
+    g_signal_connect(GTK_WINDOW(window), "size-allocate", G_CALLBACK(signal_movieindow_size_allocate), app);
 
     // Load window previous state, if any
-    if(mapp->win_height > 0 && mapp->win_width > 0) {
-        gtk_window_set_default_size(GTK_WINDOW(main_window),
-            mapp->win_width,
-            mapp->win_height
+    if(app->win_height > 0 && app->win_width > 0) {
+        gtk_window_set_default_size(GTK_WINDOW(window),
+            app->win_width,
+            app->win_height
         );
     }
 
-    if(mapp->is_maximized) {
-        gtk_window_maximize(GTK_WINDOW(main_window));
+    if(app->is_maximized) {
+        gtk_window_maximize(GTK_WINDOW(window));
     }
 
-    if(mapp->is_fullscreen) {
-        gtk_window_fullscreen(GTK_WINDOW(main_window));
+    if(app->is_fullscreen) {
+        gtk_window_fullscreen(GTK_WINDOW(window));
     }
 
     // Styling application (if file available)
@@ -1232,7 +1248,7 @@ static void show_interactive_dialog(MovieApplication *mapp) {
     struct WidgetHeaderbar *widget_headerbar = widget_headerbar_new();
 
     GtkWidget *headerbar = widget_headerbar->headerbar;
-    gtk_window_set_titlebar(GTK_WINDOW(main_window), headerbar);
+    gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
 
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -1243,15 +1259,15 @@ static void show_interactive_dialog(MovieApplication *mapp) {
     GtkWidget *toolbar = widget_toolbar->toolbar;
 
     g_signal_connect(widget_toolbar->button_open, "clicked",
-        G_CALLBACK(signal_toolbar_open), mapp
+        G_CALLBACK(signal_toolbar_open), app
     );
 
     g_signal_connect(widget_toolbar->button_save, "clicked",
-        G_CALLBACK(signal_toolbar_save), mapp
+        G_CALLBACK(signal_toolbar_save), app
     );
 
     g_signal_connect(widget_toolbar->button_new, "clicked",
-        G_CALLBACK(signal_toolbar_new), mapp
+        G_CALLBACK(signal_toolbar_new), app
     );
 
     // Panel between sidebar and content
@@ -1259,11 +1275,11 @@ static void show_interactive_dialog(MovieApplication *mapp) {
     gtk_paned_set_position(GTK_PANED(layout_paned), 300);
 
     g_signal_connect(GTK_PANED(layout_paned), "notify::position",
-        G_CALLBACK(signal_mainwindow_paned_move), mapp
+        G_CALLBACK(signal_mainwindow_paned_move), app
     );
 
-    if(mapp->paned_position > 0) {
-        gtk_paned_set_position(GTK_PANED(layout_paned), mapp->paned_position);
+    if(app->paned_position > 0) {
+        gtk_paned_set_position(GTK_PANED(layout_paned), app->paned_position);
     }
 
     // Sidebar
@@ -1272,15 +1288,15 @@ static void show_interactive_dialog(MovieApplication *mapp) {
     GtkWidget *sidebar = widget_sidebar->sidebar;
 
     g_signal_connect(widget_sidebar->search_entry, "key-release-event",
-        G_CALLBACK(signal_searchentry_keyrelease), mapp
+        G_CALLBACK(signal_searchentry_keyrelease), app
     );
 
     g_signal_connect(widget_sidebar->search_entry, "changed",
-        G_CALLBACK(signal_searchentry_changed), mapp
+        G_CALLBACK(signal_searchentry_changed), app
     );
 
     g_signal_connect(widget_sidebar->list_items, "row-selected", // categories
-        G_CALLBACK(signal_sidebar_list_items_selected), mapp
+        G_CALLBACK(signal_sidebar_list_items_selected), app
     );
 
     struct WidgetPanels *widget_panels = widget_panels_new();
@@ -1301,13 +1317,13 @@ static void show_interactive_dialog(MovieApplication *mapp) {
     gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
 
     // Put the content area into the main window
-    gtk_container_add(GTK_CONTAINER(main_window), main_box);
+    gtk_container_add(GTK_CONTAINER(window), main_box);
 
     // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
     gtk_widget_grab_focus(GTK_WIDGET(main_box));
 
     // Make sure the main window and all its contents are visible
-    gtk_widget_show_all(main_window);
+    gtk_widget_show_all(window);
 
 
 
@@ -1328,52 +1344,68 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
 
 
-
-
-
 }
 
-static void signal_app_activate(MovieApplication *mapp) {
+static void signal_moviewindow_destroy(GtkWidget *window, MovieApplication *app) {
+    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
+    g_application_quit(G_APPLICATION(gtkapp));
+}
+
+static void signal_moviewindow_size_allocate(MovieWindow *window, GdkRectangle *allocation) {
+    // save the window geometry only if we are not maximized of fullscreen
+    if(!(window->is_maximized || window->is_fullscreen)) {
+        // using the allocation directly can lead to growing windows with client-side decorations
+        gtk_window_get_size(GTK_WINDOW(window),
+            &window->win_width,
+            &window->win_height
+        );
+    }
+}
+
+
+
+
+static void signal_app_activate(MovieApplication *app) {
 
     // Check if window is already active
-    GtkWindow *window = gtk_application_get_active_window(GTK_APPLICATION(mapp));
+    MovieWindow *window = gtk_application_get_active_window(GTK_APPLICATION(app));
 
     if(window != NULL) {
-        gtk_window_present(window);
-        return;
+        // create if not exist
+        window = movie_appplication_create_window(app, NULL);
+        gtk_widget_show(GTK_WIDGET(window));
     }
 
-    // Else, we show the main window
-    show_interactive_dialog(mapp);
+    gtk_window_present(GTK_WINDOW(window));
 }
 
-static void signal_app_shutdown(MovieApplication *mapp) {
+static void signal_app_shutdown(MovieApplication *app) {
 
     // save current window state
-    mainwindow_store_state(mapp);
+    mainwindow_store_state(app);
 }
 
-static void signal_app_open(MovieApplication *mapp) {
+static void signal_app_open(MovieApplication *app) {
     // todo
 }
 
-static int signal_app_command_line(MovieApplication *mapp, GApplicationCommandLine *cmdline) {
+static int signal_app_command_line(MovieApplication *app, GApplicationCommandLine *cmdline) {
     return 0; // exit
 }
 
-static void app_commandline_print_version(MovieApplication *mapp) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(mapp));
+static void app_commandline_print_version(MovieApplication *app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
     g_print("%s - GTK:%d.%d.%d \n", appid,
         gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version()
     );
 }
 
-static int signal_app_handle_local_options(MovieApplication *mapp, GVariantDict *options) {
+static int signal_app_handle_local_options(MovieApplication *app, GVariantDict *options) {
     // handle command lines locally
 
     if(g_variant_dict_lookup(options, "version", "b", NULL)) {
-        app_commandline_print_version(mapp);
+        app_commandline_print_version(app);
         return 0;
     }
 
@@ -1399,16 +1431,16 @@ int main(int argc, char *argv[]) {
     int status;
 
     // Instantiate the main app
-    MovieApplication *mapp = movie_application_new(
+    MovieApplication *app = movie_application_new(
         PACKAGE_APPLICATION_ID,
         G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE
     );
 
     // Add aplication main events flow (start with "_init")
-    g_signal_connect(mapp, "startup", G_CALLBACK(signal_app_startup), NULL);
-    g_signal_connect(mapp, "activate", G_CALLBACK(signal_app_activate), NULL);
-    g_signal_connect(mapp, "shutdown", G_CALLBACK(signal_app_shutdown), NULL);
-    g_signal_connect(mapp, "open", G_CALLBACK(signal_app_open), NULL);
+    g_signal_connect(app, "startup", G_CALLBACK(signal_app_startup), NULL);
+    g_signal_connect(app, "activate", G_CALLBACK(signal_app_activate), NULL);
+    g_signal_connect(app, "shutdown", G_CALLBACK(signal_app_shutdown), NULL);
+    g_signal_connect(app, "open", G_CALLBACK(signal_app_open), NULL);
 
     // Add app main arguments
     GOptionEntry entries[] = {
@@ -1416,15 +1448,15 @@ int main(int argc, char *argv[]) {
         {"inspect", 'i', G_OPTION_FLAG_NONE, G_OPTION_ARG_NONE, NULL, "Open the interactive debugger", NULL},
         {NULL}
     };
-    g_application_add_main_option_entries(G_APPLICATION(mapp), entries);
+    g_application_add_main_option_entries(G_APPLICATION(app), entries);
 
-    g_signal_connect(mapp, "handle-local-options", G_CALLBACK(signal_app_handle_local_options), NULL);
-    g_signal_connect(mapp, "command-line", G_CALLBACK(signal_app_command_line), NULL); // received from remote
+    g_signal_connect(app, "handle-local-options", G_CALLBACK(signal_app_handle_local_options), NULL);
+    g_signal_connect(app, "command-line", G_CALLBACK(signal_app_command_line), NULL); // received from remote
 
     // Run the app and get its exit status
-    status = g_application_run(G_APPLICATION(mapp), argc, argv);
+    status = g_application_run(G_APPLICATION(app), argc, argv);
 
-    g_object_unref(mapp);
+    g_object_unref(app);
 
     return status;
 }
