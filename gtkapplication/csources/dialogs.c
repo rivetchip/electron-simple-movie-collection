@@ -12,7 +12,6 @@ void dialog_message(GtkWindow *window, char *message, char *message2) {
         GTK_BUTTONS_OK,
         message
     );
-
     if(message2 != NULL) {
         gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s", message2);
     }
@@ -21,12 +20,12 @@ void dialog_message(GtkWindow *window, char *message, char *message2) {
     gtk_widget_destroy(dialog);
 }
 
-char *dialog_file_chooser(char *existing) {
+char *dialog_file_chooser(GtkWindow *window, char *existing) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
     char *filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
-        "Ouvrir un fichier", NULL, action, // title
+        "Ouvrir un fichier", window, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
         "Ouvrir", GTK_RESPONSE_ACCEPT,
         NULL
@@ -55,12 +54,12 @@ char *dialog_file_chooser(char *existing) {
     return filename;
 }
 
-char *show_save_dialog(char *existing) {
+char *dialog_file_save(GtkWindow *window, char *existing) {
     GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
     char *filename = NULL;
 
     GtkWidget *dialog = gtk_file_chooser_dialog_new(
-        "Ouvrir un fichier", NULL, action, // title
+        "Ouvrir un fichier", window, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
         "Enregistrer", GTK_RESPONSE_ACCEPT,
         NULL

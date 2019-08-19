@@ -8,11 +8,10 @@
 #endif
 
 
-// public api
-
+// public functions
 void dialog_message(GtkWindow *window, char *message, char *message2);
-char *dialog_file_chooser(char *existing);
-char *show_save_dialog(char *existing);
+char *dialog_file_chooser(GtkWindow *window, char *existing);
+char *dialog_file_save(GtkWindow *window, char *existing);
 
 
 
