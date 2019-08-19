@@ -16,6 +16,9 @@
 struct _MovieWindow {
     GtkApplicationWindow parent_instance;
 
+    // main app
+    MovieApplication *movieapp;
+
     // window state
     int height;
     int width;
@@ -41,7 +44,6 @@ inline MovieWindow *MOVIE_WINDOW(gpointer ptr) {
 // public functions
 MovieWindow *movie_window_new(MovieApplication *application);
 MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *screen);
-
 
 
 #ifdef  __cplusplus

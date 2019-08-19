@@ -2,10 +2,13 @@
 
 G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
 
+static bool signal_delete_event(MovieWindow *window, GdkEvent *event);
 static void signal_destroy(MovieWindow *window);
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event);
 static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation);
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
+static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile);
+static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile);
 
 
 static void movie_window_init(MovieWindow *window) {
@@ -29,6 +32,7 @@ MovieWindow *movie_window_new(MovieApplication *application) {
     return g_object_new(movie_window_get_type(),
         "application", application,
         "show-menubar", FALSE,
+        "destroy-with-parent", TRUE,
     NULL);
 }
 
@@ -38,6 +42,8 @@ MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *
     
     // initialize GTK+
     MovieWindow *window = movie_window_new(app);
+    window->movieapp = app;
+
     // widget_add_class(GTK_WIDGET(window), "movie_window");
 
     // create an 800x600 window
@@ -59,9 +65,31 @@ MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *
         // "gtk-font-name", "Lato 12",
     NULL);
 
-    g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(signal_destroy), NULL);
+    // get states
+    GKeyFile *keyfile;
+    if((keyfile = movie_application_get_keyfile_states(app)) != NULL) {
+        keyfile_restore_state(window, keyfile);
+        g_key_file_free(keyfile);
+    }
+
+    // restore previous state
+    if(window->width > 0 && window->height > 0) {
+        gtk_window_set_default_size(GTK_WINDOW(window), window->width, window->height);
+    }
+    if(window->is_maximized) {
+        gtk_window_maximize(GTK_WINDOW(window));
+    }
+    if(window->is_fullscreen) {
+        gtk_window_fullscreen(GTK_WINDOW(window));
+    }
+
+    // window events
     g_signal_connect(GTK_WINDOW(window), "window-state-event", G_CALLBACK(signal_state_event), NULL);
     g_signal_connect(GTK_WINDOW(window), "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
+
+    g_signal_connect(GTK_WINDOW(window), "delete-event", G_CALLBACK(signal_delete_event), NULL);
+    g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(signal_destroy), NULL);
+
 
 
 
@@ -170,16 +198,29 @@ widget_sidebar_add_item(widget_sidebar, xxx);
     return window;
 }
 
+static bool signal_delete_event(MovieWindow *window, GdkEvent *event) {
+    g_message(__func__);
+
+    // save states
+    GKeyFile *keyfile = movie_application_new_keyfile(window->movieapp);
+    keyfile_store_sate(window, keyfile);
+    if(movie_application_set_keyfile_states(window->movieapp, keyfile)) {
+        g_key_file_free(keyfile);
+    }
+    
+    return GDK_EVENT_PROPAGATE;
+}
+
 static void signal_destroy(MovieWindow *window) {
-    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
-    g_application_quit(G_APPLICATION(gtkapp));
+    g_message(__func__);
+    movie_application_quit(window->movieapp);
 }
 
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event) {
-    GdkWindowState window_state = event->new_window_state; // event->type=GDK_WINDOW_STATE
+    GdkWindowState state = event->new_window_state; // event->type=GDK_WINDOW_STATE
 
-    window->is_maximized = (window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
-    window->is_fullscreen = (window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
+    window->is_maximized = (state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
+    window->is_fullscreen = (state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 
 	if((event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN) != 0) {
 		update_fullscreen(window, window->is_fullscreen);
@@ -204,7 +245,44 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
     // gtk_widget_hide (window->statusbar);
 }
 
+static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile) {
+    int state;
+
+    if((state = g_key_file_get_integer(keyfile, "WindowState", "height", NULL))) {
+        window->height = state;
+    }
+    if((state = g_key_file_get_integer(keyfile, "WindowState", "width", NULL))) {
+        window->width = state;
+    }
+    if((state = g_key_file_get_integer(keyfile, "WindowState", "maximized", NULL))) {
+        window->is_maximized = state;
+    }
+    if((state = g_key_file_get_integer(keyfile, "WindowState", "fullscreen", NULL))) {
+        window->is_fullscreen = state;
+    }
+    if((state = g_key_file_get_integer(keyfile, "WindowState", "paned_position", NULL))) {
+        window->paned_position = state;
+    }
+}
+
+static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile) {
+    int state;
+
+    if((state = window->height)) {
+        g_key_file_set_integer(keyfile, "WindowState", "height", state);
+    }
+    if((state = window->width)) {
+        g_key_file_set_integer(keyfile, "WindowState", "width", state);
+    }
+    if((state = window->is_maximized)) {
+        g_key_file_set_integer(keyfile, "WindowState", "maximized", state);
+    }
+    if((state = window->is_fullscreen)) {
+        g_key_file_set_integer(keyfile, "WindowState", "fullscreen", state);
+    }
+    if((state = window->paned_position)) {
+        g_key_file_set_integer(keyfile, "WindowState", "paned_position", state);
+    }
+}
 
 
-// static void
-// save_panels_state (GeditWindow *window)

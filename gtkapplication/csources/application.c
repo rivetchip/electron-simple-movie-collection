@@ -13,7 +13,6 @@ static void signal_network_changed(GNetworkMonitor *monitor, bool available, Mov
 static GtkCssProvider *load_styles_resources();
 static void signal_css_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error);
 static void commandline_print_version(MovieApplication *app);
-static void window_restore_state(MovieWindow *window);
 
 
 static void movie_application_class_init(MovieApplicationClass *klass) {
@@ -30,8 +29,9 @@ static void movie_application_init(MovieApplication *app) {
     g_message(__func__);
 
     // set network monitor
-	app->monitor = g_network_monitor_get_default();
-	g_signal_connect(app->monitor, "network-changed", G_CALLBACK(signal_network_changed), app);
+	GNetworkMonitor *monitor = g_network_monitor_get_default();
+	g_signal_connect(monitor, "network-changed", G_CALLBACK(signal_network_changed), app);
+    app->monitor = monitor;
 
     // set command line options
     GOptionEntry options[] = {
@@ -62,6 +62,10 @@ MovieApplication *movie_application_new(const char *application_id, GApplication
     NULL);
 }
 
+void movie_application_quit(MovieApplication *app) {
+    g_application_quit(G_APPLICATION(app));
+}
+
 static void signal_startup(MovieApplication *app) {
     g_message(__func__);
 
@@ -87,8 +91,6 @@ static void signal_activate(MovieApplication *app) {
     if((window = gtk_application_get_active_window(GTK_APPLICATION(app))) == NULL) {
         // create if not exist
         window = GTK_WINDOW(movie_appplication_create_window(app, NULL));
-        window_restore_state(MOVIE_WINDOW(window));
-
         gtk_widget_show(GTK_WIDGET(window));
     }
 
@@ -168,50 +170,46 @@ static void commandline_print_version(MovieApplication *app) {
 }
 
 
-static void window_restore_state(MovieWindow *window) {
-    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
-    const char *appid = g_application_get_application_id(G_APPLICATION(gtkapp));
-    
-    char *state_file = g_build_filename(g_get_user_cache_dir(), appid, "state.ini", NULL);
 
-    GKeyFile *keyfile = g_key_file_new();
 
-    if(g_key_file_load_from_file(keyfile, state_file, G_KEY_FILE_NONE, NULL)) {
-        int state;
-
-        if((state = g_key_file_get_integer(keyfile, "WindowState", "height", NULL)) != NULL) {
-            window->height = state;
-        }
-        if((state = g_key_file_get_integer(keyfile, "WindowState", "width", NULL)) != NULL) {
-            window->width = state;
-        }
-        if((state = g_key_file_get_integer(keyfile, "WindowState", "maximized", NULL)) != NULL) {
-            window->is_maximized = state;
-        }
-        if((state = g_key_file_get_integer(keyfile, "WindowState", "fullscreen", NULL)) != NULL) {
-            window->is_fullscreen = state;
-        }
-        if((state = g_key_file_get_integer(keyfile, "WindowState", "paned_position", NULL)) != NULL) {
-            window->paned_position = state;
-        }
-    }
-
-    g_key_file_free(keyfile);
-    g_free(state_file);
+GKeyFile *movie_application_new_keyfile(MovieApplication *app) {
+    return g_key_file_new();
 }
 
-static void window_resize(MovieWindow *window, int height, int width, bool is_maximized, bool is_fullscreen) {
-    // restore previous state
-    if(width > 0 && height > 0) {
-        gtk_window_set_default_size(GTK_WINDOW(window), width, height);
+GKeyFile *movie_application_get_keyfile_states(MovieApplication *app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
+
+    char *filename = g_build_filename(g_get_user_config_dir(), appid, "state.ini", NULL);
+
+    GKeyFile *keyfile = movie_application_new_keyfile(app);
+
+    if(g_key_file_load_from_file(keyfile, filename, G_KEY_FILE_NONE, NULL)) {
+        g_free(filename);
+        return keyfile;
     }
-    if(is_maximized) {
-        gtk_window_maximize(GTK_WINDOW(window));
-    }
-    if(is_fullscreen) {
-        gtk_window_fullscreen(GTK_WINDOW(window));
-    }
+    return NULL;
 }
 
-todo todo();
+bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfile) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
+    char *filepath = g_build_filename(g_get_user_config_dir(), appid, NULL);
+    char *filename = g_build_filename(filepath, "state.ini", NULL);
+
+    // create save path if not set
+    if(g_mkdir_with_parents(filepath, 0755) != 0) { // error=-1 exist=0
+        return FALSE;
+    }
+
+    GError *error = NULL;
+    if(!g_key_file_save_to_file(keyfile, filename, &error)) {
+        g_warning("%s %s", __func__, error->message);
+        g_clear_error(&error);
+        return FALSE;
+    }
+
+    g_free(filepath);
+    g_free(filename);
+
+    return TRUE;
+}

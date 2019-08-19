@@ -31,7 +31,11 @@ inline MovieApplication *MOVIE_APPLICATION(gpointer ptr) {
 
 // public functions
 MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags);
+void movie_application_quit(MovieApplication *app);
 
+GKeyFile *movie_application_new_keyfile(MovieApplication *app);
+GKeyFile *movie_application_get_keyfile_states(MovieApplication *app);
+bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfile);
 
 
 #ifdef  __cplusplus
