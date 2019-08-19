@@ -37,6 +37,9 @@ GKeyFile *movie_application_new_keyfile(MovieApplication *app);
 GKeyFile *movie_application_get_keyfile_states(MovieApplication *app);
 bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfile);
 
+void widget_add_class(GtkWidget *widget, char *classname) ;
+
+
 
 #ifdef  __cplusplus
     } // extern c

@@ -16,13 +16,12 @@ static void commandline_print_version(MovieApplication *app);
 
 
 static void movie_application_class_init(MovieApplicationClass *klass) {
-    g_message(__func__);
-
 	// GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	// GApplicationClass *app_class = G_APPLICATION_CLASS (klass);
 
     // app_class->startup = demo_application_startup;
-    // app_class->activate = demo_application_activate;
+    // virtual function overrides go here
+    // property and signal definitions go here
 }
 
 static void movie_application_init(MovieApplication *app) {
@@ -90,7 +89,7 @@ static void signal_activate(MovieApplication *app) {
     GtkWindow *window;
     if((window = gtk_application_get_active_window(GTK_APPLICATION(app))) == NULL) {
         // create if not exist
-        window = GTK_WINDOW(movie_appplication_create_window(app, NULL));
+        window = GTK_WINDOW(movie_appplication_new_window(app, NULL));
         gtk_widget_show(GTK_WIDGET(window));
     }
 
@@ -212,4 +211,11 @@ bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfi
     g_free(filename);
 
     return TRUE;
+}
+
+
+
+
+void widget_add_class(GtkWidget *widget, char *classname) {
+    gtk_style_context_add_class(gtk_widget_get_style_context(widget), classname);
 }
