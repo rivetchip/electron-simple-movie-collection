@@ -53,6 +53,7 @@ csources = [
     'csources/fetchmovie.c',
     'csources/application.c',
     'csources/window.c',
+    'csources/dialogs.c',
     'csources/widgets.c',
 ]
 csources_headers = include_directories('csources')
