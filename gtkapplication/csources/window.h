@@ -13,25 +13,8 @@
 
 
 // type definition
-struct _MovieWindow {
-    GtkApplicationWindow parent_instance;
-
-    // main app
-    MovieApplication *movieapp;
-
-    // window state
-    int height;
-    int width;
-    bool is_maximized;
-    bool is_fullscreen;
-
-    // widgets
-    int paned_position;
-};
-
 typedef struct _MovieWindow MovieWindow;
 typedef GtkApplicationWindowClass MovieWindowClass;
-
 
 // public api
 GType movie_window_get_type(void) G_GNUC_CONST;
@@ -43,7 +26,8 @@ inline MovieWindow *MOVIE_WINDOW(gpointer ptr) {
 
 // public functions
 MovieWindow *movie_window_new(MovieApplication *application);
-MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *screen);
+MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *screen);
+
 
 
 #ifdef  __cplusplus

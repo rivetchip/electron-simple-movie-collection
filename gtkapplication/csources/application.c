@@ -1,6 +1,13 @@
 #include "application.h"
 #include "window.h"
 
+// type definition
+struct _MovieApplication {
+    GtkApplication parent_instance;
+
+    GNetworkMonitor *monitor;
+};
+
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
 static void signal_startup(MovieApplication *app);

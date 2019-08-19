@@ -1,5 +1,24 @@
 #include "window.h"
+#include "headerbar.h"
 #include <stddef.h>
+
+// type definition
+struct _MovieWindow {
+    GtkApplicationWindow parent_instance;
+
+    // main app
+    MovieApplication *movieapp;
+
+    // window state
+    int height;
+    int width;
+    bool is_maximized;
+    bool is_fullscreen;
+    int paned_position;
+
+    // widgets
+    WidgetHeaderbar *headerbar;
+};
 
 G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
 
@@ -19,11 +38,6 @@ static void movie_window_init(MovieWindow *window) {
 static void movie_window_class_init(MovieWindowClass *klass) {
 	// GObjectClass *object_class = G_OBJECT_CLASS(klass);
 	// GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
-
-
-
-  // virtual function overrides go here
-  // property and signal definitions go here
 }
 
 MovieWindow *movie_window_new(MovieApplication *application) {
@@ -38,16 +52,15 @@ MovieWindow *movie_window_new(MovieApplication *application) {
 }
 
 
-MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *screen) {
+MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *screen) {
     const char *appid = g_application_get_application_id(G_APPLICATION(app));
     
     // initialize GTK+
     MovieWindow *window = movie_window_new(app);
     window->movieapp = app;
 
-    // widget_add_class(GTK_WIDGET(window), "movie_window");
-
     // create an 800x600 window
+    widget_add_class(GTK_WIDGET(window), "movie_window");
     gtk_window_set_icon_name(GTK_WINDOW(window), appid);
     gtk_window_set_title(GTK_WINDOW(window), "Movie Collection");
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
@@ -92,19 +105,22 @@ MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *
     g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(signal_destroy), NULL);
 
 
-
-
-/*
     ////////// WINDOW DESIGN //////////
 
-    // hide window decorations of main app and use our own
-    struct WidgetHeaderbar *widget_headerbar = widget_headerbar_new();
+    WidgetHeaderbar *headerbar = movie_appplication_new_headerbar(app, window);
+    window->headerbar = headerbar;
 
-    GtkWidget *headerbar = widget_headerbar->headerbar;
-    gtk_window_set_titlebar(GTK_WINDOW(window), headerbar);
+    // hide window decorations of main app and use our own
+    gtk_window_set_titlebar(GTK_WINDOW(window), GTK_WIDGET(headerbar));
+
 
     // Window Main
     GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+
+/*
+    
+    
+
 
     // Toolbar
     struct WidgetToolbar *widget_toolbar = widget_toolbar_new();
@@ -172,11 +188,7 @@ MovieWindow *movie_appplication_create_window(MovieApplication *app, GdkScreen *
     // Put the content area into the main window
     gtk_container_add(GTK_CONTAINER(window), main_box);
 
-    // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
-    gtk_widget_grab_focus(GTK_WIDGET(main_box));
 
-    // Make sure the main window and all its contents are visible
-    gtk_widget_show_all(window);
 
 
 
@@ -196,6 +208,16 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
 */
 
+
+    // Make sure that when the browser area becomes visible, it will get mouse and keyboard events
+    gtk_widget_grab_focus(GTK_WIDGET(main_box));
+
+    // Make sure the main window and all its contents are visible
+    gtk_widget_show_all(GTK_WIDGET(window));
+
+
+
+
     return window;
 }
 
@@ -208,7 +230,7 @@ static bool signal_delete_event(MovieWindow *window, GdkEvent *event) {
     if(movie_application_set_keyfile_states(window->movieapp, keyfile)) {
         g_key_file_free(keyfile);
     }
-    
+
     return GDK_EVENT_PROPAGATE;
 }
 

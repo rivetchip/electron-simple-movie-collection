@@ -11,13 +11,6 @@
 
 
 // type definition
-struct _MovieApplication {
-    GtkApplication parent_instance;
-
-    GNetworkMonitor *monitor;
-
-};
-
 typedef struct _MovieApplication MovieApplication;
 typedef GtkApplicationClass MovieApplicationClass;
 
