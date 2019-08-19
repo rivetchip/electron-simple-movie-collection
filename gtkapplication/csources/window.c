@@ -1,4 +1,5 @@
 #include "window.h"
+#include <stddef.h>
 
 G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
 
