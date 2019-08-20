@@ -29,7 +29,7 @@ WidgetHeaderbar *widget_headerbar_new() {
     return g_object_new(widget_headerbar_get_type(), NULL);
 }
 
-WidgetHeaderbar *movie_appplication_new_headerbar(MovieApplication *app, MovieWindow *window) {
+WidgetHeaderbar *movie_appplication_new_headerbar(MovieWindow *window) {
     // set GTK CSD HeaderBar
     WidgetHeaderbar *widget = widget_headerbar_new();
     widget_add_class(GTK_WIDGET(widget), "headerbar");

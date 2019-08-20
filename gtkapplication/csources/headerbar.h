@@ -3,7 +3,6 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#include "application.h"
 #include "window.h"
 
 #ifdef  __cplusplus
@@ -25,7 +24,7 @@ inline WidgetHeaderbar *WIDGET_HEADERBAR(gpointer ptr) {
 
 // public functions
 WidgetHeaderbar *widget_headerbar_new();
-WidgetHeaderbar *movie_appplication_new_headerbar(MovieApplication *app, MovieWindow *window);
+WidgetHeaderbar *movie_appplication_new_headerbar(MovieWindow *window);
 
 
 

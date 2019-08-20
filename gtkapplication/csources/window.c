@@ -107,7 +107,7 @@ MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *scr
 
     ////////// WINDOW DESIGN //////////
 
-    WidgetHeaderbar *headerbar = movie_appplication_new_headerbar(app, window);
+    WidgetHeaderbar *headerbar = movie_appplication_new_headerbar(window);
     window->headerbar = headerbar;
 
     // hide window decorations of main app and use our own
