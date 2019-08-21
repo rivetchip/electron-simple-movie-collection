@@ -16,7 +16,7 @@ static void signal_minimize(GtkButton *button);
 static void signal_maximize(GtkButton *button);
 
 
-static void widget_headerbar_init(WidgetHeaderbar *headerbar) {
+static void widget_headerbar_init(WidgetHeaderbar *widget) {
     g_message(__func__);
 }
 

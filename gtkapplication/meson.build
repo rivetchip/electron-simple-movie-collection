@@ -55,10 +55,9 @@ csources = [
     'csources/window.c',
     'csources/dialogs.c',
     'csources/headerbar.c',
+    'csources/toolbar.c',
+    
     'csources/statusbar.c',
-
-
-    # 'csources/widgets.c',
 ]
 csources_headers = include_directories('csources')
 
