@@ -34,7 +34,7 @@ static int vector_resize(vector *v, int capacity) {
 int vector_add(vector *v, void *item) {
     if(v->capacity == v->total) {
         if(!vector_resize(v, v->capacity * 2)) {
-            return NULL;
+            return 0;
         }
     }
     v->items[v->total++] = item;
