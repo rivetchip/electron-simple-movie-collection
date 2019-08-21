@@ -1,9 +1,8 @@
 {
     "version": "0.2.0",
     "configurations": [
-        
         {
-            "name": "(gdb) meson:dev",
+            "name": "(gdb) devbuild",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/devbuild/moviecollection",
@@ -12,7 +11,7 @@
             "cwd": "${workspaceFolder}/",
             "environment": [],
             "MIMode": "gdb",
-            "preLaunchTask": "meson:dev",
+            "preLaunchTask": "ninja:dev",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

@@ -1,42 +1,42 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
     "version": "2.0.0",
     "tasks": [
         {
             "label": "meson:dev",
             "type": "shell",
-            "command": "meson -Ddeveloper_mode=true --buildtype=debugoptimized $builddir && ninja -C $builddir",
-            "options": {
-                "env": {
-                    "builddir": "devbuild"
-                },
-                "cwd": "${workspaceFolder}/",
-            },
+            "command": "meson -Ddeveloper_mode=true --buildtype=debugoptimized devbuild",
+        },
+        {
+            "label": "ninja:dev",
+            "type": "shell",
+            "command": "ninja -C devbuild",
             "presentation": {
                 "clear": true
             }
         },
         {
-            "label": "meson:dev run",
-            "dependsOn": ["meson:dev"],
+            "label": "ninja:dev run",
+            "dependsOrder": "sequence",
+            "dependsOn": ["ninja:dev"],
             "type": "shell",
             "command": "devbuild/moviecollection",
-            "args": ["--inspect"]
+            "args": ["--inspect"],
+            "options": {
+                "cwd": "${workspaceFolder}/"
+            },
+            "presentation": {
+                "clear": true
+            }
         },
         {
             "label": "meson:release",
             "type": "shell",
-            "command": "meson $builddir && ninja -C $builddir",
-            "options": {
-                "env": {
-                    "builddir": "releasebuild"
-                },
-                "cwd": "${workspaceFolder}/",
-            },
-            "presentation": {
-                "clear": true
-            }
+            "command": "meson releasebuild"
         },
+        {
+            "label": "ninja:release",
+            "type": "shell",
+            "command": "ninja -C releasebuild"
+        }
     ]
 }
