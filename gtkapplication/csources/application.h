@@ -26,9 +26,8 @@ inline MovieApplication *MOVIE_APPLICATION(gpointer ptr) {
 MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags);
 void movie_application_quit(MovieApplication *app);
 
-GKeyFile *movie_application_new_keyfile(MovieApplication *app);
-GKeyFile *movie_application_get_keyfile_states(MovieApplication *app);
-bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfile);
+GKeyFile *movie_application_get_keyfile(MovieApplication *app, const char *keyname);
+bool movie_application_set_keyfile(MovieApplication *app, const char *keyname, GKeyFile *keyfile);
 
 void widget_add_class(GtkWidget *widget, char *classname) ;
 

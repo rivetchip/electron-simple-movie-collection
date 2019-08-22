@@ -23,6 +23,8 @@ static void commandline_print_version(MovieApplication *app);
 
 
 static void movie_application_class_init(MovieApplicationClass *klass) {
+    g_message(__func__);
+    
 	// GObjectClass *object_class = G_OBJECT_CLASS (klass);
 	// GApplicationClass *app_class = G_APPLICATION_CLASS (klass);
 
@@ -31,8 +33,21 @@ static void movie_application_class_init(MovieApplicationClass *klass) {
     // property and signal definitions go here
 }
 
-static void movie_application_init(MovieApplication *app) {
+MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
     g_message(__func__);
+
+    g_return_val_if_fail(g_application_id_is_valid(application_id), NULL); // normal comportment
+    
+    return g_object_new(movie_application_get_type(),
+        "application-id", application_id,
+        "flags", flags,
+    NULL);
+}
+
+static void movie_application_init(MovieApplication *app) {
+    const char *appid = g_application_get_application_id(G_APPLICATION(app));
+
+    gtk_window_set_default_icon_name(appid);
 
     // set network monitor
 	GNetworkMonitor *monitor = g_network_monitor_get_default();
@@ -57,16 +72,7 @@ static void movie_application_init(MovieApplication *app) {
     g_signal_connect(app, "handle-local-options", G_CALLBACK(signal_handle_local_options), NULL);
 }
 
-MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
-    g_message(__func__);
 
-    g_return_val_if_fail(g_application_id_is_valid(application_id), NULL); // normal comportment
-    
-    return g_object_new(movie_application_get_type(),
-        "application-id", application_id,
-        "flags", flags,
-    NULL);
-}
 
 void movie_application_quit(MovieApplication *app) {
     g_application_quit(G_APPLICATION(app));
@@ -75,18 +81,22 @@ void movie_application_quit(MovieApplication *app) {
 static void signal_startup(MovieApplication *app) {
     g_message(__func__);
 
-    // set application main config variables
-
-    // load previous window state, if any
-    // mainwindow_load_state(app);
-
+    // set window settings
+    GtkSettings *settings = gtk_settings_get_default();
+    g_object_set(G_OBJECT(settings),
+        "gtk-application-prefer-dark-theme", TRUE,
+        // "gtk-font-name", "Lato 12",
+    NULL);
 
     // styling application
     GtkCssProvider *css_provider = load_styles_resources();
     g_signal_connect(css_provider, "parsing-error", G_CALLBACK(signal_css_parsing_error), NULL);
 
-    // add_accelerator
 
+
+    // load settings
+
+    // add_accelerator
 
 }
 
@@ -178,29 +188,30 @@ static void commandline_print_version(MovieApplication *app) {
 
 
 
-GKeyFile *movie_application_new_keyfile(MovieApplication *app) {
-    return g_key_file_new();
-}
 
-GKeyFile *movie_application_get_keyfile_states(MovieApplication *app) {
+
+GKeyFile *movie_application_get_keyfile(MovieApplication *app, const char *keyname) {
     const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
-    char *filename = g_build_filename(g_get_user_config_dir(), appid, "state.ini", NULL);
+    char *filename = g_build_filename(g_get_user_config_dir(), appid, keyname, NULL);
 
-    GKeyFile *keyfile = movie_application_new_keyfile(app);
-
-    if(g_key_file_load_from_file(keyfile, filename, G_KEY_FILE_NONE, NULL)) {
-        g_free(filename);
-        return keyfile;
+    GError *error = NULL;
+    GKeyFile *keyfile = g_key_file_new();
+    if(!g_key_file_load_from_file(keyfile, filename, G_KEY_FILE_NONE, &error)) {
+        g_message("%s %s: %s", __func__, error->message, keyname);
+        g_clear_error(&error);
+        return NULL;
     }
-    return NULL;
+
+    g_free(filename);
+    return keyfile;
 }
 
-bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfile) {
+bool movie_application_set_keyfile(MovieApplication *app, const char *keyname, GKeyFile *keyfile) {
     const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
     char *filepath = g_build_filename(g_get_user_config_dir(), appid, NULL);
-    char *filename = g_build_filename(filepath, "state.ini", NULL);
+    char *filename = g_build_filename(filepath, keyname, NULL);
 
     // create save path if not set
     if(g_mkdir_with_parents(filepath, 0755) != 0) { // error=-1 exist=0
@@ -209,7 +220,7 @@ bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfi
 
     GError *error = NULL;
     if(!g_key_file_save_to_file(keyfile, filename, &error)) {
-        g_warning("%s %s", __func__, error->message);
+        g_message("%s %s: %s", __func__, error->message, keyname);
         g_clear_error(&error);
         return FALSE;
     }
@@ -219,6 +230,8 @@ bool movie_application_set_keyfile_states(MovieApplication *app, GKeyFile *keyfi
 
     return TRUE;
 }
+
+
 
 
 
