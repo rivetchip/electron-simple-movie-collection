@@ -1,13 +1,12 @@
 
 #include <config.h>
-#include "moviecollection.h"
 #include "application.h"
 
 
 int main(int argc, char **argv) {
 
     #if PACKAGE_DEVELOPER_MODE
-        MESSAGE("DEV MODE");
+        g_message("DEV MODE");
         // inspector debug
         putenv("GTK_DEBUG=fatal-warnings");
         putenv("GOBJECT_DEBUG=instance-count");
