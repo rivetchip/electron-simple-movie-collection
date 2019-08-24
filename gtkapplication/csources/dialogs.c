@@ -28,8 +28,8 @@ char *dialog_file_chooser(GtkWindow *window, char *existing) {
         "Ouvrir un fichier", window, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
         "Ouvrir", GTK_RESPONSE_ACCEPT,
-        NULL
-    );
+    NULL);
+
     gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), FALSE);
 
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
@@ -62,8 +62,7 @@ char *dialog_file_save(GtkWindow *window, char *existing) {
         "Ouvrir un fichier", window, action, // title
         "Annuler", GTK_RESPONSE_CANCEL,
         "Enregistrer", GTK_RESPONSE_ACCEPT,
-        NULL
-    );
+    NULL);
 
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
 

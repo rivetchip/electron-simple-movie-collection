@@ -37,6 +37,11 @@ static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation);
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
 static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile);
 static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile);
+// toolbar
+static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window);
+static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window);
+static void signal_toolbar_new(WidgetToolbar *toolbar, MovieWindow *window);
+static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window);
 // sidebar
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
 static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
@@ -133,10 +138,10 @@ MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *scr
     // toolbar with main buttons optons
     WidgetToolbar *toolbar = movie_appplication_new_toolbar();
 
-    // todo
-    // g_signal_connect(toolbar->button_open, "clicked", G_CALLBACK(signal_paned_move), window);
-    // g_signal_connect(toolbar->button_save, "clicked", G_CALLBACK(signal_toolbar_save), window);
-    // g_signal_connect(toolbar->button_new, "clicked", G_CALLBACK(signal_toolbar_new), window);
+    g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
+    g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
+    g_signal_connect(toolbar, "new", G_CALLBACK(signal_toolbar_new), window);
+    g_signal_connect(toolbar, "source-changed", G_CALLBACK(signal_toolbar_source), window);
 
 
     // panel between sidebar and content
@@ -321,6 +326,36 @@ static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile) {
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
     // gtk_widget_hide (window->statusbar);
 }
+
+
+
+static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
+    g_message(__func__);
+
+
+}
+
+static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window) {
+    g_message(__func__);
+
+    
+}
+
+static void signal_toolbar_new(WidgetToolbar *toolbar, MovieWindow *window) {
+    g_message(__func__);
+
+    
+}
+
+static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window) {
+    g_message("%s %s", __func__, source_name);
+
+    
+}
+
+
+
+
 
 
 static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window) {
