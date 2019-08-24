@@ -106,6 +106,7 @@ project_arguments = ['-I' + build_root]
 
 if(developer_mode)
     project_arguments += ['-save-temps', '-g']
+    # project_arguments += ['-P'] # remove line refs on temps, conflict with dgb
 endif
 
 
