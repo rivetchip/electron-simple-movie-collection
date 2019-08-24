@@ -54,9 +54,12 @@ csources = [
     'csources/application.c',
     'csources/window.c',
     'csources/dialogs.c',
+
+    'csources/widgets.c',
     'csources/headerbar.c',
     'csources/toolbar.c',
-    
+    'csources/sidebar.c',
+
     'csources/statusbar.c',
 ]
 csources_headers = include_directories('csources')
@@ -102,7 +105,7 @@ install_data(desktop_file, install_dir: pkgappsdir)
 project_arguments = ['-I' + build_root]
 
 if(developer_mode)
-    project_arguments += ['-save-temps', '-P']
+    project_arguments += ['-save-temps', '-g']
 endif
 
 
