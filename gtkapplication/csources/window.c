@@ -1,7 +1,10 @@
 #include "window.h"
+#include "widgets.h"
 #include "headerbar.h"
 #include "toolbar.h"
+#include "sidebar.h"
 #include <stddef.h>
+#include <stdbool.h>
 
 // type definition
 struct _MovieWindow {
@@ -20,19 +23,13 @@ struct _MovieWindow {
     // widgets
     WidgetHeaderbar *headerbar;
     WidgetToolbar *toolbar;
+    WidgetSidebar *sidebar;
 
 };
-
-enum {
-	PRINTING,
-	SHOW_PREVIEW,
-	DONE,
-	LAST_SIGNAL
-};
-static int signals[LAST_SIGNAL];
 
 G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
 
+// window
 static bool signal_delete_event(MovieWindow *window, GdkEvent *event);
 static void signal_destroy(MovieWindow *window);
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event);
@@ -40,6 +37,15 @@ static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation);
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
 static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile);
 static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile);
+// sidebar
+static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
+static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
+
+
+
+
+
+
 
 static void movie_window_class_init(MovieWindowClass *klass) {
     g_message(__func__);
@@ -106,91 +112,69 @@ MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *scr
     }
 
     // window events
-    g_signal_connect(GTK_WINDOW(window), "window-state-event", G_CALLBACK(signal_state_event), NULL);
-    g_signal_connect(GTK_WINDOW(window), "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
+    g_signal_connect(window, "window-state-event", G_CALLBACK(signal_state_event), NULL);
+    g_signal_connect(window, "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
 
-    g_signal_connect(GTK_WINDOW(window), "delete-event", G_CALLBACK(signal_delete_event), NULL);
-    g_signal_connect(GTK_WIDGET(window), "destroy", G_CALLBACK(signal_destroy), NULL);
+    g_signal_connect(window, "delete-event", G_CALLBACK(signal_delete_event), NULL);
+    g_signal_connect(window, "destroy", G_CALLBACK(signal_destroy), NULL);
 
 
     ////////// WINDOW DESIGN //////////
 
     // hide window decorations of main app and use our own
-    WidgetHeaderbar *headerbar = movie_appplication_new_headerbar(window);
+    WidgetHeaderbar *headerbar = movie_appplication_new_headerbar();
     gtk_window_set_titlebar(GTK_WINDOW(window), GTK_WIDGET(headerbar));
 
     window->headerbar = headerbar;
 
     // window inner content
-    GtkWidget *main_box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    GtkWidget *mainbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
     // toolbar with main buttons optons
-    WidgetToolbar *toolbar = movie_appplication_new_toolbar(window);
+    WidgetToolbar *toolbar = movie_appplication_new_toolbar();
 
-    // g_signal_connect(toolbar->button_open, "clicked", G_CALLBACK(signal_toolbar_open), window);
+    // todo
+    // g_signal_connect(toolbar->button_open, "clicked", G_CALLBACK(signal_paned_move), window);
     // g_signal_connect(toolbar->button_save, "clicked", G_CALLBACK(signal_toolbar_save), window);
     // g_signal_connect(toolbar->button_new, "clicked", G_CALLBACK(signal_toolbar_new), window);
 
 
+    // panel between sidebar and content
+    GtkWidget *panedbox = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
+    gtk_paned_set_position(GTK_PANED(panedbox), 300);
+
+    g_signal_connect(GTK_PANED(panedbox), "notify::position", G_CALLBACK(signal_paned_move), window);
+
+    if(window->paned_position > 0) {
+        gtk_paned_set_position(GTK_PANED(panedbox), window->paned_position);
+    }
+
+    // sidebar with categories list and searchbar
+
+    WidgetSidebar *sidebar = movie_appplication_new_sidebar();
+    window->sidebar = sidebar;
+
+    g_signal_connect(sidebar, "search-keyword", G_CALLBACK(signal_search_keyword), window);
 
 
 
-    gtk_box_pack_start(GTK_BOX(main_box), GTK_WIDGET(toolbar), FALSE, FALSE, 0);
+
+
+
+
+
+
+
+
+
 
 /*
     
-    
-
-
-    // Toolbar
-
-    g_signal_connect(widget_toolbar->button_open, "clicked",
-        G_CALLBACK(signal_toolbar_open), app
-    );
-
-    g_signal_connect(widget_toolbar->button_save, "clicked",
-        G_CALLBACK(signal_toolbar_save), app
-    );
-
-    g_signal_connect(widget_toolbar->button_new, "clicked",
-        G_CALLBACK(signal_toolbar_new), app
-    );
-
-    // Panel between sidebar and content
-    GtkWidget *layout_paned = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_paned_set_position(GTK_PANED(layout_paned), 300);
-
-    g_signal_connect(GTK_PANED(layout_paned), "notify::position",
-        G_CALLBACK(signal_mainwindow_paned_move), app
-    );
-
-    if(app->paned_position > 0) {
-        gtk_paned_set_position(GTK_PANED(layout_paned), app->paned_position);
-    }
-
-    // Sidebar
-    struct WidgetSidebar *widget_sidebar = widget_sidebar_new();
-
-    GtkWidget *sidebar = widget_sidebar->sidebar;
-
-    g_signal_connect(widget_sidebar->search_entry, "key-release-event",
-        G_CALLBACK(signal_searchentry_keyrelease), app
-    );
-
-    g_signal_connect(widget_sidebar->search_entry, "changed",
-        G_CALLBACK(signal_searchentry_changed), app
-    );
-
-    g_signal_connect(widget_sidebar->list_items, "row-selected", // categories
-        G_CALLBACK(signal_sidebar_list_items_selected), app
-    );
-
     struct WidgetPanels *widget_panels = widget_panels_new();
 
     GtkWidget *panels = widget_panels->panels;
 
-    gtk_paned_pack1(GTK_PANED(layout_paned), sidebar, TRUE, FALSE); // resize, shrink
-    gtk_paned_pack2(GTK_PANED(layout_paned), panels, TRUE, FALSE);
+
 
 
     struct WidgetStatusbar *widget_statusbar = widget_statusbar_new();
@@ -227,10 +211,17 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
 
     // Put the content area into the main window
-    gtk_container_add(GTK_CONTAINER(window), main_box);
+
+    gtk_paned_pack1(GTK_PANED(panedbox), GTK_WIDGET(sidebar), TRUE, FALSE); // resize, shrink
+    gtk_paned_pack2(GTK_PANED(panedbox), gtk_label_new("test"), TRUE, FALSE);
+
+    gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(toolbar), FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(mainbox), panedbox, TRUE, TRUE, 0);
+
+    gtk_container_add(GTK_CONTAINER(window), mainbox);
 
     // Make sure that when the widnow becomes visible, it will get mouse and keyboard events
-    gtk_widget_grab_focus(GTK_WIDGET(main_box));
+    gtk_widget_grab_focus(GTK_WIDGET(mainbox));
 
     // Make sure the main window and all its contents are visible
     gtk_widget_show_all(GTK_WIDGET(window));
@@ -255,8 +246,8 @@ static bool signal_delete_event(MovieWindow *window, GdkEvent *event) {
 }
 
 static void signal_destroy(MovieWindow *window) {
-    g_message(__func__);
-    movie_application_quit(window->movieapp);
+    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
+    g_application_quit(G_APPLICATION(gtkapp));
 }
 
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event) {
@@ -282,9 +273,8 @@ static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation) 
     }
 }
 
-
-static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
-    // gtk_widget_hide (window->statusbar);
+static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window) {
+    window->paned_position = gtk_paned_get_position(paned);
 }
 
 static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile) {
@@ -327,4 +317,13 @@ static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile) {
     }
 }
 
+
+static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
+    // gtk_widget_hide (window->statusbar);
+}
+
+
+static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window) {
+    g_message("%s %s", __func__, keyword);
+}
 

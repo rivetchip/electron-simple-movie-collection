@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdbool.h>
-
 #include <glib.h>
 #include <gtk/gtk.h>
 
@@ -10,7 +8,6 @@
 #ifdef  __cplusplus
     extern "C" {
 #endif
-
 
 // type definition
 typedef struct _MovieWindow MovieWindow;
