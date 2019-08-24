@@ -74,9 +74,6 @@ static void movie_application_init(MovieApplication *app) {
 
 
 
-void movie_application_quit(MovieApplication *app) {
-    g_application_quit(G_APPLICATION(app));
-}
 
 static void signal_startup(MovieApplication *app) {
     g_message(__func__);
@@ -91,7 +88,6 @@ static void signal_startup(MovieApplication *app) {
     // styling application
     GtkCssProvider *css_provider = load_styles_resources();
     g_signal_connect(css_provider, "parsing-error", G_CALLBACK(signal_css_parsing_error), NULL);
-
 
 
     // load settings
@@ -154,7 +150,6 @@ static void signal_network_changed(GNetworkMonitor *monitor, bool available, Mov
 static GtkCssProvider *load_styles_resources() {
 
     GtkCssProvider *css_provider = gtk_css_provider_new();
-
     gtk_css_provider_load_from_resource(css_provider, "/shell/style.css");
 
     gtk_style_context_add_provider_for_screen(
@@ -232,10 +227,3 @@ bool movie_application_set_keyfile(MovieApplication *app, const char *keyname, G
 }
 
 
-
-
-
-
-void widget_add_class(GtkWidget *widget, char *classname) {
-    gtk_style_context_add_class(gtk_widget_get_style_context(widget), classname);
-}
