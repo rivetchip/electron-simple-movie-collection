@@ -1,16 +1,14 @@
-@define-color theme_color #1abc9c;
+@define-color theme_color #00726e;/*00726e-006888-1abc9c*/
 @define-color theme_hover shade(@theme_color, 1.1);
 @define-color theme_active shade(@theme_color, 0.8);
 
 /* * {
     transition-property: color, background-color, border-color, background-image, padding, border-width;
     transition-duration: 1s;
-
-    font: 20px Cantarell;
 } */
 
 .movie_window {
-    all: unset;
+    /* all: unset; */
 }
 decoration {
     box-shadow: 0 3px 9px 1px rgba(0,0,0, 0.5)
@@ -100,14 +98,14 @@ menu menuitem:hover:disabled {
     background-color: @theme_active;
 }
 
-.toolbar-provider {
+.toolbar-source {
     margin-right: 0;
     margin-left: 5px;
 }
-.toolbar-provider:checked {
+.toolbar-source:checked {
     background-color: @theme_hover;
 }
-/* .toolbar-provider:checked:hover {
+/* .toolbar-source:checked:hover {
     background-color: @color_active_hover;
 } */
 
@@ -121,11 +119,11 @@ menu menuitem:hover:disabled {
     border-right: 1px solid #1b1f20;
 }
 
-.searchbar  {
+.searchbox  {
     padding: 20px;
     background-color: #373d41;
 }
-.searchbar-entry {
+.searchbox-entry {
     padding: 8px 20px;
     min-height: 0;/*size req*/
     color: #999;
@@ -136,7 +134,7 @@ menu menuitem:hover:disabled {
     background-image: none;
     box-shadow: none;
 }
-.searchbar-entry:focus {
+.searchbox-entry:focus {
     border-color: @theme_color;
 }
 

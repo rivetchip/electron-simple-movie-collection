@@ -10,6 +10,7 @@ struct _MovieApplication {
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
+// signals
 static void signal_startup(MovieApplication *app);
 static void signal_activate(MovieApplication *app);
 static void signal_shutdown(MovieApplication *app);
@@ -17,6 +18,7 @@ static void signal_open(MovieApplication *app);
 static int signal_command_line(MovieApplication *app, GApplicationCommandLine *cmdline);
 static int signal_handle_local_options(MovieApplication *app, GVariantDict *options);
 static void signal_network_changed(GNetworkMonitor *monitor, bool available, MovieApplication *app);
+// styling
 static GtkCssProvider *load_styles_resources();
 static void signal_css_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error);
 static void commandline_print_version(MovieApplication *app);
@@ -143,7 +145,8 @@ static int signal_handle_local_options(MovieApplication *app, GVariantDict *opti
 
 static void signal_network_changed(GNetworkMonitor *monitor, bool available, MovieApplication *app) {
     g_message(__func__);
-    //@todo
+
+    bool enabled = g_network_monitor_get_network_available(monitor);
 }
 
 
