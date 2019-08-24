@@ -3,13 +3,10 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#include "window.h"
-
 #ifdef  __cplusplus
     extern "C" {
 #endif
 
-// typedef MovieWindow; @todo
 
 // type definition
 typedef struct _WidgetToolbar WidgetToolbar;
@@ -25,7 +22,7 @@ inline WidgetToolbar *WIDGET_TOOLBAR(gpointer ptr) {
 
 // public functions
 WidgetToolbar *widget_toolbar_new();
-WidgetToolbar *movie_appplication_new_toolbar(MovieWindow *window);
+WidgetToolbar *movie_appplication_new_toolbar();
 
 
 

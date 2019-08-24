@@ -1,8 +1,9 @@
 #include "toolbar.h"
+#include "widgets.h"
 
 // type definition
 struct _WidgetToolbar {
-    GtkToolbar parent_instance;
+    GtkBox parent_instance;
 
     GtkWidget *button_open;
     GtkWidget *button_save;
@@ -26,7 +27,7 @@ WidgetToolbar *widget_toolbar_new() {
     return g_object_new(widget_toolbar_get_type(), NULL);
 }
 
-WidgetToolbar *movie_appplication_new_toolbar(MovieWindow *window) {
+WidgetToolbar *movie_appplication_new_toolbar() {
 
     WidgetToolbar *widget = widget_toolbar_new();
     widget_add_class(GTK_WIDGET(widget), "toolbar");
@@ -99,7 +100,7 @@ WidgetToolbar *movie_appplication_new_toolbar(MovieWindow *window) {
 
 
 
-
+/*
 
 
 //todo: interac with window instead
@@ -166,3 +167,5 @@ static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char *
 
 
 }
+
+*/
