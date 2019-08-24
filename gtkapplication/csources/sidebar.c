@@ -18,11 +18,13 @@ static int signals[SIGNAL_LAST];
 
 G_DEFINE_TYPE(WidgetSidebar, widget_sidebar, GTK_TYPE_BOX);
 
+//events
 static void signal_search_keyrelease(GtkEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar);
 static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar);
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar);
-
+static GtkWidget *list_create_placeholder();
  
+
 static void widget_sidebar_init(WidgetSidebar *self) {
     g_message(__func__);
 }
@@ -83,9 +85,8 @@ WidgetSidebar *movie_appplication_new_sidebar() {
 
     g_signal_connect(listbox, "row-selected", G_CALLBACK(signal_listbox_selected), widget);
 
-
-    // todo
-    // gtk_list_box_set_placeholder(GTK_LIST_BOX(listbox), gtk_label_new("placehold"))
+    GtkWidget *placeholder = list_create_placeholder();
+    gtk_list_box_set_placeholder(GTK_LIST_BOX(listbox), placeholder);
 
     widget->listbox = listbox;
 
@@ -117,4 +118,12 @@ static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow,
     g_message("%s %s", __func__, movieId);
 
 }
+
+static GtkWidget *list_create_placeholder() { //todo
+    GtkWidget *label = gtk_label_new("placehold");
+    gtk_widget_show(label);
+
+    return label;
+}
+
 
