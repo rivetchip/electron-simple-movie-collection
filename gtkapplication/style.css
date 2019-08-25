@@ -36,7 +36,6 @@ decoration {
     border-radius: 4px;
     box-shadow: none;
     padding: 4px 8px;
-    margin: 6px 0;
     transition: background-color 200ms ease;
 }
 .headerbutton:hover {
@@ -84,7 +83,6 @@ menu menuitem:hover:disabled {
     border-radius: 4px;
     padding: 0 10px;
     /* padding-left: 40px; */
-    margin-right: 5px;
     color: #fff;
     border: none;
     box-shadow: none;
@@ -98,10 +96,6 @@ menu menuitem:hover:disabled {
     background-color: @theme_active;
 }
 
-.toolbar-source {
-    margin-right: 0;
-    margin-left: 5px;
-}
 .toolbar-source:checked {
     background-color: @theme_hover;
 }

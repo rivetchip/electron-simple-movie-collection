@@ -79,7 +79,9 @@ static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
 }
 
 WidgetToolbar *widget_toolbar_new() {
-    return g_object_new(widget_toolbar_get_type(), NULL);
+    return g_object_new(widget_toolbar_get_type(),
+        "spacing", 6,
+    NULL);
 }
 
 WidgetToolbar *movie_application_new_toolbar() {

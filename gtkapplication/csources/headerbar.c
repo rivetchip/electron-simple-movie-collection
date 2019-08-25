@@ -27,7 +27,10 @@ static void widget_headerbar_class_init(WidgetHeaderbarClass *klass) {
 }
 
 WidgetHeaderbar *widget_headerbar_new() {
-    return g_object_new(widget_headerbar_get_type(), NULL);
+    return g_object_new(widget_headerbar_get_type(),
+        "spacing", 6,
+        "border-width", 0,
+    NULL);
 }
 
 WidgetHeaderbar *movie_application_new_headerbar() {
