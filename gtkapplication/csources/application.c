@@ -139,6 +139,10 @@ static void signal_startup(MovieApplication *app) {
 
 }
 
+static GtkWindow *show_interactive_dialog() {
+    //todo with open
+}
+
 static void signal_activate(MovieApplication *app) {
     g_message(__func__);
 
