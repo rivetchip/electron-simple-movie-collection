@@ -1,10 +1,14 @@
 #include "window.h"
+
 #include "widgets.h"
 #include "dialogs.h"
 #include "headerbar.h"
 #include "toolbar.h"
 #include "statusbar.h"
 #include "sidebar.h"
+
+#include "collection.h"
+
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -330,7 +334,10 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
     // gtk_widget_hide (window->statusbar);
 }
 
+static void xxxxxx(const char *movieId, struct Movie *movie, void *user_data) {
 
+    g_message("%s - %s", movieId, movie->title);
+}
 
 static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     g_message(__func__);
@@ -340,7 +347,28 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
         return;
     }
 
+    GError *error = NULL;
+    FILE *stream = fopen(filename, "rb");
 
+    MoviesTable *table;
+
+    if((table = movie_collection_new_from_stream(stream, &error)) == NULL) {
+        g_warning("%s %s", __func__, error->message);
+
+        dialog_message(GTK_WINDOW(window), "Could not open file", error->message);
+    
+        g_clear_error(&error);
+    }
+
+    if(table) {
+    movie_collection_foreach(table, xxxxxx, NULL);
+
+    }
+
+
+
+    fclose(stream);
+    g_free((char*) filename);
 
 }
 
