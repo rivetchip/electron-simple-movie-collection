@@ -2,6 +2,7 @@
 #include "widgets.h"
 #include "headerbar.h"
 #include "toolbar.h"
+#include "statusbar.h"
 #include "sidebar.h"
 #include <stddef.h>
 #include <stdbool.h>
@@ -23,6 +24,7 @@ struct _MovieWindow {
     // widgets
     WidgetHeaderbar *headerbar;
     WidgetToolbar *toolbar;
+    WidgetStatusbar *statusbar;
     WidgetSidebar *sidebar;
 
 };
@@ -53,10 +55,8 @@ static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, M
 
 
 static void movie_window_class_init(MovieWindowClass *klass) {
-    g_message(__func__);
-
-	// GObjectClass *object_class = G_OBJECT_CLASS(klass);
-	// GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 }
 
 static void movie_window_init(MovieWindow *window) {
@@ -80,7 +80,7 @@ MovieWindow *movie_window_new(MovieApplication *application) {
 	// object_class->finalize = gedit_window_finalize;
 	// object_class->get_property = gedit_window_get_property;
 
-MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *screen) {
+MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *screen) {
 
     // initialize GTK+
     MovieWindow *window = movie_window_new(app);
@@ -127,7 +127,7 @@ MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *scr
     ////////// WINDOW DESIGN //////////
 
     // hide window decorations of main app and use our own
-    WidgetHeaderbar *headerbar = movie_appplication_new_headerbar();
+    WidgetHeaderbar *headerbar = movie_application_new_headerbar();
     gtk_window_set_titlebar(GTK_WINDOW(window), GTK_WIDGET(headerbar));
 
     window->headerbar = headerbar;
@@ -136,12 +136,16 @@ MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *scr
     GtkWidget *mainbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
     // toolbar with main buttons optons
-    WidgetToolbar *toolbar = movie_appplication_new_toolbar();
+    WidgetToolbar *toolbar = movie_application_new_toolbar();
 
     g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
     g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
     g_signal_connect(toolbar, "new", G_CALLBACK(signal_toolbar_new), window);
     g_signal_connect(toolbar, "source-changed", G_CALLBACK(signal_toolbar_source), window);
+
+    // status bar on the bottom
+    WidgetStatusbar *statusbar = movie_application_new_statusbar();
+    window->statusbar = statusbar;
 
 
     // panel between sidebar and content
@@ -156,7 +160,7 @@ MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *scr
 
     // sidebar with categories list and searchbar
 
-    WidgetSidebar *sidebar = movie_appplication_new_sidebar();
+    WidgetSidebar *sidebar = movie_application_new_sidebar();
     window->sidebar = sidebar;
 
     g_signal_connect(sidebar, "search-keyword", G_CALLBACK(signal_search_keyword), window);
@@ -222,6 +226,7 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
     gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(toolbar), FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(mainbox), panedbox, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(statusbar), FALSE, FALSE, 0);
 
     gtk_container_add(GTK_CONTAINER(window), mainbox);
 

@@ -38,8 +38,8 @@ static void widget_toolbar_init(WidgetToolbar *widget) {
 }
 
 static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
-	GObjectClass *object_class = G_OBJECT_CLASS(klass);
-	// GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+    GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 
     signals[SIGNAL_OPEN] = g_signal_new("open",
         G_OBJECT_CLASS_TYPE(object_class),

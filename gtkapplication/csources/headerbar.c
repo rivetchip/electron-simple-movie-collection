@@ -22,8 +22,8 @@ static void widget_headerbar_init(WidgetHeaderbar *widget) {
 }
 
 static void widget_headerbar_class_init(WidgetHeaderbarClass *klass) {
-	// GObjectClass *object_class = G_OBJECT_CLASS(klass);
-	// GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 }
 
 WidgetHeaderbar *widget_headerbar_new() {
