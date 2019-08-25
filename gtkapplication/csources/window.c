@@ -1,5 +1,6 @@
 #include "window.h"
 #include "widgets.h"
+#include "dialogs.h"
 #include "headerbar.h"
 #include "toolbar.h"
 #include "statusbar.h"
@@ -236,9 +237,6 @@ widget_sidebar_add_item(widget_sidebar, xxx);
     // Make sure the main window and all its contents are visible
     gtk_widget_show_all(GTK_WIDGET(window));
 
-
-
-
     return window;
 }
 
@@ -336,6 +334,12 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
 
 static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     g_message(__func__);
+
+    const char *filename;
+    if(!(filename = dialog_file_chooser(GTK_WINDOW(window), NULL))) {
+        return;
+    }
+
 
 
 }

@@ -60,6 +60,8 @@ csources = [
     'csources/toolbar.c',
     'csources/sidebar.c',
 
+    'csources/collection.c',
+
     'csources/statusbar.c',
 ]
 csources_headers = include_directories('csources')
