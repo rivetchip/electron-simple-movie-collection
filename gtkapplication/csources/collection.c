@@ -50,6 +50,7 @@ MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error) {
         switch(i) {
             case 0: { // first line: metadata
                 if(!json_metadata_parse(jsonnode, table)) {
+                    g_warning("%s: Could not metada @ %i", __func__, i);
                     continue;
                 }
             }
@@ -58,10 +59,12 @@ MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error) {
             default: { // movies
                 struct Movie *movie = malloc(sizeof(*movie));
                 if(!json_node_parse(jsonnode, movie)) {
+                    g_warning("%s: Could not parse @ %i", __func__, i);
                     continue;
                 }
 
                 if(!movie_collection_add(table, movie->movieId, movie)) {
+                    g_warning("%s: Could not add @ %i", __func__, i);
                     continue;
                 }
             }
@@ -122,6 +125,21 @@ bool movie_collection_remove(MoviesTable *table, char *movieId) {
     }
     return FALSE;
 }
+
+bool movie_collection_destroy(MoviesTable *table) {
+    // destroy each props
+
+
+
+    // destroy main vector
+    vector_free(table->movies);
+    free(table);
+
+    return TRUE;
+}
+
+
+
 
 char *movie_collection_stringify(MoviesTable *table) {
     char *retval;

@@ -47,6 +47,7 @@ MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error);
 struct Movie *movie_collection_get(MoviesTable *table, char *movieId);
 bool movie_collection_add(MoviesTable *table, const char *movieId, struct Movie *movie);
 bool movie_collection_remove(MoviesTable *table, char *movieId);
+bool movie_collection_destroy(MoviesTable *table);
 
 void movie_collection_foreach(MoviesTable *table, void (*foreach)(const char*, struct Movie*, void*), void *user_data);
 char *movie_collection_stringify(MoviesTable *table);

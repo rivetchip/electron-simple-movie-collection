@@ -18,6 +18,7 @@ struct _MovieWindow {
 
     // main app
     MovieApplication *movieapp;
+    MoviesTable *movies_table;
 
     // window state
     int height;
@@ -335,6 +336,7 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
 }
 
 static void xxxxxx(const char *movieId, struct Movie *movie, void *user_data) {
+    MovieWindow *window = MOVIE_WINDOW(user_data);
 
     g_message("%s - %s", movieId, movie->title);
 }
@@ -350,26 +352,29 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     GError *error = NULL;
     FILE *stream = fopen(filename, "rb");
 
-    MoviesTable *table;
-
-    if((table = movie_collection_new_from_stream(stream, &error)) == NULL) {
+    MoviesTable *movies_table;
+    if((movies_table = movie_collection_new_from_stream(stream, &error)) == NULL) {
         g_warning("%s %s", __func__, error->message);
 
-        dialog_message(GTK_WINDOW(window), "Could not open file", error->message);
-    
+        dialog_message(GTK_WINDOW(window),
+            "Erreur lors de l'ouverture du fichier", error->message
+        );
         g_clear_error(&error);
     }
 
-    if(table) {
-    movie_collection_foreach(table, xxxxxx, NULL);
+    if(movies_table) {
+        // destroy previous colection if any
+        if(window->movies_table != NULL) {
+            movie_collection_destroy(window->movies_table);
+        }
 
+        window->movies_table = movies_table;
+
+        movie_collection_foreach(movies_table, xxxxxx, window);
     }
-
-
 
     fclose(stream);
     g_free((char*) filename);
-
 }
 
 static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window) {
