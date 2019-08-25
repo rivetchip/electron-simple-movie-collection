@@ -6,10 +6,20 @@ struct _MovieApplication {
     GtkApplication parent_instance;
 
     GNetworkMonitor *monitor;
+    const char *build_version;
 };
+
+enum {
+    PROP_BUILD_VERSION = 1,
+    PROP_LAST
+};
+static GParamSpec *properties[PROP_LAST];
 
 G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 
+// internals
+static void get_property(GObject *object, unsigned int property_id, GValue *value, GParamSpec *pspec);
+static void set_property(GObject *object, unsigned int property_id, const GValue *value, GParamSpec *pspec);
 // signals
 static void signal_startup(MovieApplication *app);
 static void signal_activate(MovieApplication *app);
@@ -25,23 +35,28 @@ static void commandline_print_version(MovieApplication *app);
 
 
 static void movie_application_class_init(MovieApplicationClass *klass) {
-    g_message(__func__);
-    
-	// GObjectClass *object_class = G_OBJECT_CLASS (klass);
-	// GApplicationClass *app_class = G_APPLICATION_CLASS (klass);
+    GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    // GApplicationClass *app_class = G_APPLICATION_CLASS(klass);
 
-    // app_class->startup = demo_application_startup;
-    // virtual function overrides go here
-    // property and signal definitions go here
+    object_class->get_property = get_property;
+    object_class->set_property = set_property;
+
+    properties[PROP_BUILD_VERSION] = g_param_spec_string(
+        "build-version", "build version", "Application build version",
+        NULL, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS // default, flags
+    );
+
+    g_object_class_install_properties(object_class, PROP_LAST, properties);
 }
 
-MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags) {
+MovieApplication *movie_application_new(const char *application_id, const char *build_version, GApplicationFlags flags) {
     g_message(__func__);
 
-    g_return_val_if_fail(g_application_id_is_valid(application_id), NULL); // normal comportment
+    g_return_val_if_fail(g_application_id_is_valid(application_id), NULL);
     
     return g_object_new(movie_application_get_type(),
         "application-id", application_id,
+        "build-version", build_version,
         "flags", flags,
     NULL);
 }
@@ -74,7 +89,33 @@ static void movie_application_init(MovieApplication *app) {
     g_signal_connect(app, "handle-local-options", G_CALLBACK(signal_handle_local_options), NULL);
 }
 
+static void get_property(GObject *object, unsigned int property_id, GValue *value, GParamSpec *pspec) {
+    MovieApplication *app = MOVIE_APPLICATION(object);
 
+    switch(property_id) {
+        case PROP_BUILD_VERSION:
+            g_value_set_string(value, app->build_version);
+        break;
+
+        default:
+            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+        break;
+    }
+}
+
+static void set_property(GObject *object, unsigned int property_id, const GValue *value, GParamSpec *pspec) {
+    MovieApplication *app = MOVIE_APPLICATION(object);
+
+    switch(property_id) {
+        case PROP_BUILD_VERSION:
+            app->build_version = g_value_dup_string(value);
+        break;
+
+        default:
+            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+        break;
+    }
+}
 
 
 static void signal_startup(MovieApplication *app) {
@@ -121,14 +162,21 @@ static void signal_shutdown(MovieApplication *app) {
 static void signal_open(MovieApplication *app, GFile **files, int n_files, const gchar *hint) {
     g_message(__func__);
 
-
+    //todo
+    for(int i = 0; i < n_files; i++) {
+        char *uri = g_file_get_uri(files[i]);
+        g_print("open %s\n", uri);
+        g_free (uri);
+    }
 }
 
 static int signal_command_line(MovieApplication *app, GApplicationCommandLine *cmdline) {
-    return 0; // exit todo
+    return 0; // exit
 }
 
 static int signal_handle_local_options(MovieApplication *app, GVariantDict *options) {
+    g_message(__func__);
+
     // handle command lines locally
 
     if(g_variant_dict_lookup(options, "version", "b", NULL)) {
@@ -178,7 +226,7 @@ static void signal_css_parsing_error(GtkCssProvider *provider, GtkCssSection *se
 static void commandline_print_version(MovieApplication *app) {
     const char *appid = g_application_get_application_id(G_APPLICATION(app));
 
-    g_print("%s - GTK:%d.%d.%d \n", appid,
+    g_print("%s:%s - GTK:%d.%d.%d \n", appid, app->build_version,
         gtk_get_major_version(), gtk_get_minor_version(), gtk_get_micro_version()
     );
 }
