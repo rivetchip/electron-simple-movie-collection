@@ -22,7 +22,7 @@ inline WidgetToolbar *WIDGET_TOOLBAR(gpointer ptr) {
 
 // public functions
 WidgetToolbar *widget_toolbar_new();
-WidgetToolbar *movie_appplication_new_toolbar();
+WidgetToolbar *movie_application_new_toolbar();
 
 
 

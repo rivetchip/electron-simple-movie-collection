@@ -82,7 +82,7 @@ WidgetToolbar *widget_toolbar_new() {
     return g_object_new(widget_toolbar_get_type(), NULL);
 }
 
-WidgetToolbar *movie_appplication_new_toolbar() {
+WidgetToolbar *movie_application_new_toolbar() {
 
     WidgetToolbar *widget = widget_toolbar_new();
     widget_add_class(GTK_WIDGET(widget), "toolbar");

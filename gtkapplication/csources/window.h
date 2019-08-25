@@ -23,7 +23,7 @@ inline MovieWindow *MOVIE_WINDOW(gpointer ptr) {
 
 // public functions
 MovieWindow *movie_window_new(MovieApplication *application);
-MovieWindow *movie_appplication_new_window(MovieApplication *app, GdkScreen *screen);
+MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *screen);
 
 
 

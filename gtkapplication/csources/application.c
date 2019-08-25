@@ -14,7 +14,7 @@ G_DEFINE_TYPE(MovieApplication, movie_application, GTK_TYPE_APPLICATION);
 static void signal_startup(MovieApplication *app);
 static void signal_activate(MovieApplication *app);
 static void signal_shutdown(MovieApplication *app);
-static void signal_open(MovieApplication *app);
+static void signal_open(MovieApplication *app, GFile **files, int n_files, const gchar *hint);
 static int signal_command_line(MovieApplication *app, GApplicationCommandLine *cmdline);
 static int signal_handle_local_options(MovieApplication *app, GVariantDict *options);
 static void signal_network_changed(GNetworkMonitor *monitor, bool available, MovieApplication *app);
@@ -104,7 +104,7 @@ static void signal_activate(MovieApplication *app) {
     GtkWindow *window;
     if((window = gtk_application_get_active_window(GTK_APPLICATION(app))) == NULL) {
         // create if not exist
-        window = GTK_WINDOW(movie_appplication_new_window(app, NULL));
+        window = GTK_WINDOW(movie_application_new_window(app, NULL));
         gtk_widget_show(GTK_WIDGET(window));
     }
 
@@ -118,7 +118,7 @@ static void signal_shutdown(MovieApplication *app) {
     // mainwindow_store_state(app);
 }
 
-static void signal_open(MovieApplication *app) {
+static void signal_open(MovieApplication *app, GFile **files, int n_files, const gchar *hint) {
     g_message(__func__);
 
 

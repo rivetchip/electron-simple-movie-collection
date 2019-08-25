@@ -51,7 +51,7 @@ WidgetSidebar *widget_sidebar_new() {
     NULL);
 }
 
-WidgetSidebar *movie_appplication_new_sidebar() {
+WidgetSidebar *movie_application_new_sidebar() {
 
     WidgetSidebar *widget = widget_sidebar_new();
     widget_add_class(GTK_WIDGET(widget), "sidebar");

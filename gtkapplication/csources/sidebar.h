@@ -21,7 +21,7 @@ inline WidgetSidebar *WIDGET_SIDEBAR(gpointer ptr) {
 
 // public functions
 WidgetSidebar *widget_sidebar_new();
-WidgetSidebar *movie_appplication_new_sidebar();
+WidgetSidebar *movie_application_new_sidebar();
 
 
 
