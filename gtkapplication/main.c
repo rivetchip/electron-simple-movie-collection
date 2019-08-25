@@ -16,8 +16,8 @@ int main(int argc, char **argv) {
     int status;
 
     MovieApplication *app = movie_application_new(
-        PACKAGE_APPLICATION_ID,
-        G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_HANDLES_OPEN
+        PACKAGE_APPLICATION_ID, PACKAGE_BUILD_VERSION,
+        G_APPLICATION_HANDLES_OPEN
     );
 
     status = g_application_run(G_APPLICATION(app), argc, argv);
