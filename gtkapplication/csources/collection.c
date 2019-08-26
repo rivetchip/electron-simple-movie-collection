@@ -112,7 +112,7 @@ bool movie_collection_add(MoviesTable *table, const char *movieId, struct Movie 
 
     int key = vector_add(table->movies, movie);
 
-    return TRUE;
+    return true;
 }
 
 bool movie_collection_remove(MoviesTable *table, char *movieId) {
@@ -120,10 +120,10 @@ bool movie_collection_remove(MoviesTable *table, char *movieId) {
 
     for(unsigned int index = 0; index < total; index++) {
         if((vector_delete(table->movies, index))) {
-            return TRUE;
+            return true;
         }
     }
-    return FALSE;
+    return false;
 }
 
 bool movie_collection_destroy(MoviesTable *table) {
@@ -135,7 +135,7 @@ bool movie_collection_destroy(MoviesTable *table) {
     vector_free(table->movies);
     free(table);
 
-    return TRUE;
+    return true;
 }
 
 
@@ -145,7 +145,7 @@ char *movie_collection_stringify(MoviesTable *table) {
     char *retval;
 
     // JsonGenerator *generator = json_generator_new();
-    // json_generator_set_pretty(generator, TRUE); // todo
+    // json_generator_set_pretty(generator, true); // todo
     // json_generator_set_root(generator, node);
 
         // retval = json_generator_to_data(generator, NULL);
@@ -170,7 +170,7 @@ static bool json_metadata_parse(JsonObject *object, MoviesTable *metadata) {
         metadata->imported = json_node_dup_string(node);
     }
 
-    return TRUE;
+    return true;
 }
 
 static bool json_node_parse(JsonObject *object, struct Movie *movie) {
@@ -180,7 +180,7 @@ static bool json_node_parse(JsonObject *object, struct Movie *movie) {
         movie->movieId = json_node_dup_string(node);
     }
     if(movie->movieId == NULL) {
-        return FALSE;
+        return false;
     }
 
     if((node = json_object_get_member(object, "title")) != NULL) {
@@ -270,7 +270,7 @@ static bool json_node_parse(JsonObject *object, struct Movie *movie) {
         movie->webPage = json_node_dup_string(node);
     }
 
-    return TRUE;
+    return true;
 }
 
 static size_t getline(FILE *stream, char **lineptr, size_t *n) {

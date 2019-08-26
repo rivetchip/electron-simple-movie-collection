@@ -1,5 +1,6 @@
 #include "headerbar.h"
 #include "widgets.h"
+#include <stdbool.h>
 
 // type definition
 struct _WidgetHeaderbar {
@@ -39,9 +40,9 @@ WidgetHeaderbar *movie_application_new_headerbar() {
     widget_add_class(GTK_WIDGET(widget), "headerbar");
 
     // hide window decorationq of header bar
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(widget), FALSE);
+    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(widget), false);
     gtk_header_bar_set_title(GTK_HEADER_BAR(widget), "Movie Collection");
-    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(widget), FALSE);
+    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(widget), false);
     gtk_widget_set_size_request(GTK_WIDGET(widget), -1, 45); // w,h
 
     // add buttons and callback on click (override gtk-decoration-layout property)

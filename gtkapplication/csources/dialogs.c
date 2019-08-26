@@ -1,5 +1,6 @@
 #include "dialogs.h"
 #include <stddef.h>
+#include <stdbool.h>
 
 
 // simple message dialog
@@ -30,7 +31,7 @@ char *dialog_file_chooser(GtkWindow *window, char *existing) {
         "Ouvrir", GTK_RESPONSE_ACCEPT,
     NULL);
 
-    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), FALSE);
+    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), false);
 
     GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
 
@@ -73,7 +74,7 @@ char *dialog_file_save(GtkWindow *window, char *existing) {
     gtk_file_chooser_set_filter(chooser, filter);
 
     if(existing != NULL) { // file already exist
-        gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
+        gtk_file_chooser_set_do_overwrite_confirmation(chooser, true);
         gtk_file_chooser_set_filename(chooser, existing);
     } else {
         gtk_file_chooser_set_current_name(chooser, "MyCollection.ndjson");

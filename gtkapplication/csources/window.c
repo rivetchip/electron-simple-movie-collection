@@ -76,8 +76,8 @@ MovieWindow *movie_window_new(MovieApplication *application) {
 
     return g_object_new(movie_window_get_type(),
         "application", application,
-        "show-menubar", FALSE,
-        "destroy-with-parent", TRUE,
+        "show-menubar", false,
+        "destroy-with-parent", true,
     NULL);
 }
 
@@ -98,7 +98,7 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
     gtk_container_set_border_width(GTK_CONTAINER(window), 0);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    gtk_window_set_resizable(GTK_WINDOW(window), TRUE);
+    gtk_window_set_resizable(GTK_WINDOW(window), true);
 
 	if(screen != NULL) {
 		gtk_window_set_screen(GTK_WINDOW(window), screen);
@@ -197,9 +197,9 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     GtkWidget *statusbar = widget_statusbar->statusbar;
 
     // Add all elements to main
-    gtk_box_pack_start(GTK_BOX(main_box), toolbar, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(main_box), layout_paned, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(main_box), statusbar, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(main_box), toolbar, false, false, 0);
+    gtk_box_pack_start(GTK_BOX(main_box), layout_paned, true, true, 0);
+    gtk_box_pack_start(GTK_BOX(main_box), statusbar, false, false, 0);
 
     // Put the content area into the main window
     gtk_container_add(GTK_CONTAINER(window), main_box);
@@ -211,13 +211,13 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
 
 
 
-struct WidgetSidebarItem *xxx = widget_sidebar_item_new("ID_1", "XXX", FALSE);
+struct WidgetSidebarItem *xxx = widget_sidebar_item_new("ID_1", "XXX", false);
 widget_sidebar_add_item(widget_sidebar, xxx);
 
-xxx = widget_sidebar_item_new("ID_2", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", FALSE);
+xxx = widget_sidebar_item_new("ID_2", "azertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbnazertyuiopqsdfghjklmwxcvbn", false);
 widget_sidebar_add_item(widget_sidebar, xxx);
 
-xxx = widget_sidebar_item_new("ID_3", "<>ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok", TRUE);
+xxx = widget_sidebar_item_new("ID_3", "<>ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok ok", true);
 widget_sidebar_add_item(widget_sidebar, xxx);
 
 
@@ -227,12 +227,12 @@ widget_sidebar_add_item(widget_sidebar, xxx);
 
     // Put the content area into the main window
 
-    gtk_paned_pack1(GTK_PANED(panedbox), GTK_WIDGET(sidebar), TRUE, FALSE); // resize, shrink
-    gtk_paned_pack2(GTK_PANED(panedbox), gtk_label_new("test"), TRUE, FALSE);
+    gtk_paned_pack1(GTK_PANED(panedbox), GTK_WIDGET(sidebar), true, false); // resize, shrink
+    gtk_paned_pack2(GTK_PANED(panedbox), gtk_label_new("test"), true, false);
 
-    gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(toolbar), FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(mainbox), panedbox, TRUE, TRUE, 0);
-    gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(statusbar), FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(toolbar), false, false, 0);
+    gtk_box_pack_start(GTK_BOX(mainbox), panedbox, true, true, 0);
+    gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(statusbar), false, false, 0);
 
     gtk_container_add(GTK_CONTAINER(window), mainbox);
 

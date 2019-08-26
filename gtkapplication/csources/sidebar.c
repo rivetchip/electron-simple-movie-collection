@@ -1,5 +1,6 @@
 #include "sidebar.h"
 #include "widgets.h"
+#include <stdbool.h>
 
 // type definition
 struct _WidgetSidebar {
@@ -66,7 +67,7 @@ WidgetSidebar *movie_application_new_sidebar() {
     widget_add_class(searchentry, "searchbox-entry");
     gtk_entry_set_placeholder_text(GTK_ENTRY(searchentry), "Recherche");
     gtk_entry_set_icon_from_icon_name(GTK_ENTRY(searchentry), GTK_ENTRY_ICON_PRIMARY, "@edit-find");
-    gtk_widget_set_hexpand(GTK_WIDGET(searchentry), FALSE);
+    gtk_widget_set_hexpand(GTK_WIDGET(searchentry), false);
 
     g_signal_connect(searchentry, "key-release-event", G_CALLBACK(signal_search_keyrelease), widget);
     g_signal_connect(searchentry, "changed", G_CALLBACK(signal_search_changed), widget);
@@ -93,8 +94,8 @@ WidgetSidebar *movie_application_new_sidebar() {
     gtk_container_add(GTK_CONTAINER(scrolledframe), listbox);
 
     // Add all elements to sidebar
-    gtk_box_pack_start(GTK_BOX(widget), searchbox, FALSE, FALSE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(widget), scrolledframe, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(widget), searchbox, false, false, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(widget), scrolledframe, true, true, 0);
 
     return widget;
 }

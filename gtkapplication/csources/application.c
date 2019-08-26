@@ -124,7 +124,7 @@ static void signal_startup(MovieApplication *app) {
     // set window settings
     GtkSettings *settings = gtk_settings_get_default();
     g_object_set(G_OBJECT(settings),
-        "gtk-application-prefer-dark-theme", TRUE,
+        "gtk-application-prefer-dark-theme", true,
         // "gtk-font-name", "Lato 12",
     NULL);
 
@@ -189,7 +189,7 @@ static int signal_handle_local_options(MovieApplication *app, GVariantDict *opti
     }
 
     if(g_variant_dict_lookup(options, "inspect", "b", NULL)) {
-        gtk_window_set_interactive_debugging(TRUE);
+        gtk_window_set_interactive_debugging(true);
     }
 
     return -1; //let the default option processing continue
@@ -265,20 +265,20 @@ bool movie_application_set_keyfile(MovieApplication *app, const char *keyname, G
 
     // create save path if not set
     if(g_mkdir_with_parents(filepath, 0755) != 0) { // error=-1 exist=0
-        return FALSE;
+        return false;
     }
 
     GError *error = NULL;
     if(!g_key_file_save_to_file(keyfile, filename, &error)) {
         g_message("%s %s: %s", __func__, error->message, keyname);
         g_clear_error(&error);
-        return FALSE;
+        return false;
     }
 
     g_free(filepath);
     g_free(filename);
 
-    return TRUE;
+    return true;
 }
 
 

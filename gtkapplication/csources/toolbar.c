@@ -108,9 +108,9 @@ WidgetToolbar *movie_application_new_toolbar() {
     );
     widget->button_new = button_new;
 
-    gtk_box_pack_start(GTK_BOX(widget), button_open, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(widget), button_save, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(widget), button_new, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(widget), button_open, false, false, 0);
+    gtk_box_pack_start(GTK_BOX(widget), button_save, false, false, 0);
+    gtk_box_pack_start(GTK_BOX(widget), button_new, false, false, 0);
 
     // add movie sources selection
 
@@ -124,14 +124,14 @@ WidgetToolbar *movie_application_new_toolbar() {
     );
 
     gtk_radio_button_join_group(GTK_RADIO_BUTTON(tmdbfr), GTK_RADIO_BUTTON(tmdben)); //radio,source
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmdbfr), TRUE);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmdbfr), true);
 
     gtk_container_add(GTK_CONTAINER(sourcesbox), tmdben);
     gtk_container_add(GTK_CONTAINER(sourcesbox), tmdbfr);
 
     widget->sourcesbox = sourcesbox;
 
-    gtk_box_pack_end(GTK_BOX(widget), sourcesbox, FALSE, FALSE, 0);
+    gtk_box_pack_end(GTK_BOX(widget), sourcesbox, false, false, 0);
 
     return widget;
 }
@@ -143,7 +143,7 @@ static GtkWidget *create_button(const char *label, const char *iconname, GCallba
     );
     gtk_button_set_label(GTK_BUTTON(button), label);
     widget_add_class(button, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button), TRUE);
+    gtk_button_set_always_show_image(GTK_BUTTON(button), true);
 
     g_signal_connect(button, "clicked", gcallback, user_data);
 
@@ -155,7 +155,7 @@ static GtkWidget *create_source_radio(const char *label, char *source_name, GCal
     GtkWidget *button = gtk_radio_button_new_with_label(NULL, label);
     widget_add_class(button, "toolbar-button");
     widget_add_class(button, "toolbar-source");
-    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(button), FALSE);
+    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(button), false);
 
     g_object_set_data(G_OBJECT(button), "source", source_name);
 
