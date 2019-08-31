@@ -20,13 +20,19 @@ deplibcurl = dependency('libcurl', version : '>=7.60', required: true)
 git_command = find_program('git', required: false)
 
 # main project options
-cc = meson.get_compiler('c')
+cc = meson.get_compiler('c').get_id()
 host_system = host_machine.system()
 project_name = meson.project_name()
 project_version = meson.project_version()
 source_root = meson.source_root()
 build_root = meson.build_root()
 developer_mode = get_option('developer_mode')
+
+project_arguments = ['-I' + build_root]
+
+if(developer_mode)
+    project_arguments += ['-save-temps', '-g'] #-P remove line refs on temps, conflict with dgb
+endif
 
 build_version = 'unknown'
 if git_command.found()
@@ -103,14 +109,6 @@ if desktop_utils.found()
 endif
 
 install_data(desktop_file, install_dir: pkgappsdir)
-
-project_arguments = ['-I' + build_root]
-
-if(developer_mode)
-    project_arguments += ['-save-temps', '-g']
-    # project_arguments += ['-P'] # remove line refs on temps, conflict with dgb
-endif
-
 
 add_project_arguments(project_arguments, language: 'c')
 

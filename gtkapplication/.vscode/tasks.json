@@ -4,8 +4,13 @@
         {
             "label": "meson:dev",
             "type": "shell",
-            "command": "meson -Ddeveloper_mode=true --buildtype=debugoptimized devbuild",
+            "command": "meson -Ddeveloper_mode=true --buildtype=debugoptimized devbuild"
         },
+        // {
+        //     "label": "meson:dev clang",
+        //     "type": "shell",
+        //     "command": "CC=clang CXX=clang++ meson -Ddeveloper_mode=true --buildtype=debugoptimized devbuild"
+        // },
         {
             "label": "ninja:dev",
             "type": "shell",
