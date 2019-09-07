@@ -150,3 +150,27 @@ VALGRIND leak checks for segfault : valgrind --leak-check=full ./program
 valgrind --tool=memcheck --leak-check=full --leak-resolution=high --num-callers=20 --log-file=vgdump --suppressions=gtk.supp --suppressions=glib.supp ./moviecollection
 
 
+
+
+
+
+
+
+
+
+gedit
+
+1) open_files
+
+GEDIT_WINDOW_STATE_LOADING
+
+gedit_statusbar_set_window_state
+
+save_window_state
+
+g_set_prgname
+
+
+G_DEFINE_TYPE (GeditMenuExtension, gedit_menu_extension, G_TYPE_OBJECT)
+
+
