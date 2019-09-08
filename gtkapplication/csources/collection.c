@@ -1,32 +1,100 @@
 #include "collection.h"
 #include "vector.h"
 #include <json-glib/json-glib.h>
+#include <string.h>
 
 // type definition
-struct _MoviesTable {
-    int version;
-    char *created;
-    char *imported;
-    char *source;
+struct _MoviesList {
+    int meta_version;
+    char *meta_created;
+    char *meta_imported;
+    char *meta_source;
 
-    vector *movies; // array[Movie]
+    unsigned int capacity;
+    unsigned int total;
+    struct Movie **movies;
 };
 
 // internals
-static size_t getline(FILE *stream, char **lineptr, size_t *n);
-static bool json_metadata_parse(JsonObject *object, MoviesTable *movies_table);
+static bool list_resize(MoviesList *l, int capacity);
+static bool json_metadata_parse(JsonObject *object, MoviesList *list);
 static bool json_node_parse(JsonObject *object, struct Movie *movie);
+static size_t getline(FILE *stream, char **lineptr, size_t *n);
+static bool str_equal(const char *string1, const char *string2);
 
 
-MoviesTable *movie_collection_new() {
-    MoviesTable *table = malloc(sizeof(*table));
-    table->movies = vector_new();
+MoviesList *movies_list_new() {
+    MoviesList *l = malloc(sizeof(*l));
 
-    return table;
+    l->capacity = 20;
+    l->total = 0;
+    l->movies = malloc(sizeof(struct Movie*) * l->capacity);
+
+    return l;
 }
 
-MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error) {
+int movies_list_total(MoviesList *l) {
+    return l->total;
+}
 
+static bool list_resize(MoviesList *l, int capacity) {
+    printf("list_resize: %d to %d\n", l->capacity, capacity);
+
+    struct Movie **movies;
+    if((movies = realloc(l->movies, sizeof(struct Movie*) * capacity)) != NULL) {
+        l->movies = movies;
+        l->capacity = capacity;
+        return true;
+    }
+    return false;
+}
+
+bool movies_list_add(MoviesList *l, struct Movie *movie, int *index) {
+    if(l->capacity == l->total) {
+        if(!list_resize(l, l->capacity * 2)) {
+            return false;
+        }
+    }
+    l->movies[l->total++] = movie;
+
+    *index = (l->total - 1); // return last key
+    return true;
+}
+
+bool movies_list_set(MoviesList *l, int index, struct Movie *movie) {
+    if(index >= 0 && index < l->total) {
+        l->movies[index] = movie;
+        return true;
+    }
+    return false;
+}
+
+struct Movie *movies_list_get(MoviesList *l, int index) {
+    if(index >= 0 && index < l->total) {
+        return l->movies[index];
+    }
+    return NULL;
+}
+
+bool movies_list_delete(MoviesList *l, int index) {
+    if(index >= 0 && index < l->total) {
+        l->movies[index] = NULL;
+        return true;
+    }
+    // we dont resize the collection here, to preserve keys (todo)
+    return false;
+}
+
+void movies_list_free(MoviesList *l) {
+    free(l->movies);
+    free(l);
+
+    // while(l->total > 0){
+    //     free(l->movies[--l->size]);
+    // }
+}
+
+MoviesList *movies_list_new_from_stream(FILE *stream, GError **error) {
     size_t line_size = 0;
     char *line = NULL;
     size_t read = 0;
@@ -34,9 +102,9 @@ MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error) {
     JsonParser *parser = json_parser_new();
     JsonObject *jsonnode;
 
-    MoviesTable *table = movie_collection_new();
+    MoviesList *list = movies_list_new();
 
-    unsigned int i = 0;
+    unsigned int line_number = 0;
     while((read = getline(stream, &line, &line_size)) > 0) {
 
         if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
@@ -47,101 +115,56 @@ MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error) {
 
         jsonnode = json_node_get_object(json_parser_get_root(parser));
 
-        switch(i) {
-            case 0: { // first line: metadata
-                if(!json_metadata_parse(jsonnode, table)) {
-                    g_warning("%s: Could not metada @ %i", __func__, i);
+        switch(line_number) {
+            case 0: { // first: metadata
+                if(!json_metadata_parse(jsonnode, list)) {
+                    g_warning("%s: Could not metada @ %i", __func__, line_number);
                     continue;
                 }
             }
             break;
 
-            default: { // movies
+            default: { // others: movie
                 struct Movie *movie = malloc(sizeof(*movie));
                 if(!json_node_parse(jsonnode, movie)) {
-                    g_warning("%s: Could not parse @ %i", __func__, i);
+                    g_warning("%s: Could not parse @ %i", __func__, line_number);
                     continue;
                 }
-
-                if(!movie_collection_add(table, movie->movieId, movie)) {
-                    g_warning("%s: Could not add @ %i", __func__, i);
+                
+                int movieId;
+                if(!movies_list_add(list, movie, &movieId)) {
+                    g_warning("%s: Could not add @ %i", __func__, line_number);
                     continue;
                 }
+                // g_message("%s %d", movie->title, movieId);
             }
             break;
         }
 
-        i++;
+        line_number++;
     }
 
     free(line);
     g_object_unref(parser);
 
-    return table;
+    return list;
 }
 
-void movie_collection_foreach(MoviesTable *table, void (*foreach)(const char *movieId, struct Movie *movie, void *user_data), void *user_data) {
-    int total = vector_total(table->movies);
+// void movie_collection_foreach(MoviesTable *table, void (*foreach)(const char *movieId, struct Movie *movie, void *user_data), void *user_data) {
+//     int total = vector_total(table->movies);
 
-    for(unsigned int index = 0; index < total; index++) {
-        struct Movie *movie;
+//     for(unsigned int index = 0; index < total; index++) {
+//         struct Movie *movie;
 
-        if((movie = vector_get(table->movies, index)) != NULL) {
-            const char *movieId = movie->movieId;
+//         if((movie = vector_get(table->movies, index)) != NULL) {
+//             const char *movieId = movie->movieId;
 
-            (*foreach)(movieId, movie, user_data);
-        }
-    }
-}
+//             (*foreach)(movieId, movie, user_data);
+//         }
+//     }
+// }
 
-struct Movie *movie_collection_get(MoviesTable *table, char *movieId) {
-    int total = vector_total(table->movies);
-
-    struct Movie *movie;
-    for(unsigned int index = 0; index < total; index++) {
-        if((movie = vector_get(table->movies, index)) != NULL) {
-            return movie;
-        }
-    }
-    return NULL;
-}
-
-bool movie_collection_add(MoviesTable *table, const char *movieId, struct Movie *movie) {
-
-    // todo if index=0 success ??
-
-    int key = vector_add(table->movies, movie);
-
-    return true;
-}
-
-bool movie_collection_remove(MoviesTable *table, char *movieId) {
-    int total = vector_total(table->movies);
-
-    for(unsigned int index = 0; index < total; index++) {
-        if((vector_delete(table->movies, index))) {
-            return true;
-        }
-    }
-    return false;
-}
-
-bool movie_collection_destroy(MoviesTable *table) {
-    // destroy each props
-
-
-
-    // destroy main vector
-    vector_free(table->movies);
-    free(table);
-
-    return true;
-}
-
-
-
-
-char *movie_collection_stringify(MoviesTable *table) {
+char *movie_collection_stringify(MoviesList *l) {
     char *retval;
 
     // JsonGenerator *generator = json_generator_new();
@@ -154,20 +177,20 @@ char *movie_collection_stringify(MoviesTable *table) {
     return retval;
 }
 
-static bool json_metadata_parse(JsonObject *object, MoviesTable *metadata) {
+static bool json_metadata_parse(JsonObject *object, MoviesList *metadata) {
     JsonNode *node;
 
     if((node = json_object_get_member(object, "version")) != NULL) {
-        metadata->version = json_node_get_int(node);
+        metadata->meta_version = json_node_get_int(node);
     }
     if((node = json_object_get_member(object, "source")) != NULL) {
-        metadata->source = json_node_dup_string(node);
+        metadata->meta_source = json_node_dup_string(node);
     }
     if((node = json_object_get_member(object, "created")) != NULL) {
-        metadata->created = json_node_dup_string(node);
+        metadata->meta_created = json_node_dup_string(node);
     }
     if((node = json_object_get_member(object, "imported")) != NULL) {
-        metadata->imported = json_node_dup_string(node);
+        metadata->meta_imported = json_node_dup_string(node);
     }
 
     return true;
@@ -176,12 +199,9 @@ static bool json_metadata_parse(JsonObject *object, MoviesTable *metadata) {
 static bool json_node_parse(JsonObject *object, struct Movie *movie) {
     JsonNode *node; JsonArray *array;
 
-    if((node = json_object_get_member(object, "movieId")) != NULL) {
-        movie->movieId = json_node_dup_string(node);
-    }
-    if(movie->movieId == NULL) {
-        return false;
-    }
+    // if((node = json_object_get_member(object, "movieId")) != NULL) {
+    //     movie->movieId = json_node_dup_string(node);
+    // }
 
     if((node = json_object_get_member(object, "title")) != NULL) {
         movie->title = json_node_dup_string(node);
@@ -273,6 +293,8 @@ static bool json_node_parse(JsonObject *object, struct Movie *movie) {
     return true;
 }
 
+
+
 static size_t getline(FILE *stream, char **lineptr, size_t *n) {
     // const char* endl[4] = {"\n", "\r", "\r\n", "\n"};
 
@@ -316,3 +338,8 @@ static size_t getline(FILE *stream, char **lineptr, size_t *n) {
     (*lineptr)[pos] = '\0';
     return pos;
 }
+
+static bool str_equal(const char *string1, const char *string2) {
+    return strcmp (string1, string2) == 0;
+}
+

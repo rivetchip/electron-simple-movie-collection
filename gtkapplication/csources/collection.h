@@ -9,7 +9,7 @@
 #endif
 
 // type definition
-typedef struct _MoviesTable MoviesTable;
+typedef struct _MoviesList MoviesList;
 
 struct Movie {
     const char *movieId;
@@ -40,17 +40,16 @@ struct Movie {
 };
 
 // public functions
+MoviesList *movies_list_new();
+MoviesList *movies_list_new_from_stream(FILE *stream, GError **error);
 
-MoviesTable *movie_collection_new();
-MoviesTable *movie_collection_new_from_stream(FILE *stream, GError **error);
+int movies_list_total(MoviesList *l);
+struct Movie *movies_list_get(MoviesList *l, int index);
 
-struct Movie *movie_collection_get(MoviesTable *table, char *movieId);
-bool movie_collection_add(MoviesTable *table, const char *movieId, struct Movie *movie);
-bool movie_collection_remove(MoviesTable *table, char *movieId);
-bool movie_collection_destroy(MoviesTable *table);
-
-void movie_collection_foreach(MoviesTable *table, void (*foreach)(const char*, struct Movie*, void*), void *user_data);
-char *movie_collection_stringify(MoviesTable *table);
+bool movies_list_add(MoviesList *l, struct Movie *movie, int *index);
+bool movies_list_set(MoviesList *l, int index, struct Movie *movie);
+bool movies_list_delete(MoviesList *l, int index);
+void movies_list_free(MoviesList *l);
 
 
 

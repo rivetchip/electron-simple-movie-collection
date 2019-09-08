@@ -13,7 +13,7 @@ struct _WidgetSidebar {
 
 enum {
     SIGNAL_SEARCH_KEYWORD,
-	SIGNAL_LAST
+    SIGNAL_LAST
 };
 static int signals[SIGNAL_LAST];
 

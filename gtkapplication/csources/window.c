@@ -18,7 +18,7 @@ struct _MovieWindow {
 
     // main app
     MovieApplication *movieapp;
-    MoviesTable *movies_table;
+    MoviesList *movies_list;
 
     // window state
     int height;
@@ -85,6 +85,7 @@ MovieWindow *movie_window_new(MovieApplication *application) {
 	// object_class->dispose = gedit_window_dispose;
 	// object_class->finalize = gedit_window_finalize;
 	// object_class->get_property = gedit_window_get_property;
+//todo: pass settings from application?
 
 MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *screen) {
 
@@ -335,12 +336,6 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
     // gtk_widget_hide (window->statusbar);
 }
 
-static void xxxxxx(const char *movieId, struct Movie *movie, void *user_data) {
-    MovieWindow *window = MOVIE_WINDOW(user_data);
-
-    g_message("%s - %s", movieId, movie->title);
-}
-
 static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     g_message(__func__);
 
@@ -352,8 +347,10 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     GError *error = NULL;
     FILE *stream = fopen(filename, "rb");
 
-    MoviesTable *movies_table;
-    if((movies_table = movie_collection_new_from_stream(stream, &error)) == NULL) {
+    MoviesList *movies_list;
+    // todo: while reading
+
+    if(!(movies_list = movies_list_new_from_stream(stream, &error))) {
         g_warning("%s %s", __func__, error->message);
 
         dialog_message(GTK_WINDOW(window),
@@ -362,15 +359,13 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
         g_clear_error(&error);
     }
 
-    if(movies_table) {
-        // destroy previous colection if any
-        if(window->movies_table != NULL) {
-            movie_collection_destroy(window->movies_table);
+    if(movies_list) {
+        // destroy previous colection if any (todo)
+        if(window->movies_list != NULL) {
+            movies_list_free(window->movies_list);
         }
 
-        window->movies_table = movies_table;
-
-        movie_collection_foreach(movies_table, xxxxxx, window);
+        window->movies_list = movies_list;
     }
 
     fclose(stream);
