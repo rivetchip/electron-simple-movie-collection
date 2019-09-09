@@ -31,7 +31,8 @@ developer_mode = get_option('developer_mode')
 project_arguments = ['-I' + build_root]
 
 if(developer_mode)
-    project_arguments += ['-save-temps', '-g'] #-P remove line refs on temps, conflict with dgb
+    project_arguments += ['-g', '-save-temps'] 
+    # project_arguments += '-P' #remove line refs on temps, conflict with dgb
 endif
 
 build_version = 'unknown'
@@ -66,6 +67,7 @@ csources = [
     'csources/toolbar.c',
     'csources/sidebar.c',
 
+    'csources/movietype.c',
     'csources/collection.c',
 
     'csources/statusbar.c',

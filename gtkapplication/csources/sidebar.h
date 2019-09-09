@@ -2,6 +2,7 @@
 
 #include <glib.h>
 #include <gtk/gtk.h>
+#include <stdbool.h>
 
 #ifdef  __cplusplus
     extern "C" {
@@ -22,7 +23,9 @@ inline WidgetSidebar *WIDGET_SIDEBAR(gpointer ptr) {
 // public functions
 WidgetSidebar *widget_sidebar_new();
 WidgetSidebar *movie_application_new_sidebar();
-
+// items
+void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model, GtkListBoxCreateWidgetFunc create_widget_func, gpointer user_data, GDestroyNotify user_data_free_func);
+GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, int movieId, char *title, bool is_favorite);
 
 
 #ifdef  __cplusplus

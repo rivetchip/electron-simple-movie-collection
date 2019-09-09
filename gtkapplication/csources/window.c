@@ -53,7 +53,7 @@ static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_nam
 // sidebar
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
 static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
-
+static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data);
 
 
 
@@ -92,6 +92,13 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     // initialize GTK+
     MovieWindow *window = movie_window_new(app);
     window->movieapp = app;
+
+
+window->message = "xsdsqdsdsqdd";
+
+    // Create Movies collection
+    MoviesList *movies_list = movies_list_new();
+    window->movies_list = movies_list;
 
     // create an 800x600 window
     widget_add_class(GTK_WIDGET(window), "movie_window");
@@ -347,26 +354,27 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     GError *error = NULL;
     FILE *stream = fopen(filename, "rb");
 
-    MoviesList *movies_list;
+    MoviesList *movies_list = window->movies_list;
     // todo: while reading
 
-    if(!(movies_list = movies_list_new_from_stream(stream, &error))) {
+    // destroy previous colection if any
+    movies_list_remove_all(movies_list);
+
+    if(!(movies_list = movies_list_from_stream(movies_list, stream, &error))) {
         g_warning("%s %s", __func__, error->message);
 
         dialog_message(GTK_WINDOW(window),
             "Erreur lors de l'ouverture du fichier", error->message
         );
         g_clear_error(&error);
-    }
 
-    if(movies_list) {
         // destroy previous colection if any (todo)
-        if(window->movies_list != NULL) {
-            movies_list_free(window->movies_list);
-        }
-
-        window->movies_list = movies_list;
+        movies_list_remove_all(movies_list);
     }
+
+    widget_sidebar_listbox_bind_model(window->sidebar,
+        G_LIST_MODEL(movies_list), sidebar_listbox_widget, window, NULL
+    );
 
     fclose(stream);
     g_free((char*) filename);
@@ -393,9 +401,23 @@ static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_nam
 
 
 
-
+///// SIDEBAR
 
 static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window) {
     g_message("%s %s", __func__, keyword);
 }
 
+static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data) {
+
+    MovieWindow *window = MOVIE_WINDOW(user_data);
+    Movie *movie = MOVIE(item);
+
+    GtkWidget *widget = widget_sidebar_listbox_widget(window->sidebar,
+        123, movie->title, movie->favorite
+    );
+
+    return widget;
+}
+
+
+// struct Movie *movie, MovieWindow *window
