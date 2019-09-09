@@ -152,20 +152,20 @@ bool movies_list_remove(MoviesList *list, unsigned int index) {
 }
 
 bool movies_list_remove_all(MoviesList *list) {
-    unsigned int removed;
-    if((removed = movies_list_total(list)) > 0) {
-        Movie *movie;
-        for(unsigned int i = 0; i < removed - 1; i++) {
-            if((movie = movies_list_get(list, i)) != NULL) {
-                movies_list_remove(list, i);
-                movie_destroy(movie);
-                g_message(">>>>DESTR %s %d", __func__, i);
-            }
-        }
+    // unsigned int removed;
+    // if((removed = movies_list_total(list)) > 0) {
+    //     Movie *movie;
+    //     for(unsigned int i = 0; i < removed - 1; i++) {
+    //         if((movie = movies_list_get(list, i)) != NULL) {
+    //             movies_list_remove(list, i);
+    //             // movie_destroy(movie);
+    //             g_message(">>>>DESTR %s %d", __func__, i);
+    //         }
+    //     }
 
-        list->total = 0; // reinit
-        // list_items_changed(list, 0, removed, 0);
-    }
+    //     list->total = 0; // reinit
+    //     list_items_changed(list, 0, removed, 0);
+    // }
 
     return true;
 }
@@ -175,7 +175,7 @@ void movies_list_destroy(MoviesList *list) {
     free(list->movies);
 }
 
-MoviesList *movies_list_from_stream(MoviesList *list, FILE *stream, GError **error) {
+bool movies_list_from_stream(MoviesList *list, FILE *stream, GError **error) {
     size_t line_size = 0;
     char *line = NULL;
     size_t read = 0;
@@ -189,7 +189,7 @@ MoviesList *movies_list_from_stream(MoviesList *list, FILE *stream, GError **err
         if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
             free(line);
             g_object_unref(parser);
-            return NULL;
+            return false;
         }
 
         jsonnode = json_node_get_object(json_parser_get_root(parser));
@@ -226,7 +226,7 @@ MoviesList *movies_list_from_stream(MoviesList *list, FILE *stream, GError **err
     free(line);
     g_object_unref(parser);
 
-    return list;
+    return true;
 }
 
 bool movies_list_foreach(MoviesList *list, unsigned int *index, Movie **movie) {

@@ -40,7 +40,7 @@ void movies_list_destroy(MoviesList *list);
 
 bool movies_list_foreach(MoviesList *list, unsigned int *index, Movie **movie);
 
-MoviesList *movies_list_from_stream(MoviesList *list, FILE *stream, GError **error);
+bool movies_list_from_stream(MoviesList *list, FILE *stream, GError **error);
 
 
 

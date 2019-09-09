@@ -93,9 +93,6 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     MovieWindow *window = movie_window_new(app);
     window->movieapp = app;
 
-
-window->message = "xsdsqdsdsqdd";
-
     // Create Movies collection
     MoviesList *movies_list = movies_list_new();
     window->movies_list = movies_list;
@@ -179,7 +176,10 @@ window->message = "xsdsqdsdsqdd";
 
     g_signal_connect(sidebar, "search-keyword", G_CALLBACK(signal_search_keyword), window);
 
-
+    // bind collection to model
+    widget_sidebar_listbox_bind_model(window->sidebar,
+        G_LIST_MODEL(movies_list), sidebar_listbox_widget, window, NULL
+    );
 
 
 
@@ -360,7 +360,7 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     // destroy previous colection if any
     movies_list_remove_all(movies_list);
 
-    if(!(movies_list = movies_list_from_stream(movies_list, stream, &error))) {
+    if(!(movies_list_from_stream(movies_list, stream, &error))) {
         g_warning("%s %s", __func__, error->message);
 
         dialog_message(GTK_WINDOW(window),
@@ -368,13 +368,9 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
         );
         g_clear_error(&error);
 
-        // destroy previous colection if any (todo)
+        // destroy previous colection if any
         movies_list_remove_all(movies_list);
     }
-
-    widget_sidebar_listbox_bind_model(window->sidebar,
-        G_LIST_MODEL(movies_list), sidebar_listbox_widget, window, NULL
-    );
 
     fclose(stream);
     g_free((char*) filename);
@@ -415,6 +411,7 @@ static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data) {
     GtkWidget *widget = widget_sidebar_listbox_widget(window->sidebar,
         123, movie->title, movie->favorite
     );
+    //todo
 
     return widget;
 }

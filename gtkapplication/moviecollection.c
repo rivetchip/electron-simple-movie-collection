@@ -16,45 +16,6 @@ Gdk-Message: 21:10:47.562: Error 71 (Protocol error) dispatching to Wayland disp
 #include <config.h> //build generated
 #include "moviecollection.h"
 
-/*
-// internal API
-static MovieApplication *movie_application_new(const char *application_id, GApplicationFlags flags);
-static void movie_application_init(MovieApplication *app);
-static void movie_application_class_init(MovieApplicationClass *klass);
-
-static struct WidgetHeaderbar *widget_headerbar_new();
-
-static struct WidgetToolbar *widget_toolbar_new();
-
-static struct WidgetSidebar *widget_sidebar_new();
-static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *label_text, bool is_favorite);
-static void widget_sidebar_add_item(struct WidgetSidebar *sidebar, struct WidgetSidebarItem *item);
-
-static struct WidgetPanels *widget_panels_new();
-static struct WidgetPanelWelcome *widget_panel_welcome_new();
-static struct WidgetPanelPreview *widget_panel_preview_new();
-static struct WidgetPanelEdition *widget_panel_edition_new();
-static struct WidgetStatusbar *widget_statusbar_new();
-static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char* text);
-
-static struct WidgetStarRating *widget_starrating_new();
-static int widget_starrating_get_rating(struct WidgetStarRating *stars);
-static void widget_starrating_set_rating(struct WidgetStarRating *stars, int rating);
-static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bool interactive);
-static void widget_starrating_signal_clicked(GtkButton *button, struct WidgetStarRating *stars);
-
-*/
-
-
-
-// todo: set custom windows with private properties
-static char *storageFilename;
-static char *storageFolder;
-static char *storagePosters;
-//default_location
-
-
-
 
 
 
@@ -107,9 +68,7 @@ size_t getline(FILE *stream, char **lineptr, size_t *n) {
     return pos;
 }
 
-static void widget_add_class(GtkWidget *widget, char *class_name) {
-    gtk_style_context_add_class(gtk_widget_get_style_context(widget), class_name);
-}
+
 
 static char* strdup(const char *str) {
     if(!str) return NULL;
@@ -124,253 +83,14 @@ static char* strdup(const char *str) {
 
 
 
-static bool movie_collection_get(char *movieId, struct Movie *movie) {
 
-}
 
-static bool movie_collection_add(char *movieId, struct Movie *movie) {
 
-}
 
-static bool movie_collection_remove(char *movieId) {
-    
-}
 
-static char *movie_collection_stringify() {
 
-}
 
-static bool movie_collection_metadata_parse(JsonObject *object, struct MoviesMetadata *metadata) {
-    JsonNode *node;
 
-    if((node = json_object_get_member(object, "version")) != NULL) {
-        metadata->version = json_node_get_int(node);
-    }
-    if((node = json_object_get_member(object, "source")) != NULL) {
-        metadata->source = strdup(json_node_get_string(node));
-    }
-    if((node = json_object_get_member(object, "created")) != NULL) {
-        metadata->created = strdup(json_node_get_string(node));
-    }
-    if((node = json_object_get_member(object, "imported")) != NULL) {
-        metadata->imported = strdup(json_node_get_string(node));
-    }
-
-    return TRUE;
-}
-
-static bool movie_collection_node_parse(JsonObject *object, struct Movie *movie) {
-    JsonNode *node; JsonArray *array;
-
-    //todo remove
-    // const char *movieId = json_object_get_string_member(object, "movieId");
-
-    if((node = json_object_get_member(object, "title")) != NULL) {
-        movie->title = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "favorite")) != NULL) {
-        movie->favorite = json_node_get_boolean(node);
-    }
-    if((node = json_object_get_member(object, "rating")) != NULL) {
-        movie->rating = json_node_get_int(node);
-    }
-    if((node = json_object_get_member(object, "tagline")) != NULL) {
-        movie->tagline = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "originalTitle")) != NULL) {
-        movie->originalTitle = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "ratingPress")) != NULL) {
-        movie->ratingPress = json_node_get_int(node);
-    }
-    if((node = json_object_get_member(object, "duration")) != NULL) {
-        movie->duration = json_node_get_int(node);
-    }
-    if((node = json_object_get_member(object, "dateReleased")) != NULL) {
-        movie->dateReleased = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "dateCreated")) != NULL) {
-        movie->dateCreated = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "dateModified")) != NULL) {
-        movie->dateModified = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "poster")) != NULL) {
-        movie->poster = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "description")) != NULL) {
-        movie->description = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "comment")) != NULL) {
-        movie->comment = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "director")) != NULL) {
-        movie->director = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "countries")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
-        array = json_node_get_array(node);
-
-        int i; int length;
-        if((length = json_array_get_length(array)) > 0) {
-            char **values = malloc((length + 1) * sizeof(*values)); // +sentinel
-
-            for (i = 0; i < length; i++) {
-                node = json_array_get_element(array, i);
-                values[i] = json_node_dup_string(node);
-            }
-            values[i++] = NULL;
-
-            movie->countries = values;
-        }
-    }
-    if((node = json_object_get_member(object, "genres")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
-        array = json_node_get_array(node);
-
-    }
-    if((node = json_object_get_member(object, "actors")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
-        array = json_node_get_array(node);
-
-    }
-    if((node = json_object_get_member(object, "serie")) != NULL) {
-        movie->serie = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "companies")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
-
-    }
-    if((node = json_object_get_member(object, "keywords")) != NULL && JSON_NODE_HOLDS_ARRAY(node)) {
-        // todo cehck movie->keyword if nothing defined
-
-
-    }
-    if((node = json_object_get_member(object, "source")) != NULL) {
-        movie->source = json_node_dup_string(node);
-    }
-    if((node = json_object_get_member(object, "sourceId")) != NULL) {
-        movie->sourceId = json_node_get_int(node);
-    }
-    if((node = json_object_get_member(object, "webPage")) != NULL) {
-        movie->webPage = json_node_dup_string(node);
-    }
-
-    return TRUE;
-}
-
-
-GHashTable *g_hash_table_new(GHashFunc hash_func, GEqualFunc key_equal_func) {
-    return g_hash_table_new_full (hash_func, key_equal_func, NULL, NULL);
-}
-
-
-static bool movie_collection_new_from(FILE *stream, GError **error) {
-
-    size_t line_size = 0;
-    char *line = NULL;
-    size_t read = 0;
-
-    JsonParser *parser = json_parser_new();
-    JsonObject *jsonnode;
-
-    struct MoviesStorage *storage = malloc(sizeof(*storage));
-
-    vector *movies = vector_new();
-    storage->movies = movies;
-
-
-    unsigned int i = 0;
-    while((read = getline(stream, &line, &line_size)) > 0) {
-
-        if(!json_parser_load_from_data(parser, line, strlen(line), error)) {
-            free(line);
-            g_object_unref(parser);
-            return FALSE;
-        }
-
-        jsonnode = json_node_get_object(json_parser_get_root(parser));
-
-        switch(i) {
-            case 0: { // first line: metadata
-                struct MoviesMetadata *metadata = malloc(sizeof(*metadata));
-                if(!movie_collection_metadata_parse(jsonnode, metadata)) {
-                    continue;
-                }
-                storage->metadata = metadata;
-            }
-            break;
-
-            default: { // movies
-                struct Movie *movie = malloc(sizeof(*movie));
-                if(!movie_collection_node_parse(jsonnode, movie)) {
-                    continue;
-                }
-
-                int key;
-                if((key = vector_add(movies, movie)) == 0) {
-                    return FALSE; // cannot allocate
-                }
-
-
-
-
-                // todo
-
-
-            }
-            break;
-        }
-
-        i++;
-    }
-
-    free(line);
-    g_object_unref(parser);
-
-    return TRUE;
-}
-
-static bool movie_collection_save(const char *filename, GError **error) {
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-static void mainwindow_store_state(MovieApplication *app) {
-    const char *appid = g_application_get_application_id(G_APPLICATION(app));
-
-    GKeyFile *keyfile = g_key_file_new();
-
-    g_key_file_set_integer(keyfile, "WindowState", "height", app->win_height);
-    g_key_file_set_integer(keyfile, "WindowState", "width", app->win_width);
-    g_key_file_set_boolean(keyfile, "WindowState", "maximized", app->is_maximized);
-    g_key_file_set_boolean(keyfile, "WindowState", "fullscreen", app->is_fullscreen);
-    g_key_file_set_integer(keyfile, "WindowState", "paned_position", app->paned_position);
-
-    // save file under $XDG_CACHE_HOME
-    char *state_path = g_build_filename(g_get_user_cache_dir(), appid, NULL);
-    char *state_file = g_build_filename(state_path, "state.ini", NULL);
-
-    // create save path if not set
-    if(g_mkdir_with_parents(state_path, 0755) == 0) { // error=-1 exist=0
-
-        GError *error_save = NULL;
-        if(!g_key_file_save_to_file(keyfile, state_file, &error_save)) {
-            g_warning("%s %s", __func__, error_save->message);
-            g_clear_error(&error_save);
-        }
-    }
-
-    g_key_file_free(keyfile);
-    g_free(state_path);
-    g_free(state_file);
-}
 
 
 
@@ -382,93 +102,6 @@ static void signal_mainwindow_paned_move(GtkPaned *paned, GParamSpec *pspec, Mov
 
 
 
-
-
-static void signal_headerbar_close(GtkButton *button) {
-    GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
-
-    if(GTK_IS_WINDOW(toplevel)) {
-        GtkApplication *gtk_app = gtk_window_get_application(GTK_WINDOW(toplevel));
-        g_application_quit(G_APPLICATION(gtk_app));
-    }
-}
-
-static void signal_headerbar_minimize(GtkButton *button) {
-    GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
-
-    if(GTK_IS_WINDOW(toplevel)) {
-        gtk_window_iconify(GTK_WINDOW(toplevel));
-    }
-}
-
-static void signal_headerbar_maximize(GtkButton *button) {
-    GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
-
-    if(GTK_IS_WINDOW(toplevel)) {
-        GtkWindow *gtk_window = GTK_WINDOW(toplevel);
-        gtk_window_is_maximized(gtk_window) ? gtk_window_unmaximize(gtk_window) : gtk_window_maximize(gtk_window);
-    }
-}
-
-static struct WidgetHeaderbar *widget_headerbar_new() {
-
-    struct WidgetHeaderbar *widget = malloc(sizeof(struct WidgetHeaderbar));
-
-    // Set GTK CSD HeaderBar
-    GtkWidget *headerbar = gtk_header_bar_new();
-    widget_add_class(headerbar, "headerbar");
-
-    widget->headerbar = headerbar;
-
-    // hide window decorationq of header bar
-    gtk_header_bar_set_show_close_button(GTK_HEADER_BAR(headerbar), FALSE);
-    gtk_header_bar_set_title(GTK_HEADER_BAR(headerbar), "Movie Collection");
-    gtk_header_bar_set_has_subtitle(GTK_HEADER_BAR(headerbar), FALSE);
-    gtk_widget_set_size_request(headerbar, -1, 45); // width height
-
-    // add buttons and callback on click (override gtk-decoration-layout property)
-
-    GtkWidget *button_close = gtk_button_new_from_icon_name("@window-close", GTK_ICON_SIZE_BUTTON);
-    widget_add_class(button_close, "headerbutton");
-    g_signal_connect(button_close, "clicked", G_CALLBACK(signal_headerbar_close), NULL);
-
-    widget->button_close = button_close;
-
-    GtkWidget *button_minimize = gtk_button_new_from_icon_name("@window-minimize", GTK_ICON_SIZE_BUTTON);
-    widget_add_class(button_minimize, "headerbutton");
-    g_signal_connect(button_minimize, "clicked", G_CALLBACK(signal_headerbar_minimize), NULL);
-
-    widget->button_minimize = button_minimize;
-
-    GtkWidget *button_maximize = gtk_button_new_from_icon_name("@window-maximize", GTK_ICON_SIZE_BUTTON);
-    widget_add_class(button_maximize, "headerbutton");
-    g_signal_connect(button_maximize, "clicked", G_CALLBACK(signal_headerbar_maximize), NULL);
-
-    widget->button_maximize = button_maximize;
-
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_close);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_minimize);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(headerbar), button_maximize);
-
-    // options buttons
-    GtkWidget *button_menu = gtk_menu_button_new();
-    widget_add_class(button_menu, "headerbutton");
-
-    GtkWidget *popover = gtk_popover_new(button_menu);
-    gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_menu), popover);
-
-
-
-    // gtk_container_add(GTK_CONTAINER(popover), xxx);
-
-
-    // gtk_widget_show_all(xxx);
-
-    gtk_header_bar_pack_end(GTK_HEADER_BAR(headerbar), button_menu);
-
-
-    return widget;
-}
 
 
 
@@ -507,85 +140,6 @@ static void signal_sidebar_list_items_selected(GtkListBox *listbox, GtkListBoxRo
 
 }
 
-static void signal_toolbar_provider_change(GtkToggleButton *togglebutton, char *provider_name) {
-    bool is_active = gtk_toggle_button_get_active(togglebutton);
-    
-    #if PACKAGE_DEVELOPER_MODE
-        g_message("%s %s %s", __func__, provider_name, (is_active?"on":"off"));
-    #endif
-
-
-
-}
-
-static struct WidgetToolbar *widget_toolbar_new() {
-
-    struct WidgetToolbar *widget = malloc(sizeof(struct WidgetToolbar));
-
-    GtkWidget *toolbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    widget_add_class(toolbar, "toolbar");
-    gtk_widget_set_size_request(toolbar, -1, 45); // width height
-
-    widget->toolbar = toolbar;
-
-    // main buttons
-
-    GtkWidget *button_open = gtk_button_new_from_icon_name(
-        "@toolbar-open", GTK_ICON_SIZE_LARGE_TOOLBAR
-    );
-    gtk_button_set_label(GTK_BUTTON(button_open), "Ouvrir");
-    widget_add_class(button_open, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button_open), TRUE);
-
-    widget->button_open = button_open;
-
-    GtkWidget *button_save = gtk_button_new_from_icon_name(
-        "@toolbar-save", GTK_ICON_SIZE_LARGE_TOOLBAR
-    );
-    gtk_button_set_label(GTK_BUTTON(button_save), "Enregistrer");
-    widget_add_class(button_save, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button_save), TRUE);
-
-    widget->button_save = button_save;
-
-    GtkWidget *button_new = gtk_button_new_from_icon_name(
-        "@toolbar-new", GTK_ICON_SIZE_LARGE_TOOLBAR
-    );
-    gtk_button_set_label(GTK_BUTTON(button_new), "Ajouter un film");
-    widget_add_class(button_new, "toolbar-button");
-    gtk_button_set_always_show_image(GTK_BUTTON(button_new), TRUE);
-
-    widget->button_new = button_new;
-
-    gtk_box_pack_start(GTK_BOX(toolbar), button_open, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(toolbar), button_save, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(toolbar), button_new, FALSE, FALSE, 0);
-
-    // add movie provider selection todo
-
-    GtkWidget *providers = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-
-    widget->providers = providers;
-
-    GtkWidget *tmdben = gtk_radio_button_new_with_label(NULL, "TMDb EN");
-    widget_add_class(tmdben, "toolbar-button");
-    widget_add_class(tmdben, "toolbar-provider");
-    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(tmdben), FALSE);
-    g_signal_connect(tmdben, "toggled", G_CALLBACK(signal_toolbar_provider_change), "tmdb-en");
-
-    GtkWidget *tmdbfr = gtk_radio_button_new_with_label_from_widget(GTK_RADIO_BUTTON(tmdben), "TMDb FR");
-    widget_add_class(tmdbfr, "toolbar-button");
-    widget_add_class(tmdbfr, "toolbar-provider");
-    gtk_toggle_button_set_mode(GTK_TOGGLE_BUTTON(tmdbfr), FALSE);
-    g_signal_connect(tmdbfr, "toggled", G_CALLBACK(signal_toolbar_provider_change), "tmdb-fr");
-
-    gtk_container_add(GTK_CONTAINER(providers), tmdben);
-    gtk_container_add(GTK_CONTAINER(providers), tmdbfr);
-
-    gtk_box_pack_end(GTK_BOX(toolbar), providers, FALSE, FALSE, 0);
-
-    return widget;
-}
 
 static struct WidgetSidebar *widget_sidebar_new() {
 
@@ -606,7 +160,7 @@ static struct WidgetSidebar *widget_sidebar_new() {
     widget_add_class(search_entry, "searchbar-entry");
     gtk_entry_set_placeholder_text(GTK_ENTRY(search_entry), "Recherche");
     gtk_entry_set_icon_from_icon_name(GTK_ENTRY(search_entry), GTK_ENTRY_ICON_PRIMARY, "@edit-find");
-    gtk_widget_set_hexpand(GTK_WIDGET(search_entry), FALSE);
+    gtk_widget_set_hexpand(GTK_WIDGET(search_entry), false);
 
     widget->search_entry = search_entry;
 
@@ -628,8 +182,8 @@ static struct WidgetSidebar *widget_sidebar_new() {
     gtk_container_add(GTK_CONTAINER(scrolled_frame), list_items);
 
     // Add all elements to sidebar
-    gtk_box_pack_start(GTK_BOX(sidebar), search_box, FALSE, FALSE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(sidebar), scrolled_frame, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(sidebar), search_box, false, false, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(sidebar), scrolled_frame, true, true, 0);
 
     return widget;
 }
@@ -653,7 +207,7 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
 
     GtkWidget *label = gtk_label_new(label_text);
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
-    // gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+    // gtk_label_set_line_wrap(GTK_LABEL(label), true);
     // align left, verticial center
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
     gtk_label_set_yalign(GTK_LABEL(label), 0.5);
@@ -663,8 +217,8 @@ static struct WidgetSidebarItem *widget_sidebar_item_new(char *item_id, char *la
     GtkWidget *favorite_icon = gtk_image_new_from_icon_name("@emblem-favorite", GTK_ICON_SIZE_SMALL_TOOLBAR);
     widget->favorite_icon = favorite_icon;
 
-    gtk_box_pack_start(GTK_BOX(list_box), label, TRUE, TRUE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(list_box), favorite_icon, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(list_box), label, true, true, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(list_box), favorite_icon, false, false, 0);
 
     gtk_container_add(GTK_CONTAINER(list_row), list_box);
 
@@ -681,36 +235,6 @@ static void widget_sidebar_add_item(struct WidgetSidebar *sidebar, struct Widget
 
 
 
-static struct WidgetStatusbar *widget_statusbar_new() {
-
-    struct WidgetStatusbar *widget = malloc(sizeof(struct WidgetStatusbar));
-
-    GtkWidget *statusbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    widget_add_class(statusbar, "statusbar");
-
-    widget->statusbar = statusbar;
-
-    GtkWidget *label = gtk_label_new("");
-    widget_add_class(label, "statusbar-message");
-    gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
-
-    widget->label = label;
-
-    // align left, verticial center
-    gtk_label_set_xalign(GTK_LABEL(label), 0.0);
-    gtk_label_set_yalign(GTK_LABEL(label), 0.5);
-
-    gtk_widget_set_size_request(statusbar, -1, 30); // width height
-
-    gtk_container_add(GTK_CONTAINER(statusbar), label);
-
-    return widget;
-}
-
-static void widget_statusbar_set_text(struct WidgetStatusbar *statusbar, const char *text) {
-    gtk_label_set_text(GTK_LABEL(statusbar->label), text);
-}
-
 
 
 
@@ -722,9 +246,9 @@ static struct WidgetPanels *widget_panels_new() {
 
     // show tabs only if dev mode
     #if !PACKAGE_DEVELOPER_MODE
-        gtk_notebook_set_show_tabs(GTK_NOTEBOOK(panels), FALSE);
+        gtk_notebook_set_show_tabs(GTK_NOTEBOOK(panels), false);
     #endif
-    gtk_notebook_set_show_border(GTK_NOTEBOOK(panels), FALSE);
+    gtk_notebook_set_show_border(GTK_NOTEBOOK(panels), false);
 
     widget->panels = panels;
 
@@ -816,7 +340,7 @@ static struct WidgetPanelEdition *widget_panel_edition_new() {
 static struct WidgetStarRating *widget_starrating_new() {
 
     struct WidgetStarRating *widget = malloc(sizeof(struct WidgetStarRating));
-    widget->interactive = TRUE;
+    widget->interactive = true;
 
     GtkWidget *box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     widget_add_class(box, "starrating");
@@ -845,7 +369,7 @@ static struct WidgetStarRating *widget_starrating_new() {
         
         widget->gtkstars[i] = button;
 
-        gtk_widget_set_visible(button, TRUE);
+        gtk_widget_set_visible(button, true);
         gtk_container_add(GTK_CONTAINER(box), button);
     }
 
@@ -912,210 +436,16 @@ static void widget_starrating_set_interactive(struct WidgetStarRating *stars, bo
     
 
 
-// simple message dialog
 
-static void dialog_message(GtkWindow *window, char *message, char *message2) {
 
-    GtkWidget *dialog = gtk_message_dialog_new(window,
-        GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
-        GTK_MESSAGE_INFO,
-        GTK_BUTTONS_OK,
-        message
-    );
 
-    if(message2 != NULL) {
-        gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s", message2);
-    }
 
-    gtk_dialog_run(GTK_DIALOG(dialog));
-    gtk_widget_destroy(dialog);
-}
 
-static char *dialog_file_chooser(char *existing_filename) {
-    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    char *selected_filename = NULL;
 
-    GtkWidget *dialog = gtk_file_chooser_dialog_new(
-        "Ouvrir un fichier", NULL, action, // title
-        "Annuler", GTK_RESPONSE_CANCEL,
-        "Ouvrir", GTK_RESPONSE_ACCEPT,
-        NULL
-    );
-    gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), FALSE);
 
-    GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
 
-    GtkFileFilter *filter = gtk_file_filter_new();
-    gtk_file_filter_add_mime_type(filter, "application/ndjson");
-    gtk_file_filter_add_mime_type(filter, "application/json");
-    gtk_file_filter_add_mime_type(filter, "text/plain");
-    gtk_file_chooser_set_filter(chooser, filter);
 
-    if(existing_filename != NULL) { // file already exist
-        gtk_file_chooser_set_filename(chooser, existing_filename);
-    }
 
-    int status = gtk_dialog_run(GTK_DIALOG(dialog));
-
-    if(status == GTK_RESPONSE_ACCEPT) {
-        selected_filename = gtk_file_chooser_get_filename(chooser);
-    }
-
-    gtk_widget_destroy(dialog);
-
-    return selected_filename;
-}
-
-static char *show_save_dialog(char *existing_filename) {
-    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
-    char *selected_filename = NULL;
-
-    GtkWidget *dialog = gtk_file_chooser_dialog_new(
-        "Ouvrir un fichier", NULL, action, // title
-        "Annuler", GTK_RESPONSE_CANCEL,
-        "Enregistrer", GTK_RESPONSE_ACCEPT,
-        NULL
-    );
-
-    GtkFileChooser *chooser = GTK_FILE_CHOOSER(dialog);
-
-    GtkFileFilter *filter = gtk_file_filter_new();
-    gtk_file_filter_add_mime_type(filter, "application/ndjson");
-    gtk_file_filter_add_mime_type(filter, "application/json");
-    gtk_file_filter_add_mime_type(filter, "text/plain");
-    gtk_file_chooser_set_filter(chooser, filter);
-
-    if(existing_filename != NULL) { // file already exist
-        gtk_file_chooser_set_do_overwrite_confirmation(chooser, TRUE);
-        gtk_file_chooser_set_filename(chooser, existing_filename);
-    } else {
-        gtk_file_chooser_set_current_name(chooser, "MyCollection.ndjson");
-    }
-
-    int status = gtk_dialog_run(GTK_DIALOG(dialog));
-
-    if(status == GTK_RESPONSE_ACCEPT) {
-        selected_filename = gtk_file_chooser_get_filename(chooser);
-    }
-
-    gtk_widget_destroy(dialog);
-
-    return selected_filename;
-}
-
-
-
-
-
-
-
-
-
-
-
-static void signal_toolbar_open(GtkButton *button, gpointer user_data) {
-
-    const char *filename = dialog_file_chooser(NULL);
-
-    if(filename == NULL) {
-        return;
-    }
-
-    // struct MovieCollection *storageMovies = NULL;
-
-    GError *error = NULL;
-    FILE *stream = fopen(filename, "rb");
-
-    if(!movie_collection_new_from(stream, &error)) {
-
-        #if PACKAGE_DEVELOPER_MODE
-            g_message("%s %s", __func__, error->message);
-        #endif
-        
-        GtkWidget *toplevel = gtk_widget_get_toplevel(GTK_WIDGET(button));
-        dialog_message(GTK_WINDOW(toplevel), "Could not open file", error->message);
-    
-        g_clear_error(&error); //todo check
-    }
-
-    fclose(stream);
-    g_free((char*) filename);
-}
-
-static void signal_toolbar_save(GtkButton *button, gpointer user_data) {
-
-    const char *filename = show_save_dialog(NULL);
-
-    if(filename == NULL) {
-        return;
-    }
-
-    GError *error = NULL;
-    bool save = movie_collection_save(filename, &error);
-
-
-//todo if already set
-
-g_message("filename %s", filename);
-}
-
-static void signal_toolbar_new(GtkButton *button, gpointer user_data) {
-
-//todo
-}
-
-
-
-
-
-
-
-
-
-
-
-
-static void show_interactive_dialog(MovieApplication *app) {
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-int main(int argc, char *argv[]) {
-
-    #if PACKAGE_DEVELOPER_MODE
-        MESSAGE("Dev mode");
-        // inspector debug
-        putenv("GTK_DEBUG=fatal-warnings");
-        putenv("GOBJECT_DEBUG=instance-count");
-        // putenv("G_ENABLE_DIAGNOSTIC=1");
-    #endif
-
-    int status;
-
-    MovieApplication *app = movie_application_new(
-        PACKAGE_APPLICATION_ID,
-        G_APPLICATION_FLAGS_NONE //| G_APPLICATION_HANDLES_COMMAND_LINE | G_APPLICATION_HANDLES_OPEN
-    );
-
-    status = g_application_run(G_APPLICATION(app), argc, argv);
-
-    g_object_unref(app);
-
-    return status;
-}
 
 
 

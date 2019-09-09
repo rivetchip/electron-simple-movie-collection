@@ -26,47 +26,53 @@
 
 
 
+struct WidgetSidebarItem {
+    GtkWidget *list_row; // container
+    GtkWidget *label;
+    GtkWidget *favorite_icon;
+};
+
 ////////////////////
 
-struct MoviesMetadata {
-    int version;
-    char *created;
-    char *imported;
-    char *source;
+struct WidgetPanels {
+    GtkWidget *panels; // container
+    GtkWidget *panel_welcome;
+    GtkWidget *panel_preview;
+    GtkWidget *panel_edition;
 };
 
-struct Movie {
-    char *title;
-    bool favorite;
-    int rating; // /100
-    char *tagline;
-    char *originalTitle;
-    int ratingPress;
-    int duration; // minutes
-    char *dateReleased;
-    char *dateCreated;
-    char *dateModified;
-    char *poster;
-    char *description;
-    char *comment;
-    char *director;
-    char **countries; // array
-    char *genres; // array
-    char **actors; // array[][2]
-    char *serie;
-    char **companies; // array
-    char *keywords; // array
-    char *source;
-    int sourceId;
-    char *webPage;
+struct WidgetPanelWelcome {
+    GtkWidget *panel; // container
+
 };
 
-struct MoviesStorage {
-    size_t size;
-    struct MoviesMetadata *metadata;
-    vector *movies; // array[Movie]
+struct WidgetPanelPreview {
+    GtkWidget *panel; // container
+    struct WidgetStarRating *widget_starrating;
+
 };
 
+struct WidgetPanelEdition {
+    GtkWidget *panel; // container
+    struct WidgetStarRating *widget_starrating;
+
+};
+
+////////////////////
+
+struct WidgetStatusbar {
+    GtkWidget *statusbar; // container
+    GtkWidget *label;
+};
+
+////////////////////
+
+struct WidgetStarRating {
+    GtkWidget *starrating; // container
+    bool interactive; // can be clickable
+    int rating;
+    GtkWidget *gtkstars[5]; //buttons
+};
 
 
 #ifdef  __cplusplus
