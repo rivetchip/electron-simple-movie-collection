@@ -56,8 +56,7 @@ pkgappsdir = join_paths(datadir, 'applications')
 # C source files
 csources = [
     'main.c',
-    'csources/vector.c',
-    'csources/fetchmovie.c',
+    # 'csources/fetchmovie.c',
     'csources/application.c',
     'csources/window.c',
     'csources/dialogs.c',

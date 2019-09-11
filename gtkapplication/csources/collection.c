@@ -13,9 +13,10 @@ struct _MoviesList {
     char *meta_imported;
     char *meta_source;
 
-    unsigned int capacity;
-    unsigned int total;
-    Movie **movies;
+    GSequence *movies;
+    // cache
+    GSequenceIter *last_iter;
+    unsigned int last_position;
 };
 
 // internals
@@ -23,7 +24,13 @@ static void movies_list_iface_init(GListModelInterface *iface);
 static GType list_iface_get_item_type(GListModel *list);
 static guint list_iface_get_n_items(GListModel *list);
 static gpointer list_iface_get_item(GListModel *list, guint position);
+static void list_iface_dispose(GObject *object);
+
 static void list_items_changed(MoviesList *list, unsigned int position, unsigned int removed, unsigned int added);
+
+static bool json_metadata_parse(JsonObject *object, MoviesList *list);
+static bool json_node_parse(JsonObject *object, Movie *movie);
+static size_t getline(FILE *stream, char **lineptr, size_t *n);
 
 G_DEFINE_TYPE_EXTENDED(MoviesList, movies_list, G_TYPE_OBJECT, 0,
     G_IMPLEMENT_INTERFACE(G_TYPE_LIST_MODEL, movies_list_iface_init)
@@ -31,12 +38,6 @@ G_DEFINE_TYPE_EXTENDED(MoviesList, movies_list, G_TYPE_OBJECT, 0,
 // G_DEFINE_TYPE_WITH_CODE(MoviesList, movies_list, G_TYPE_OBJECT,
 //     G_IMPLEMENT_INTERFACE(G_TYPE_LIST_MODEL, movies_list_iface_init)
 // );
-
-static bool list_resize(MoviesList *list, unsigned int capacity);
-static bool json_metadata_parse(JsonObject *object, MoviesList *list);
-static bool json_node_parse(JsonObject *object, Movie *movie);
-static size_t getline(FILE *stream, char **lineptr, size_t *n);
-// static bool str_equal(const char *string1, const char *string2);
 
 static void movies_list_iface_init(GListModelInterface *iface) {
     iface->get_item_type = list_iface_get_item_type;
@@ -46,136 +47,135 @@ static void movies_list_iface_init(GListModelInterface *iface) {
 
 static guint list_iface_get_n_items(GListModel *glist) {
     MoviesList *list = MOVIES_LIST(glist);
-
-    g_message("%s %i", __func__, movies_list_total(list));
-
-    return movies_list_total(list);
+    return g_sequence_get_length(list->movies);
 }
 
 static GType list_iface_get_item_type(GListModel *glist) {
     return G_TYPE_POINTER;
 }
+
 static gpointer list_iface_get_item(GListModel *glist, guint position) {
     g_message("%s %i", __func__, position);
 
     MoviesList *list = MOVIES_LIST(glist);
-    Movie *movie = movies_list_get(list, position);
-    return movie;
+    GSequenceIter *iter = NULL;
+
+    if(list->last_iter) {
+        if(position < G_MAXUINT && list->last_position == position + 1) {
+            iter = g_sequence_iter_prev(list->last_iter);
+        }
+        else if(position > 0 && list->last_position == position - 1) {
+            iter = g_sequence_iter_next(list->last_iter);
+        }
+        else if(list->last_position == position) {
+            iter = list->last_iter;
+        }
+    } else {
+        iter = g_sequence_get_iter_at_pos(list->movies, position);
+    }
+
+    list->last_iter = iter;
+    list->last_position = position;
+
+    if(!g_sequence_iter_is_end(iter)) { //todo retirn iter instead?
+        return g_object_ref(g_sequence_get(iter));
+    }
+    return NULL;
+}
+
+static void list_iface_dispose(GObject *object) {
+    MoviesList *list = MOVIES_LIST(object);
+    g_clear_pointer(&list->movies, g_sequence_free);
 }
 
 static void movies_list_class_init(MoviesListClass *klass) {
-    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    object_class->dispose = list_iface_dispose;
 }
 
 static void movies_list_init(MoviesList *list) {
-    list->capacity = 20;
-    list->total = 0;
-    list->movies = malloc(sizeof(Movie*) * list->capacity);
+    list->movies = g_sequence_new(g_object_unref);
+    list->last_position = 0;
 }
+
 
 static void list_items_changed(MoviesList *list, unsigned int position, unsigned int removed, unsigned int added) {
+    // check if the iter cache may have been invalidated
+    if(position <= list->last_position) {
+        list->last_iter = NULL;
+        list->last_position = 0;
+    }
+
     g_list_model_items_changed(G_LIST_MODEL(list), position, removed, added);
 }
-
 
 MoviesList *movies_list_new() {
     return g_object_new(movies_list_get_type(), NULL);
 }
 
-unsigned int movies_list_total(MoviesList *list) {
-    return list->total;
+GSequenceIter *movies_list_append(MoviesList *list, Movie *movie) {
+    int n_items = g_sequence_get_length(list->movies);
+    GSequenceIter *iter = g_sequence_append(list->movies, g_object_ref(movie));
+
+    list_items_changed(list, n_items, 0, 1);
+    return iter;
 }
 
-static bool list_resize(MoviesList *list, unsigned int capacity) {
-    printf("list resize: %u to %u\n", list->capacity, capacity);
+GSequenceIter *movies_list_insert(MoviesList *list, Movie *movie, unsigned int position) {
+    g_return_val_if_fail(position <= g_sequence_get_length(list->movies), NULL);
 
-    Movie **movies;
-    if((movies = realloc(list->movies, sizeof(Movie*) * capacity)) != NULL) {
-        list->movies = movies;
-        list->capacity = capacity;
-        return true;
-    }
-    return false;
+    GSequenceIter *iter = g_sequence_get_iter_at_pos(list->movies, position);
+    g_sequence_insert_before(iter, g_object_ref(movie));
+
+    list_items_changed(list, position, 0, 1);
+    return iter;
 }
 
-bool movies_list_add(MoviesList *list, Movie *movie, unsigned int *index) {
-    if(list->capacity == list->total) {
-        if(!list_resize(list, list->capacity * 2)) {
-            return false;
-        }
-    }
-    list->movies[list->total++] = movie;
+GSequenceIter *movies_list_append_sorted(MoviesList *list, Movie *movie, GCompareDataFunc compare_func, gpointer user_data) {
 
-    *index = (list->total - 1); // return last key
+    GSequenceIter *iter = g_sequence_insert_sorted(list->movies, g_object_ref(movie),
+        compare_func, user_data
+    );
+    unsigned int position = g_sequence_iter_get_position(iter);
 
-    list_items_changed(list, *index, 0, 1);
+    list_items_changed(list, position, 0, 1);
+    return iter;
+}
+
+bool movies_list_remove(MoviesList *list, GSequenceIter *iter) {
+    g_return_val_if_fail(!g_sequence_iter_is_end(iter), false);
+
+    unsigned int position = g_sequence_iter_get_position(iter);
+    g_sequence_remove(iter);
+
+    list_items_changed(list, position, 1, 0);
     return true;
-}
-
-bool movies_list_set(MoviesList *list, unsigned int index, Movie *movie) {
-    if(index >= 0 && index < list->total) {
-        list->movies[index] = movie;
-
-        list_items_changed(list, index, 0, 1);
-        return true;
-    }
-    return false;
-}
-
-Movie *movies_list_get(MoviesList *list, unsigned int index) {
-    // g_message("%s %d", __func__, index);
-
-    if(index >= 0 && index < list->total) {
-        return list->movies[index];
-    }
-    return NULL;
-}
-
-bool movies_list_remove(MoviesList *list, unsigned int index) {
-    if(index < 0 || index >= list->total) {
-        return false;
-    }
-
-    // we dont shift the collection, to preserve keys (todo)
-    if(list->movies[index] != NULL) {
-        list->movies[index] = NULL;
-        list_items_changed(list, index, 1, 0);
-    }
-
-    // if quarter full the contents is reallocated to a vector of half the current size
-    if(list->total > 0 && list->total == list->capacity / 4) {
-        if(!list_resize(list, list->capacity / 2)) {
-            return false;
-        }
-    }
-    return false;
 }
 
 bool movies_list_remove_all(MoviesList *list) {
-    // unsigned int removed;
-    // if((removed = movies_list_total(list)) > 0) {
-    //     Movie *movie;
-    //     for(unsigned int i = 0; i < removed - 1; i++) {
-    //         if((movie = movies_list_get(list, i)) != NULL) {
-    //             movies_list_remove(list, i);
-    //             // movie_destroy(movie);
-    //             g_message(">>>>DESTR %s %d", __func__, i);
-    //         }
-    //     }
+    int n_items;
+    if((n_items = g_sequence_get_length(list->movies)) > 0) {
+        g_sequence_remove_range(
+            g_sequence_get_begin_iter(list->movies),
+            g_sequence_get_end_iter(list->movies)
+        );
 
-    //     list->total = 0; // reinit
-    //     list_items_changed(list, 0, removed, 0);
-    // }
-
+        list_items_changed(list, 0, n_items, 0);
+    }
     return true;
 }
 
-void movies_list_destroy(MoviesList *list) {
-    movies_list_remove_all(list);
-    free(list->movies);
+bool movies_list_sort(MoviesList *list, GCompareDataFunc compare_func, gpointer user_data) {
+    g_sequence_sort(list->movies, compare_func, user_data);
+
+    int n_items = g_sequence_get_length(list->movies);
+
+    list_items_changed(list, 0, n_items, n_items);
+    return true;
 }
 
-bool movies_list_from_stream(MoviesList *list, FILE *stream, GError **error) {
+
+bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
     size_t line_size = 0;
     char *line = NULL;
     size_t read = 0;
@@ -210,12 +210,12 @@ bool movies_list_from_stream(MoviesList *list, FILE *stream, GError **error) {
                     continue;
                 }
 
-                unsigned int index;
-                if(!movies_list_add(list, movie, &index)) {
+                GSequenceIter *iter;
+                if(!(iter = movies_list_append(list, movie))) {
                     g_warning("%s: Could not add @ %zu", __func__, line_number);
                     continue;
                 }
-                g_message(">> ADD %s %d", movie->title, index);
+                // g_message(">> ADD %s %d", movie->title, g_sequence_iter_get_position(iter));
             }
             break;
         }
@@ -229,21 +229,7 @@ bool movies_list_from_stream(MoviesList *list, FILE *stream, GError **error) {
     return true;
 }
 
-bool movies_list_foreach(MoviesList *list, unsigned int *index, Movie **movie) {
-    if((*index > 0 && *index > list->total) || list->total == 0) {
-        return false; // out of bounds
-    }
-    // loop from index to end, find the next found item
-    Movie *temp;
-    for(unsigned int i = *index; i < list->total - 1; i++) {
-        (*index)++; // next
-        if((temp = movies_list_get(list, i)) != NULL) {
-            *movie = temp;
-            return true;
-        }
-    }
-    return false;
-}
+
 
 
 

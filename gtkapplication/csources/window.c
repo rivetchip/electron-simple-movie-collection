@@ -360,7 +360,7 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     // destroy previous colection if any
     movies_list_remove_all(movies_list);
 
-    if(!(movies_list_from_stream(movies_list, stream, &error))) {
+    if(!(movies_list_stream(movies_list, stream, &error))) {
         g_warning("%s %s", __func__, error->message);
 
         dialog_message(GTK_WINDOW(window),
@@ -404,14 +404,12 @@ static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, M
 }
 
 static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data) {
-
     MovieWindow *window = MOVIE_WINDOW(user_data);
     Movie *movie = MOVIE(item);
 
     GtkWidget *widget = widget_sidebar_listbox_widget(window->sidebar,
         123, movie->title, movie->favorite
     );
-    //todo
 
     return widget;
 }

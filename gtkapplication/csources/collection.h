@@ -29,26 +29,17 @@ inline MoviesList *MOVIES_LIST(gpointer ptr) {
 }
 
 // public functions
-unsigned int movies_list_total(MoviesList *list);
-Movie *movies_list_get(MoviesList *list, unsigned int index);
+MoviesList *movies_list_new();
 
-bool movies_list_add(MoviesList *list, Movie *movie, unsigned int *index);
-bool movies_list_set(MoviesList *list, unsigned int index, Movie *movie);
-bool movies_list_remove(MoviesList *list, unsigned int index);
+GSequenceIter *movies_list_append(MoviesList *list, Movie *movie);
+GSequenceIter *movies_list_insert(MoviesList *list, Movie *movie, unsigned int position);
+GSequenceIter *movies_list_append_sorted(MoviesList *list, Movie *movie, GCompareDataFunc compare_func, gpointer user_data);
+
+bool movies_list_remove(MoviesList *list, GSequenceIter *iter);
 bool movies_list_remove_all(MoviesList *list);
-void movies_list_destroy(MoviesList *list);
 
-bool movies_list_foreach(MoviesList *list, unsigned int *index, Movie **movie);
-
-bool movies_list_from_stream(MoviesList *list, FILE *stream, GError **error);
-
-
-
-
-//todo: while
-// char *movies_list_stringify(MoviesList *list);
-
-//todo: use size_t everywhere
+bool movies_list_sort(MoviesList *list, GCompareDataFunc compare_func, gpointer user_data);
+bool movies_list_stream(MoviesList *list, FILE *stream, GError **error);
 
 
 
