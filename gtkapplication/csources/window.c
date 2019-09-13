@@ -52,7 +52,8 @@ static void signal_toolbar_new(WidgetToolbar *toolbar, MovieWindow *window);
 static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window);
 // sidebar
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
-static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
+static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
+static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window);
 static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data);
 
 
@@ -152,7 +153,7 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
     g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
     g_signal_connect(toolbar, "new", G_CALLBACK(signal_toolbar_new), window);
-    g_signal_connect(toolbar, "source-changed", G_CALLBACK(signal_toolbar_source), window);
+    g_signal_connect(toolbar, "source", G_CALLBACK(signal_toolbar_source), window);
 
     // status bar on the bottom
     WidgetStatusbar *statusbar = movie_application_new_statusbar();
@@ -174,7 +175,8 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     WidgetSidebar *sidebar = movie_application_new_sidebar();
     window->sidebar = sidebar;
 
-    g_signal_connect(sidebar, "search-keyword", G_CALLBACK(signal_search_keyword), window);
+    g_signal_connect(sidebar, "search", G_CALLBACK(signal_sidebar_search), window);
+    g_signal_connect(sidebar, "selected", G_CALLBACK(signal_sidebar_selected), window);
 
     // bind collection to model
     widget_sidebar_listbox_bind_model(window->sidebar,
@@ -399,17 +401,39 @@ static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_nam
 
 ///// SIDEBAR
 
-static void signal_search_keyword(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window) {
+static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window) {
     g_message("%s %s", __func__, keyword);
+
+
+}
+
+static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window) {
+    g_message("%s", __func__);
+
+
 }
 
 static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data) {
-    MovieWindow *window = MOVIE_WINDOW(user_data);
-    Movie *movie = MOVIE(item);
+    g_message(__func__);
 
-    GtkWidget *widget = widget_sidebar_listbox_widget(window->sidebar,
-        123, movie->title, movie->favorite
-    );
+    // MovieWindow *window = MOVIE_WINDOW(user_data);
+    // MoviesList *movies_list = window->movies_list;
+
+    // GSequenceIter *iter = (GSequenceIter*) item;
+
+    // Movie *movie = g_sequence_get(iter);
+
+
+
+    GtkWidget *widget = gtk_list_box_row_new();
+    gtk_widget_set_visible(widget, true);
+
+    // GtkWidget *widget = widget_sidebar_listbox_widget(
+    //     window->sidebar, iter, movie->title, movie->favorite
+    // );
+
+    // bool visible = movie_is_visible(movie);
+    // gtk_widget_set_visible(widget, true);
 
     return widget;
 }

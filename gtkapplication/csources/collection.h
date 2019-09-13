@@ -39,6 +39,8 @@ bool movies_list_remove(MoviesList *list, GSequenceIter *iter);
 bool movies_list_remove_all(MoviesList *list);
 
 bool movies_list_sort(MoviesList *list, GCompareDataFunc compare_func, gpointer user_data);
+bool movies_list_search_keyword(MoviesList *list, const char *keyword);
+
 bool movies_list_stream(MoviesList *list, FILE *stream, GError **error);
 
 

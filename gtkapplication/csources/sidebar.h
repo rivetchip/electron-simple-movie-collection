@@ -25,8 +25,7 @@ WidgetSidebar *widget_sidebar_new();
 WidgetSidebar *movie_application_new_sidebar();
 // items
 void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model, GtkListBoxCreateWidgetFunc create_widget_func, gpointer user_data, GDestroyNotify user_data_free_func);
-GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, int movieId, char *title, bool is_favorite);
-
+GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, GSequenceIter *iter, char *title, bool is_favorite);
 
 #ifdef  __cplusplus
     } // extern c

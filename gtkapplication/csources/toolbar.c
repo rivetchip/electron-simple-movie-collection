@@ -17,7 +17,7 @@ enum {
     SIGNAL_OPEN,
     SIGNAL_SAVE,
     SIGNAL_NEW,
-    SIGNAL_SOURCE_CHANGED,
+    SIGNAL_SOURCE,
 	SIGNAL_LAST
 };
 static int signals[SIGNAL_LAST];
@@ -30,7 +30,7 @@ static GtkWidget *create_source_radio(const char *label, char *source_name, GCal
 static void signal_open(GtkButton *button, WidgetToolbar *toolbar);
 static void signal_save(GtkButton *button, WidgetToolbar *toolbar);
 static void signal_new(GtkButton *button, WidgetToolbar *toolbar);
-static void signal_source_change(GtkToggleButton *togglebutton, WidgetToolbar *toolbar);
+static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *toolbar);
 
 
 static void widget_toolbar_init(WidgetToolbar *widget) {
@@ -68,7 +68,7 @@ static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
         0 // params
     );
 
-    signals[SIGNAL_SOURCE_CHANGED] = g_signal_new("source-changed",
+    signals[SIGNAL_SOURCE] = g_signal_new("source",
         G_OBJECT_CLASS_TYPE(object_class),
         G_SIGNAL_RUN_FIRST,
         0, // offset
@@ -117,10 +117,10 @@ WidgetToolbar *movie_application_new_toolbar() {
     GtkWidget *sourcesbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
     GtkWidget *tmdben = create_source_radio("TMDb EN", "tmdb-en",
-        G_CALLBACK(signal_source_change), widget
+        G_CALLBACK(signal_source_changed), widget
     );
     GtkWidget *tmdbfr = create_source_radio("TMDb FR", "tmdb-fr",
-        G_CALLBACK(signal_source_change), widget
+        G_CALLBACK(signal_source_changed), widget
     );
 
     gtk_radio_button_join_group(GTK_RADIO_BUTTON(tmdbfr), GTK_RADIO_BUTTON(tmdben)); //radio,source
@@ -176,11 +176,11 @@ static void signal_new(GtkButton *button, WidgetToolbar *toolbar) {
     g_signal_emit(toolbar, signals[SIGNAL_NEW], 0);
 }
 
-static void signal_source_change(GtkToggleButton *togglebutton, WidgetToolbar *toolbar) {
+static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *toolbar) {
     bool is_active = gtk_toggle_button_get_active(togglebutton);
     
     if(is_active) {
         const char *source_name = g_object_get_data(G_OBJECT(GTK_WIDGET(togglebutton)), "source");
-        g_signal_emit(toolbar, signals[SIGNAL_SOURCE_CHANGED], 0, source_name);
+        g_signal_emit(toolbar, signals[SIGNAL_SOURCE], 0, source_name);
     }
 }

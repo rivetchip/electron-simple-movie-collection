@@ -22,6 +22,13 @@ Movie *movie_new() {
     return movie;
 }
 
+bool movie_is_visible(Movie *movie) {
+    return movie->widget_visible;
+}
+void movie_set_visible(Movie *movie, bool visible) {
+    movie->widget_visible = visible;
+}
+
 void movie_destroy(Movie *movie) {
     free(movie->title);
     //todo

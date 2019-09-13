@@ -1,5 +1,6 @@
 #include "collection.h"
 #include <json-glib/json-glib.h>
+#include <string.h>
 
 // type definition
 struct _MoviesListClass {
@@ -77,7 +78,7 @@ static gpointer list_iface_get_item(GListModel *glist, guint position) {
     list->last_iter = iter;
     list->last_position = position;
 
-    if(!g_sequence_iter_is_end(iter)) { //todo retirn iter instead?
+    if(!g_sequence_iter_is_end(iter)) {
         return g_object_ref(g_sequence_get(iter));
     }
     return NULL;
@@ -174,6 +175,29 @@ bool movies_list_sort(MoviesList *list, GCompareDataFunc compare_func, gpointer 
     return true;
 }
 
+static void search_keyword_match(Movie *movie) {
+
+}
+
+bool movies_list_search_keyword(MoviesList *list, const char *keyword) {
+    // int n_items = g_sequence_get_length(list->movies);
+
+    // Movie *movie;
+    // GSequenceIter *iter;
+    // for(iter = g_sequence_get_begin_iter(list->movies); !g_sequence_iter_is_end(iter); iter = g_sequence_iter_next(iter)) {
+    //     movie = g_sequence_get(iter);
+
+    //     g_message(">> %s", movie->title);
+    // }
+
+    // list_items_changed(list, 0, n_items, n_items);
+    return true;
+}
+
+
+
+
+
 
 bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
     size_t line_size = 0;
@@ -211,7 +235,7 @@ bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
                 }
 
                 GSequenceIter *iter;
-                if(!(iter = movies_list_append(list, movie))) {
+                if((iter = movies_list_append(list, movie)) == NULL) {
                     g_warning("%s: Could not add @ %zu", __func__, line_number);
                     continue;
                 }
@@ -416,5 +440,9 @@ static size_t getline(FILE *stream, char **lineptr, size_t *n) {
 }
 
 // static bool str_equal(const char *string1, const char *string2) {
-//     return strcmp (string1, string2) == 0;
+//     return strcmp(string1, string2) == 0;
 // }
+static bool str_contains(const char *string1, const char *string2) {
+    return strstr(string1, string2) != NULL;
+}
+

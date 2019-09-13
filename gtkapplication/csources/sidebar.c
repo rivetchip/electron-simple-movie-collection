@@ -11,7 +11,8 @@ struct _WidgetSidebar {
 };
 
 enum {
-    SIGNAL_SEARCH_KEYWORD,
+    SIGNAL_SEARCH,
+    SIGNAL_SELECTED,
     SIGNAL_LAST
 };
 static int signals[SIGNAL_LAST];
@@ -23,8 +24,6 @@ static void signal_search_keyrelease(GtkEntry *entry, GdkEventKey *event, Widget
 static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar);
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar);
 static GtkWidget *list_create_placeholder();
-//items
-// static GtkWidget *listbox_row_new(int movieId, char *title, bool is_favorite);
 
 
 static void widget_sidebar_init(WidgetSidebar *self) {
@@ -35,13 +34,22 @@ static void widget_sidebar_class_init(WidgetSidebarClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
     // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 
-    signals[SIGNAL_SEARCH_KEYWORD] = g_signal_new("search-keyword",
+    signals[SIGNAL_SEARCH] = g_signal_new("search",
         G_OBJECT_CLASS_TYPE(object_class),
         G_SIGNAL_RUN_FIRST,
         0, // offset
         NULL, NULL, NULL, //accumulator, accu_data, c_marshaller
         G_TYPE_NONE, // return
         1, G_TYPE_STRING // params
+    );
+
+    signals[SIGNAL_SELECTED] = g_signal_new("selected",
+        G_OBJECT_CLASS_TYPE(object_class),
+        G_SIGNAL_RUN_FIRST,
+        0, // offset
+        NULL, NULL, NULL, //accumulator, accu_data, c_marshaller
+        G_TYPE_NONE, // return
+        1, G_TYPE_POINTER // params
     );
 }
 
@@ -103,18 +111,18 @@ static void signal_search_keyrelease(GtkEntry *entry, GdkEventKey *event, Widget
     if(event->keyval == GDK_KEY_Escape) {
         gtk_entry_set_text(entry, ""); // empty
     }
+    //todo
+    //g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, keyword);
 }
 
 static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar) {
     const char *keyword = gtk_entry_get_text(entry);
-    g_signal_emit(sidebar, signals[SIGNAL_SEARCH_KEYWORD], 0, keyword);
+    g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, keyword);
 }
 
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar) {
-
-    int movieId = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(listrow), "movieId"));
-
-    g_message("%s %d", __func__, movieId); //todo
+    gpointer iter = g_object_get_data(G_OBJECT(listrow), "iter");
+    g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, iter);
 }
 
 static GtkWidget *list_create_placeholder() { //todo
@@ -129,44 +137,35 @@ void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model
     gtk_list_box_bind_model(GTK_LIST_BOX(sidebar->listbox), model, create_widget_func, user_data, user_data_free_func);
 }
 
-GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, int movieId, char *title, bool is_favorite) {
+GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, GSequenceIter *iter, char *title, bool is_favorite) {
 
     GtkWidget *widget = gtk_list_box_row_new();
     widget_add_class(widget, "category-item");
 
-    g_object_set_data(G_OBJECT(widget), "movieId", GINT_TO_POINTER(movieId));
+    // g_object_set_data_full(G_OBJECT(widget), "iter", iter, g_object_unref);
+    // g_object_set_data(G_OBJECT(widget), "iter", iter);
+
 
     // elements inside row
     GtkWidget *list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_visible(list_box, true);
 
     GtkWidget *label = gtk_label_new(title);
+    gtk_widget_set_visible(label, true);
     gtk_label_set_ellipsize(GTK_LABEL(label), PANGO_ELLIPSIZE_END);
     // gtk_label_set_line_wrap(GTK_LABEL(label), TRUE);
+
     // align left, verticial center
     gtk_label_set_xalign(GTK_LABEL(label), 0.0);
     gtk_label_set_yalign(GTK_LABEL(label), 0.5);
 
-    GtkWidget *favorite_icon = gtk_image_new_from_icon_name("@emblem-favorite", GTK_ICON_SIZE_SMALL_TOOLBAR);
+    GtkWidget *icon_fav = gtk_image_new_from_icon_name("@emblem-favorite", GTK_ICON_SIZE_SMALL_TOOLBAR);
+    gtk_widget_set_visible(icon_fav, is_favorite);
 
-    gtk_box_pack_start(GTK_BOX(list_box), label, TRUE, TRUE, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(list_box), favorite_icon, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(list_box), label, true, true, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(list_box), icon_fav, false, false, 0);
 
     gtk_container_add(GTK_CONTAINER(widget), list_box);
 
-    gtk_widget_show_all(widget);
-    gtk_widget_set_visible(favorite_icon, is_favorite);
-
     return widget;
 }
-
-
-
-// GList *children, *iter;
-
-// children = gtk_container_get_children(GTK_CONTAINER(container));
-// for(iter = children; iter != NULL; iter = g_list_next(iter))
-//   gtk_widget_destroy(GTK_WIDGET(iter->data));
-// g_list_free(children);
-
-
-//todo :add_item
