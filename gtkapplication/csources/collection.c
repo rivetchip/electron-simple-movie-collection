@@ -1,6 +1,6 @@
 #include "collection.h"
 #include <json-glib/json-glib.h>
-#include <string.h>
+// #include <string.h>
 #include <ctype.h>
 
 // type definition
@@ -23,24 +23,21 @@ struct _MoviesList {
 };
 
 // macros
-static char *stristr(const char *haystack, const char *needle) {
-    do {
-        const char* h = haystack;
-        const char* n = needle;
-        while(*n && tolower(*h) == tolower(*n)) {
-            h++;
-            n++;
-        }
-        if(*n == 0) {
-            return (char *) haystack;
-        }
-    } while(*haystack++);
+static int strncasecmp(const char *_l, const char *_r, size_t n) {
+    const unsigned char *l=(void *)_l, *r=(void *)_r;
+    if (!n--) return 0;
+    for (; *l && *r && n && (*l == *r || tolower(*l) == tolower(*r)); l++, r++, n--);
+    return tolower(*l) - tolower(*r);
+}
+static char *strcasestr(const char *h, const char *n) {
+    size_t l = strlen(n);
+    for (; *h; h++) if (!strncasecmp(h, n, l)) return (char *)h;
     return NULL;
 }
+#define strempty(str) (!(str) || !*(str))
+#define strequal(str1, str2) (strcmp(str1, str2) == 0)
+#define strcasecontains(str1, str2) (strcasestr(str1, str2) != NULL)
 
-#define str_empty(str) (!(str) || !*(str))
-#define str_equal(str1, str2) (strcmp(str1, str2) == 0)
-#define str_contains(str1, str2) (stristr(str1, str2) != NULL)
 // internals
 static void movies_list_iface_init(GListModelInterface *iface);
 static GType list_iface_get_item_type(GListModel *list);
@@ -209,7 +206,7 @@ bool movies_list_sort(MoviesList *list, GCompareDataFunc compare_func, gpointer 
 }
 
 static inline bool search_keyword_match(Movie *movie, const char *keyword) {
-    return (keyword == NULL || (movie->title != NULL && str_contains(movie->title, keyword)));
+    return (keyword == NULL || (movie->title != NULL && strcasecontains(movie->title, keyword)));
 }
 
 bool movies_list_search_keyword(MoviesList *list, const char *keyword) {
@@ -226,18 +223,16 @@ bool movies_list_search_keyword(MoviesList *list, const char *keyword) {
     list->access_prohibited = true;
 
     GSequenceIter *iter = begin;
-    unsigned int position;
 
     while(iter != end) {
         GSequenceIter *next = g_sequence_iter_next(iter);
 
         Movie *movie = g_sequence_get(iter);
-        position = g_sequence_iter_get_position(iter);
 
         bool visible = search_keyword_match(movie, keyword);
         movie_notify_visible(movie, visible);
 
-        // g_message(">> %s / %s / %s // %d", (visible?"X":"-"), keyword, movie->title, position);
+        // g_message(">> %s / %s / %s // %d", (visible?"X":"-"), keyword, movie->title, g_sequence_iter_get_position(iter));
 
         iter = next;
     }
