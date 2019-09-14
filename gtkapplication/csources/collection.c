@@ -1,6 +1,7 @@
 #include "collection.h"
 #include <json-glib/json-glib.h>
 #include <string.h>
+#include <ctype.h>
 
 // type definition
 struct _MoviesListClass {
@@ -16,19 +17,40 @@ struct _MoviesList {
 
     GSequence *movies;
     // cache
+    bool access_prohibited;
     GSequenceIter *last_iter;
     unsigned int last_position;
 };
 
+// macros
+static char *stristr(const char *haystack, const char *needle) {
+    do {
+        const char* h = haystack;
+        const char* n = needle;
+        while(*n && tolower(*h) == tolower(*n)) {
+            h++;
+            n++;
+        }
+        if(*n == 0) {
+            return (char *) haystack;
+        }
+    } while(*haystack++);
+    return NULL;
+}
+
+#define str_empty(str) (!(str) || !*(str))
+#define str_equal(str1, str2) (strcmp(str1, str2) == 0)
+#define str_contains(str1, str2) (stristr(str1, str2) != NULL)
 // internals
 static void movies_list_iface_init(GListModelInterface *iface);
 static GType list_iface_get_item_type(GListModel *list);
 static guint list_iface_get_n_items(GListModel *list);
 static gpointer list_iface_get_item(GListModel *list, guint position);
 static void list_iface_dispose(GObject *object);
-
+// events
+static bool check_seq_access(MoviesList *list);
 static void list_items_changed(MoviesList *list, unsigned int position, unsigned int removed, unsigned int added);
-
+// json parsing
 static bool json_metadata_parse(JsonObject *object, MoviesList *list);
 static bool json_node_parse(JsonObject *object, Movie *movie);
 static size_t getline(FILE *stream, char **lineptr, size_t *n);
@@ -56,7 +78,7 @@ static GType list_iface_get_item_type(GListModel *glist) {
 }
 
 static gpointer list_iface_get_item(GListModel *glist, guint position) {
-    g_message("%s %i", __func__, position);
+    // g_message("%s %i", __func__, position);
 
     MoviesList *list = MOVIES_LIST(glist);
     GSequenceIter *iter = NULL;
@@ -98,8 +120,16 @@ static void movies_list_class_init(MoviesListClass *klass) {
 static void movies_list_init(MoviesList *list) {
     list->movies = g_sequence_new(g_object_unref);
     list->last_position = 0;
+    list->access_prohibited = false;
 }
 
+static bool check_seq_access(MoviesList *list) {
+    if(G_UNLIKELY(list->access_prohibited)) {
+        g_warning("Accessing a sequence while it is being sorted or searched is not allowed");
+        return false;
+    }
+    return true;
+}
 
 static void list_items_changed(MoviesList *list, unsigned int position, unsigned int removed, unsigned int added) {
     // check if the iter cache may have been invalidated
@@ -118,10 +148,10 @@ MoviesList *movies_list_new() {
 }
 
 GSequenceIter *movies_list_append(MoviesList *list, Movie *movie) {
-    int n_items = g_sequence_get_length(list->movies);
     GSequenceIter *iter = g_sequence_append(list->movies, g_object_ref(movie));
+    int n_items = g_sequence_get_length(list->movies);
 
-    list_items_changed(list, n_items, 0, 1);
+    list_items_changed(list, (n_items-1), 0, 1);
     return iter;
 }
 
@@ -178,20 +208,41 @@ bool movies_list_sort(MoviesList *list, GCompareDataFunc compare_func, gpointer 
     return true;
 }
 
-static void search_keyword_match(Movie *movie) {
-
+static inline bool search_keyword_match(Movie *movie, const char *keyword) {
+    return (keyword == NULL || (movie->title != NULL && str_contains(movie->title, keyword)));
 }
 
 bool movies_list_search_keyword(MoviesList *list, const char *keyword) {
-    // int n_items = g_sequence_get_length(list->movies);
+    if(!check_seq_access(list)) {
+        return false;
+    }
 
-    // Movie *movie;
-    // GSequenceIter *iter;
-    // for(iter = g_sequence_get_begin_iter(list->movies); !g_sequence_iter_is_end(iter); iter = g_sequence_iter_next(iter)) {
-    //     movie = g_sequence_get(iter);
+    GSequenceIter *begin = g_sequence_get_begin_iter(list->movies);
+    GSequenceIter *end = g_sequence_get_end_iter(list->movies);
 
-    //     g_message(">> %s", movie->title);
-    // }
+    g_return_val_if_fail(begin != NULL, false);
+    g_return_val_if_fail(end != NULL, false);
+
+    list->access_prohibited = true;
+
+    GSequenceIter *iter = begin;
+    unsigned int position;
+
+    while(iter != end) {
+        GSequenceIter *next = g_sequence_iter_next(iter);
+
+        Movie *movie = g_sequence_get(iter);
+        position = g_sequence_iter_get_position(iter);
+
+        bool visible = search_keyword_match(movie, keyword);
+        movie_notify_visible(movie, visible);
+
+        // g_message(">> %s / %s / %s // %d", (visible?"X":"-"), keyword, movie->title, position);
+
+        iter = next;
+    }
+
+    list->access_prohibited = false;
 
     // list_items_changed(list, 0, n_items, n_items);
     return true;
@@ -208,7 +259,6 @@ bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
     size_t read = 0;
 
     JsonParser *parser = json_parser_new();
-    JsonObject *jsonnode;
 
     size_t line_number = 0;
     while((read = getline(stream, &line, &line_size)) > 0) {
@@ -221,6 +271,7 @@ bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
 
         JsonNode *jsonnode;
         if((jsonnode = json_parser_get_root(parser)) == NULL) {
+            // todo return error
             g_warning("# %s: Json node is invalid @ %zu", __func__, line_number);
             return false;
         }
@@ -447,11 +498,4 @@ static size_t getline(FILE *stream, char **lineptr, size_t *n) {
     (*lineptr)[pos] = '\0';
     return pos;
 }
-
-// static bool str_equal(const char *string1, const char *string2) {
-//     return strcmp(string1, string2) == 0;
-// }
-// static bool str_contains(const char *string1, const char *string2) {
-//     return strstr(string1, string2) != NULL;
-// }
 

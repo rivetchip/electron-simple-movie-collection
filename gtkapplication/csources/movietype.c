@@ -5,16 +5,30 @@ struct _MovieClass {
     GObjectClass parent_class;
 };
 
+enum {
+    SIGNAL_VISIBILITY,
+    SIGNAL_LAST
+};
+static int signals[SIGNAL_LAST];
+
 G_DEFINE_TYPE(Movie, movie, G_TYPE_OBJECT);
 
 // internals
 static void movie_class_init(MovieClass *klass) {
-    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
-    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+    GObjectClass *object_class = G_OBJECT_CLASS(klass);
+
+    signals[SIGNAL_VISIBILITY] = g_signal_new("visibility",
+        G_OBJECT_CLASS_TYPE(object_class),
+        G_SIGNAL_RUN_FIRST,
+        0, // offset
+        NULL, NULL, NULL, //accumulator, accu_data, c_marshaller
+        G_TYPE_NONE, // return
+        1, G_TYPE_BOOLEAN // params
+    );
 }
 
-static void movie_init(Movie *self) {
-    //
+static void movie_init(Movie *movie) {
+    movie->widget_visible = true; // default visible
 }
 
 Movie *movie_new() {
@@ -24,8 +38,10 @@ Movie *movie_new() {
 bool movie_is_visible(Movie *movie) {
     return movie->widget_visible;
 }
-void movie_set_visible(Movie *movie, bool visible) {
+void movie_notify_visible(Movie *movie, bool visible) {
     movie->widget_visible = visible;
+
+    g_signal_emit(movie, signals[SIGNAL_VISIBILITY], 0, visible);
 }
 
 void movie_destroy(Movie *movie) {

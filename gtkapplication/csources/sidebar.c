@@ -33,6 +33,7 @@ static GtkWidget *list_create_placeholder();
 // list box
 static GtkWidget *listbox_create_widget(GSequenceIter *iter, char *title, bool is_favorite);
 static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar);
+static void listbox_model_notify_visibility(Movie *movie, bool is_visible, GtkWidget *listrow);
 
 
 static void widget_sidebar_init(WidgetSidebar *self) {
@@ -174,8 +175,12 @@ void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model
     }
 }
 
+static void listbox_model_notify_visibility(Movie *movie, bool is_visible, GtkWidget *listrow) {
+    gtk_widget_set_visible(listrow, is_visible);
+}
+
 static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar) {
-    g_message("%s p:%u r:%u a:%u", __func__, position, removed, added);
+    g_message("%s pos:%u del:%u add:%u", __func__, position, removed, added);
     
     GtkWidget *listbox = sidebar->listbox;
 
@@ -192,6 +197,8 @@ static void listbox_model_changed(GListModel *list, unsigned int position, unsig
             iter, movie->title, movie->favorite
         );
 
+        g_signal_connect(movie, "visibility", G_CALLBACK(listbox_model_notify_visibility), widget);
+
         // allow to either return a full reference or a floating reference
         // floating => then turn it into a full reference now
         if(g_object_is_floating(widget)) {
@@ -199,8 +206,8 @@ static void listbox_model_changed(GListModel *list, unsigned int position, unsig
         }
 
         gtk_widget_show(widget);
-        gtk_list_box_insert(GTK_LIST_BOX(listbox), widget, position + i);
 
+        gtk_list_box_insert(GTK_LIST_BOX(listbox), widget, position + i);
         g_object_unref(widget);
     }
 }
