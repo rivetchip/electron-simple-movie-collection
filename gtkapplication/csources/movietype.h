@@ -13,7 +13,6 @@
 
 struct _Movie {
     GObject parent_instance;
-    bool widget_visible;
 
     char *title;
     bool favorite;
@@ -55,8 +54,7 @@ inline Movie *MOVIE(gpointer ptr) {
 // public functions
 Movie *movie_new();
 
-bool movie_is_visible(Movie *movie);
-void movie_set_visible(Movie *movie, bool visible);
+void movie_notify_visible(Movie *movie, bool visible);
 
 void movie_destroy(Movie *movie);
 

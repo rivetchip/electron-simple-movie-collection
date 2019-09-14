@@ -28,19 +28,14 @@ static void movie_class_init(MovieClass *klass) {
 }
 
 static void movie_init(Movie *movie) {
-    movie->widget_visible = true; // default visible
+    //
 }
 
 Movie *movie_new() {
     return g_object_new(movie_get_type(), NULL);
 }
 
-bool movie_is_visible(Movie *movie) {
-    return movie->widget_visible;
-}
 void movie_notify_visible(Movie *movie, bool visible) {
-    movie->widget_visible = visible;
-
     g_signal_emit(movie, signals[SIGNAL_VISIBILITY], 0, visible);
 }
 
