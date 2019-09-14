@@ -1,6 +1,6 @@
-
 #include <config.h>
 #include "application.h"
+#include <locale.h>
 
 
 int main(int argc, char **argv) {
@@ -10,10 +10,13 @@ int main(int argc, char **argv) {
         // inspector debug
         putenv("GTK_DEBUG=fatal-warnings");
         putenv("GOBJECT_DEBUG=instance-count");
-        // putenv("G_ENABLE_DIAGNOSTIC=1");
+        putenv("G_ENABLE_DIAGNOSTIC=1");
     #endif
 
     int status;
+
+    setlocale(LC_ALL, "");    
+
 
     MovieApplication *app = movie_application_new(
         PACKAGE_APPLICATION_ID, PACKAGE_BUILD_VERSION,
