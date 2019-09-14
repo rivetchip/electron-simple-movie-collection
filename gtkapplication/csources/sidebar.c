@@ -1,6 +1,7 @@
 #include "sidebar.h"
 #include "widgets.h"
 #include "movietype.h"
+#include <string.h>
 
 // type definition
 struct _WidgetSidebar {
@@ -25,8 +26,8 @@ G_DEFINE_TYPE(WidgetSidebar, widget_sidebar, GTK_TYPE_BOX);
 // internals
 static void sidebar_finalize(GObject *obj);
 //events
-static void signal_search_keyrelease(GtkEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar);
-static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar);
+static bool signal_search_keypress(GtkSearchEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar);
+static void signal_search_changed(GtkSearchEntry *entry, WidgetSidebar *sidebar);
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar);
 static GtkWidget *list_create_placeholder();
 // list box
@@ -88,19 +89,18 @@ WidgetSidebar *movie_application_new_sidebar() {
     // search
     GtkWidget *searchbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     widget_add_class(searchbox, "searchbox");
-
     widget->searchbox = searchbox;
 
-    GtkWidget *searchentry = gtk_entry_new();
+    GtkWidget *searchentry = gtk_search_entry_new(); //todo: white icon
     widget_add_class(searchentry, "searchbox-entry");
+    widget->searchentry = searchentry;
+
     gtk_entry_set_placeholder_text(GTK_ENTRY(searchentry), "Recherche");
     gtk_entry_set_icon_from_icon_name(GTK_ENTRY(searchentry), GTK_ENTRY_ICON_PRIMARY, "@edit-find");
     gtk_widget_set_hexpand(GTK_WIDGET(searchentry), false);
 
-    g_signal_connect(searchentry, "key-release-event", G_CALLBACK(signal_search_keyrelease), widget);
-    g_signal_connect(searchentry, "changed", G_CALLBACK(signal_search_changed), widget);
-
-    widget->searchentry = searchentry;
+    g_signal_connect(searchentry, "key-press-event", G_CALLBACK(signal_search_keypress), widget);
+    g_signal_connect(searchentry, "search-changed", G_CALLBACK(signal_search_changed), widget);
 
     gtk_container_add(GTK_CONTAINER(searchbox), searchentry);
 
@@ -111,13 +111,13 @@ WidgetSidebar *movie_application_new_sidebar() {
     GtkWidget *listbox = gtk_list_box_new();
     gtk_list_box_set_selection_mode(GTK_LIST_BOX(listbox), GTK_SELECTION_SINGLE);
     widget_add_class(listbox, "categories");
+    widget->listbox = listbox;
 
     g_signal_connect(listbox, "row-selected", G_CALLBACK(signal_listbox_selected), widget);
 
     GtkWidget *placeholder = list_create_placeholder();
     gtk_list_box_set_placeholder(GTK_LIST_BOX(listbox), placeholder);
 
-    widget->listbox = listbox;
 
     gtk_container_add(GTK_CONTAINER(scrolledframe), listbox);
 
@@ -128,17 +128,17 @@ WidgetSidebar *movie_application_new_sidebar() {
     return widget;
 }
 
-static void signal_search_keyrelease(GtkEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar) {
+static bool signal_search_keypress(GtkSearchEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar) {
     if(event->keyval == GDK_KEY_Escape) {
-        gtk_entry_set_text(entry, ""); // empty
+        gtk_entry_set_text(GTK_ENTRY(entry), ""); // empty
+        g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, NULL);
     }
-    //todo
-    //g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, keyword);
+    return GDK_EVENT_PROPAGATE;
 }
 
-static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar) {
-    const char *keyword = gtk_entry_get_text(entry);
-    g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, keyword);
+static void signal_search_changed(GtkSearchEntry *entry, WidgetSidebar *sidebar) {
+    const char *keyword = gtk_entry_get_text(GTK_ENTRY(entry));
+    g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, (strlen(keyword) > 0 ? keyword : NULL));
 }
 
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar) {
