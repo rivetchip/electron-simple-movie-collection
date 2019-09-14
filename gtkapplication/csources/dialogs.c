@@ -11,7 +11,7 @@ void dialog_message(GtkWindow *window, char *message, char *message2) {
         GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
         GTK_MESSAGE_INFO,
         GTK_BUTTONS_OK,
-        message
+        "%s", message
     );
     if(message2 != NULL) {
         gtk_message_dialog_format_secondary_text(GTK_MESSAGE_DIALOG(dialog), "%s", message2);
