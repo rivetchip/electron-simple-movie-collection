@@ -79,7 +79,8 @@ static gpointer list_iface_get_item(GListModel *glist, guint position) {
     list->last_position = position;
 
     if(!g_sequence_iter_is_end(iter)) {
-        return g_object_ref(g_sequence_get(iter));
+        return (iter);
+        // return g_object_ref(g_sequence_get(iter));
     }
     return NULL;
 }
@@ -442,7 +443,7 @@ static size_t getline(FILE *stream, char **lineptr, size_t *n) {
 // static bool str_equal(const char *string1, const char *string2) {
 //     return strcmp(string1, string2) == 0;
 // }
-static bool str_contains(const char *string1, const char *string2) {
-    return strstr(string1, string2) != NULL;
-}
+// static bool str_contains(const char *string1, const char *string2) {
+//     return strstr(string1, string2) != NULL;
+// }
 

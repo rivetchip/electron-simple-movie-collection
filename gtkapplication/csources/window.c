@@ -8,6 +8,8 @@
 #include "sidebar.h"
 
 #include "collection.h"
+#include "movietype.h"
+
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -54,7 +56,6 @@ static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_nam
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
 static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window);
-static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data);
 
 
 
@@ -88,11 +89,19 @@ MovieWindow *movie_window_new(MovieApplication *application) {
 	// object_class->get_property = gedit_window_get_property;
 //todo: pass settings from application?
 
+
+
+
+
+
+
+
+
 MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *screen) {
 
     // initialize GTK+
     MovieWindow *window = movie_window_new(app);
-    window->movieapp = app;
+    window->movieapp = app;//todo remove
 
     // Create Movies collection
     MoviesList *movies_list = movies_list_new();
@@ -171,7 +180,6 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     }
 
     // sidebar with categories list and searchbar
-
     WidgetSidebar *sidebar = movie_application_new_sidebar();
     window->sidebar = sidebar;
 
@@ -179,13 +187,7 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     g_signal_connect(sidebar, "selected", G_CALLBACK(signal_sidebar_selected), window);
 
     // bind collection to model
-    widget_sidebar_listbox_bind_model(window->sidebar,
-        G_LIST_MODEL(movies_list), sidebar_listbox_widget, window, NULL
-    );
-
-
-
-
+    widget_sidebar_listbox_bind_model(sidebar, G_LIST_MODEL(movies_list));
 
 
 
@@ -410,33 +412,8 @@ static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, M
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window) {
     g_message("%s", __func__);
 
+    Movie *movie = g_sequence_get(iter);
+
+    g_message("%s", movie->title);
 
 }
-
-static GtkWidget *sidebar_listbox_widget(gpointer item, gpointer user_data) {
-    g_message(__func__);
-
-    // MovieWindow *window = MOVIE_WINDOW(user_data);
-    // MoviesList *movies_list = window->movies_list;
-
-    // GSequenceIter *iter = (GSequenceIter*) item;
-
-    // Movie *movie = g_sequence_get(iter);
-
-
-
-    GtkWidget *widget = gtk_list_box_row_new();
-    gtk_widget_set_visible(widget, true);
-
-    // GtkWidget *widget = widget_sidebar_listbox_widget(
-    //     window->sidebar, iter, movie->title, movie->favorite
-    // );
-
-    // bool visible = movie_is_visible(movie);
-    // gtk_widget_set_visible(widget, true);
-
-    return widget;
-}
-
-
-// struct Movie *movie, MovieWindow *window

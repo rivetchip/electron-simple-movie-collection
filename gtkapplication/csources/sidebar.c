@@ -1,5 +1,6 @@
 #include "sidebar.h"
 #include "widgets.h"
+#include "movietype.h"
 
 // type definition
 struct _WidgetSidebar {
@@ -7,7 +8,9 @@ struct _WidgetSidebar {
 
     GtkWidget *searchbox;
     GtkWidget *searchentry;
+
     GtkWidget *listbox;
+    GListModel *listmodel;
 };
 
 enum {
@@ -19,11 +22,16 @@ static int signals[SIGNAL_LAST];
 
 G_DEFINE_TYPE(WidgetSidebar, widget_sidebar, GTK_TYPE_BOX);
 
+// internals
+static void sidebar_finalize(GObject *obj);
 //events
 static void signal_search_keyrelease(GtkEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar);
 static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar);
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar);
 static GtkWidget *list_create_placeholder();
+// list box
+static GtkWidget *listbox_create_widget(GSequenceIter *iter, char *title, bool is_favorite);
+static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar);
 
 
 static void widget_sidebar_init(WidgetSidebar *self) {
@@ -33,6 +41,8 @@ static void widget_sidebar_init(WidgetSidebar *self) {
 static void widget_sidebar_class_init(WidgetSidebarClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
     // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+
+    object_class->finalize = sidebar_finalize;
 
     signals[SIGNAL_SEARCH] = g_signal_new("search",
         G_OBJECT_CLASS_TYPE(object_class),
@@ -51,6 +61,15 @@ static void widget_sidebar_class_init(WidgetSidebarClass *klass) {
         G_TYPE_NONE, // return
         1, G_TYPE_POINTER // params
     );
+}
+
+static void sidebar_finalize(GObject *obj) {
+    WidgetSidebar *sidebar = WIDGET_SIDEBAR(obj);
+
+    if(sidebar->listmodel) {
+        g_signal_handlers_disconnect_by_func(sidebar->listmodel, listbox_model_changed, obj);
+        g_clear_object(&sidebar->listmodel);
+    }
 }
 
 WidgetSidebar *widget_sidebar_new() {
@@ -122,7 +141,9 @@ static void signal_search_changed(GtkEntry *entry, WidgetSidebar *sidebar) {
 
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar) {
     gpointer iter = g_object_get_data(G_OBJECT(listrow), "iter");
-    g_signal_emit(sidebar, signals[SIGNAL_SEARCH], 0, iter);
+    g_return_if_fail(iter != NULL);
+
+    g_signal_emit(sidebar, signals[SIGNAL_SELECTED], 0, iter);
 }
 
 static GtkWidget *list_create_placeholder() { //todo
@@ -133,22 +154,63 @@ static GtkWidget *list_create_placeholder() { //todo
 }
 
 
-void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model, GtkListBoxCreateWidgetFunc create_widget_func, gpointer user_data, GDestroyNotify user_data_free_func) {
-    gtk_list_box_bind_model(GTK_LIST_BOX(sidebar->listbox), model, create_widget_func, user_data, user_data_free_func);
+void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model) {
+    g_return_if_fail(model == NULL || G_IS_LIST_MODEL(model));
+
+    // delete previous
+    gtk_container_foreach(GTK_CONTAINER(sidebar->listbox), (GtkCallback) gtk_widget_destroy, NULL);
+
+    GListModel *listmodel = g_object_ref(model);
+    sidebar->listmodel = listmodel;
+
+    // append all existing
+    g_signal_connect(listmodel, "items-changed", G_CALLBACK(listbox_model_changed), sidebar);
+    listbox_model_changed(listmodel, 0, 0, g_list_model_get_n_items(listmodel), sidebar);
 }
 
-GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, GSequenceIter *iter, char *title, bool is_favorite) {
+static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar) {
+    g_message("%s p:%u r:%u a:%u", __func__, position, removed, added);
+    
+    GtkWidget *listbox = sidebar->listbox;
+
+    while(removed--) {
+        GtkListBoxRow *row = gtk_list_box_get_row_at_index(GTK_LIST_BOX(listbox), position);
+        gtk_container_remove(GTK_CONTAINER(listbox), GTK_WIDGET(row));
+    }
+
+    for(unsigned int i = 0; i < added; i++) {
+        GSequenceIter *iter = g_list_model_get_item(list, position + i);
+        Movie *movie = g_sequence_get(iter);
+
+        GtkWidget *widget = listbox_create_widget(
+            iter, movie->title, movie->favorite
+        );
+
+        // allow to either return a full reference or a floating reference
+        // floating => then turn it into a full reference now
+        if(g_object_is_floating(widget)) {
+            g_object_ref_sink(widget);
+        }
+
+        gtk_widget_show(widget);
+        gtk_list_box_insert(GTK_LIST_BOX(listbox), widget, position + i);
+
+        g_object_unref(widget);
+    }
+}
+
+
+static GtkWidget *listbox_create_widget(GSequenceIter *iter, char *title, bool is_favorite) {
 
     GtkWidget *widget = gtk_list_box_row_new();
     widget_add_class(widget, "category-item");
 
-    // g_object_set_data_full(G_OBJECT(widget), "iter", iter, g_object_unref);
-    // g_object_set_data(G_OBJECT(widget), "iter", iter);
-
+    // set iterator from movies list
+    g_object_set_data(G_OBJECT(widget), "iter", iter);
 
     // elements inside row
-    GtkWidget *list_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_widget_set_visible(list_box, true);
+    GtkWidget *listbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_visible(listbox, true);
 
     GtkWidget *label = gtk_label_new(title);
     gtk_widget_set_visible(label, true);
@@ -162,10 +224,10 @@ GtkWidget *widget_sidebar_listbox_widget(WidgetSidebar *sidebar, GSequenceIter *
     GtkWidget *icon_fav = gtk_image_new_from_icon_name("@emblem-favorite", GTK_ICON_SIZE_SMALL_TOOLBAR);
     gtk_widget_set_visible(icon_fav, is_favorite);
 
-    gtk_box_pack_start(GTK_BOX(list_box), label, true, true, 0); // expand, fill, padding
-    gtk_box_pack_start(GTK_BOX(list_box), icon_fav, false, false, 0);
+    gtk_box_pack_start(GTK_BOX(listbox), label, true, true, 0); // expand, fill, padding
+    gtk_box_pack_start(GTK_BOX(listbox), icon_fav, false, false, 0);
 
-    gtk_container_add(GTK_CONTAINER(widget), list_box);
+    gtk_container_add(GTK_CONTAINER(widget), listbox);
 
     return widget;
 }
