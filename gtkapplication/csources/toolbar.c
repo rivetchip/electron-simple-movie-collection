@@ -34,7 +34,7 @@ static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *
 
 
 static void widget_toolbar_init(WidgetToolbar *widget) {
-    g_message(__func__);
+    //
 }
 
 static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
@@ -79,6 +79,8 @@ static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
 }
 
 WidgetToolbar *widget_toolbar_new() {
+    g_message(__func__);
+
     return g_object_new(widget_toolbar_get_type(),
         "spacing", 6,
     NULL);

@@ -112,6 +112,8 @@ static void list_items_changed(MoviesList *list, unsigned int position, unsigned
 }
 
 MoviesList *movies_list_new() {
+    g_message(__func__);
+
     return g_object_new(movies_list_get_type(), NULL);
 }
 
@@ -217,12 +219,18 @@ bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
             return false;
         }
 
-        jsonnode = json_node_get_object(json_parser_get_root(parser));
+        JsonNode *jsonnode;
+        if((jsonnode = json_parser_get_root(parser)) == NULL) {
+            g_warning("# %s: Json node is invalid @ %zu", __func__, line_number);
+            return false;
+        }
+
+        JsonObject *jsonobject = json_node_get_object(jsonnode);
 
         switch(line_number) {
             case 0: { // first: metadata
-                if(!json_metadata_parse(jsonnode, list)) {
-                    g_warning("%s: Could not metada @ %zu", __func__, line_number);
+                if(!json_metadata_parse(jsonobject, list)) {
+                    g_warning("# %s: Could not metada @ %zu", __func__, line_number);
                     continue;
                 }
             }
@@ -230,14 +238,14 @@ bool movies_list_stream(MoviesList *list, FILE *stream, GError **error) {
 
             default: { // others: movie
                 Movie *movie = movie_new();
-                if(!json_node_parse(jsonnode, movie)) {
-                    g_warning("%s: Could not parse @ %zu", __func__, line_number);
+                if(!json_node_parse(jsonobject, movie)) {
+                    g_warning("# %s: Could not parse @ %zu", __func__, line_number);
                     continue;
                 }
 
                 GSequenceIter *iter;
                 if((iter = movies_list_append(list, movie)) == NULL) {
-                    g_warning("%s: Could not add @ %zu", __func__, line_number);
+                    g_warning("# %s: Could not add @ %zu", __func__, line_number);
                     continue;
                 }
                 // g_message(">> ADD %s %d", movie->title, g_sequence_iter_get_position(iter));

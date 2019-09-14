@@ -19,7 +19,7 @@ static void signal_maximize(GtkButton *button);
 
 
 static void widget_headerbar_init(WidgetHeaderbar *widget) {
-    g_message(__func__);
+    //
 }
 
 static void widget_headerbar_class_init(WidgetHeaderbarClass *klass) {
@@ -28,6 +28,8 @@ static void widget_headerbar_class_init(WidgetHeaderbarClass *klass) {
 }
 
 WidgetHeaderbar *widget_headerbar_new() {
+    g_message(__func__);
+
     return g_object_new(widget_headerbar_get_type(),
         "spacing", 6,
         "border-width", 0,

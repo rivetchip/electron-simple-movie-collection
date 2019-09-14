@@ -14,12 +14,11 @@ static void movie_class_init(MovieClass *klass) {
 }
 
 static void movie_init(Movie *self) {
-    // g_message(__func__);
+    //
 }
 
 Movie *movie_new() {
-    Movie *movie = g_object_new(movie_get_type(), NULL);
-    return movie;
+    return g_object_new(movie_get_type(), NULL);
 }
 
 bool movie_is_visible(Movie *movie) {

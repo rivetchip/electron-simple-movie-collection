@@ -12,7 +12,7 @@ G_DEFINE_TYPE(WidgetStatusbar, widget_statusbar, GTK_TYPE_BOX);
 
 
 static void widget_statusbar_init(WidgetStatusbar *widget) {
-    g_message(__func__);
+    //
 }
 
 static void widget_statusbar_class_init(WidgetStatusbarClass *klass) {
@@ -21,6 +21,8 @@ static void widget_statusbar_class_init(WidgetStatusbarClass *klass) {
 }
 
 WidgetStatusbar *widget_statusbar_new() {
+    g_message(__func__);
+
     return g_object_new(widget_statusbar_get_type(),
         "orientation", GTK_ORIENTATION_HORIZONTAL,
     NULL);

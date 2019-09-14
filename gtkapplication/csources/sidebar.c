@@ -35,7 +35,7 @@ static void listbox_model_changed(GListModel *list, unsigned int position, unsig
 
 
 static void widget_sidebar_init(WidgetSidebar *self) {
-    g_message(__func__);
+    //
 }
 
 static void widget_sidebar_class_init(WidgetSidebarClass *klass) {
@@ -73,6 +73,8 @@ static void sidebar_finalize(GObject *obj) {
 }
 
 WidgetSidebar *widget_sidebar_new() {
+    g_message(__func__);
+
     return g_object_new(widget_sidebar_get_type(),
         "orientation", GTK_ORIENTATION_VERTICAL,
     NULL);
@@ -165,7 +167,11 @@ void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model
 
     // append all existing
     g_signal_connect(listmodel, "items-changed", G_CALLBACK(listbox_model_changed), sidebar);
-    listbox_model_changed(listmodel, 0, 0, g_list_model_get_n_items(listmodel), sidebar);
+
+    unsigned int n_items;
+    if((n_items = g_list_model_get_n_items(listmodel)) > 0) {
+        listbox_model_changed(listmodel, 0, 0, n_items, sidebar);
+    }
 }
 
 static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar) {

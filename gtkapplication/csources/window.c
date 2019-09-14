@@ -68,7 +68,7 @@ static void movie_window_class_init(MovieWindowClass *klass) {
 }
 
 static void movie_window_init(MovieWindow *window) {
-    g_message(__func__);
+    //
 }
 
 MovieWindow *movie_window_new(MovieApplication *application) {
@@ -365,7 +365,7 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     movies_list_remove_all(movies_list);
 
     if(!(movies_list_stream(movies_list, stream, &error))) {
-        g_warning("%s %s", __func__, error->message);
+        g_warning("# %s %s", __func__, error->message);
 
         dialog_message(GTK_WINDOW(window),
             "Erreur lors de l'ouverture du fichier", error->message
