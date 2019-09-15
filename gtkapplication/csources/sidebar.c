@@ -29,7 +29,7 @@ static void sidebar_finalize(GObject *obj);
 static bool signal_search_keypress(GtkSearchEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar);
 static void signal_search_changed(GtkSearchEntry *entry, WidgetSidebar *sidebar);
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar);
-static GtkWidget *list_create_placeholder();
+static GtkWidget *listbox_create_placeholder();
 // list box
 static GtkWidget *listbox_create_widget(GSequenceIter *iter, char *title, bool is_favorite);
 static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar);
@@ -116,7 +116,7 @@ WidgetSidebar *movie_application_new_sidebar() {
 
     g_signal_connect(listbox, "row-selected", G_CALLBACK(signal_listbox_selected), widget);
 
-    GtkWidget *placeholder = list_create_placeholder();
+    GtkWidget *placeholder = listbox_create_placeholder();
     gtk_list_box_set_placeholder(GTK_LIST_BOX(listbox), placeholder);
 
 
@@ -149,11 +149,35 @@ static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow,
     g_signal_emit(sidebar, signals[SIGNAL_SELECTED], 0, iter);
 }
 
-static GtkWidget *list_create_placeholder() { //todo
-    GtkWidget *label = gtk_label_new("placehold");
-    gtk_widget_show(label);
+void label_bold(GtkWidget *label) {
 
-    return label;
+}
+
+static GtkWidget *listbox_create_placeholder() {
+
+    GtkWidget *widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    gtk_widget_set_can_focus(widget, false);
+    gtk_widget_set_halign(widget, GTK_ALIGN_CENTER);
+    gtk_widget_set_valign(widget, GTK_ALIGN_CENTER);
+
+    GtkWidget *icon = gtk_image_new_from_icon_name("@edit-find", GTK_ICON_SIZE_DND);
+    gtk_image_set_pixel_size(GTK_IMAGE(icon), 64);
+
+    GtkWidget *label1 = gtk_label_new("Aucun résultat trouvé");
+    PangoAttrList *list1 = pango_attr_list_new();
+    pango_attr_list_insert(list1, pango_attr_weight_new(PANGO_WEIGHT_BOLD));
+    pango_attr_list_insert(list1, pango_attr_scale_new(1.5));
+    gtk_label_set_attributes(GTK_LABEL(label1), list1);
+
+    GtkWidget *label2 = gtk_label_new("Essayez une autre recherche");
+
+    gtk_container_add(GTK_CONTAINER(widget), icon);
+    gtk_container_add(GTK_CONTAINER(widget), label1);
+    gtk_container_add(GTK_CONTAINER(widget), label2);
+
+    gtk_widget_show_all(widget);
+
+    return widget;
 }
 
 
@@ -180,8 +204,6 @@ static void listbox_model_notify_visibility(Movie *movie, bool is_visible, GtkWi
 }
 
 static void listbox_model_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, WidgetSidebar *sidebar) {
-    g_message("%s pos:%u del:%u add:%u", __func__, position, removed, added);
-    
     GtkWidget *listbox = sidebar->listbox;
 
     while(removed--) {
