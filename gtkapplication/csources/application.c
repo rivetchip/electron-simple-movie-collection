@@ -1,3 +1,4 @@
+#include <config.h>
 #include "application.h"
 #include "window.h"
 
@@ -129,8 +130,10 @@ static void signal_startup(MovieApplication *app) {
     NULL);
 
     // styling application
-    GtkCssProvider *css_provider = load_styles_resources();
-    g_signal_connect(css_provider, "parsing-error", G_CALLBACK(signal_css_parsing_error), NULL);
+    GtkCssProvider *css_provider;
+    if((css_provider = load_styles_resources())) {
+        g_signal_connect(css_provider, "parsing-error", G_CALLBACK(signal_css_parsing_error), NULL);
+    }
 
 
     // load settings
@@ -205,7 +208,12 @@ static void signal_network_changed(GNetworkMonitor *monitor, bool available, Mov
 static GtkCssProvider *load_styles_resources() {
 
     GtkCssProvider *css_provider = gtk_css_provider_new();
-    gtk_css_provider_load_from_resource(css_provider, "/shell/style.css");
+
+    #if PACKAGE_DEVELOPER_MODE
+        gtk_css_provider_load_from_path(css_provider, "style.css", NULL);
+    #else
+        gtk_css_provider_load_from_resource(css_provider, "/shell/style.css");
+    #endif
 
     gtk_style_context_add_provider_for_screen(
         gdk_screen_get_default(),
