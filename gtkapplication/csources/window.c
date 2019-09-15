@@ -32,8 +32,10 @@ struct _MovieWindow {
     // widgets
     WidgetHeaderbar *headerbar;
     WidgetToolbar *toolbar;
-    WidgetStatusbar *statusbar;
     WidgetSidebar *sidebar;
+    WidgetStatusbar *statusbar;
+
+    GtkMenuButton  *gear_button;
 
 };
 
@@ -53,6 +55,7 @@ static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window);
 static void signal_toolbar_new(WidgetToolbar *toolbar, MovieWindow *window);
 static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window);
 // sidebar
+static void signal_movieslist_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, MovieWindow *window);
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
 static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window);
@@ -106,6 +109,8 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     // Create Movies collection
     MoviesList *movies_list = movies_list_new();
     window->movies_list = movies_list;
+
+    g_signal_connect(G_LIST_MODEL(movies_list), "items-changed", G_CALLBACK(signal_movieslist_changed), window);
 
     // create an 800x600 window
     widget_add_class(GTK_WIDGET(window), "movie_window");
@@ -188,7 +193,6 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
 
     // bind collection to model
     widget_sidebar_listbox_bind_model(sidebar, G_LIST_MODEL(movies_list));
-
 
 
 
@@ -351,7 +355,7 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     g_message(__func__);
 
     const char *filename;
-    if(!(filename = dialog_file_chooser(GTK_WINDOW(window), NULL))) {
+    if((filename = dialog_file_chooser(GTK_WINDOW(window), NULL)) == NULL) {
         return;
     }
 
@@ -359,16 +363,16 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     FILE *stream = fopen(filename, "rb");
 
     MoviesList *movies_list = window->movies_list;
-    // todo: while reading
 
     // destroy previous colection if any
     movies_list_remove_all(movies_list);
 
+    // todo: while reading : optimisation, widget_set_busy ?
     if(!(movies_list_stream(movies_list, stream, &error))) {
-        g_warning("# %s %s", __func__, error->message);
 
         dialog_message(GTK_WINDOW(window),
-            "Erreur lors de l'ouverture du fichier", error->message
+            "Erreur lors de l'ouverture du fichier",
+            (error != NULL ? error->message : NULL)
         );
         g_clear_error(&error);
 
@@ -403,10 +407,21 @@ static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_nam
 
 ///// SIDEBAR
 
+static void signal_movieslist_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, MovieWindow *window) {
+    g_message("%s pos:%u del:%u add:%u", __func__, position, removed, added);
+
+    unsigned int n_items = g_list_model_get_n_items(list); //todo
+    widget_statusbar_set_text(window->statusbar, g_strdup_printf("%d films", n_items));
+}
+
 static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window) {
     g_message("%s %s", __func__, keyword);
 
-
+    bool success;
+    MoviesList *movies_list = window->movies_list;
+    if(!(success = movies_list_search_keyword(movies_list, keyword))) {
+        g_warning("Cannot search through movies list sequences");
+    }
 }
 
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window) {
