@@ -156,6 +156,8 @@ void label_bold(GtkWidget *label) {
 static GtkWidget *listbox_create_placeholder() {
 
     GtkWidget *widget = gtk_box_new(GTK_ORIENTATION_VERTICAL, 6);
+    widget_add_class(widget, "categories-placeholder");
+
     gtk_widget_set_can_focus(widget, false);
     gtk_widget_set_halign(widget, GTK_ALIGN_CENTER);
     gtk_widget_set_valign(widget, GTK_ALIGN_CENTER);
