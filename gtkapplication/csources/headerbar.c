@@ -78,13 +78,19 @@ WidgetHeaderbar *movie_application_new_headerbar() {
     GtkWidget *popover = gtk_popover_new(button_menu);
     gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_menu), popover);
 
-    // gtk_container_add(GTK_CONTAINER(popover), xxx);
-    // gtk_widget_show_all(xxx); //todo
+
+    GtkWidget *bb = gtk_menu_button_new();
+    gtk_button_set_label(GTK_BUTTON(bb), "ssss");
+
+    gtk_container_add(GTK_CONTAINER(popover), bb);
+
+
+
 
     gtk_header_bar_pack_end(GTK_HEADER_BAR(widget), button_menu);
 
 
-
+    gtk_widget_show_all(bb);
 
     return widget;
 }
