@@ -18,15 +18,6 @@ static void signal_minimize(GtkButton *button);
 static void signal_maximize(GtkButton *button);
 
 
-static void widget_headerbar_init(WidgetHeaderbar *widget) {
-    //
-}
-
-static void widget_headerbar_class_init(WidgetHeaderbarClass *klass) {
-    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
-    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
-}
-
 WidgetHeaderbar *widget_headerbar_new() {
     g_message(__func__);
 
@@ -36,9 +27,13 @@ WidgetHeaderbar *widget_headerbar_new() {
     NULL);
 }
 
-WidgetHeaderbar *movie_application_new_headerbar() {
+static void widget_headerbar_class_init(WidgetHeaderbarClass *klass) {
+    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+}
+
+static void widget_headerbar_init(WidgetHeaderbar *widget) {
     // set GTK CSD HeaderBar
-    WidgetHeaderbar *widget = widget_headerbar_new();
     widget_add_class(GTK_WIDGET(widget), "headerbar");
 
     // hide window decorationq of header bar
@@ -92,7 +87,6 @@ WidgetHeaderbar *movie_application_new_headerbar() {
 
     gtk_widget_show_all(bb);
 
-    return widget;
 }
 
 static void signal_close(GtkButton *button) {

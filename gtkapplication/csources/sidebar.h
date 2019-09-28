@@ -22,7 +22,7 @@ inline WidgetSidebar *WIDGET_SIDEBAR(gpointer ptr) {
 
 // public functions
 WidgetSidebar *widget_sidebar_new();
-WidgetSidebar *movie_application_new_sidebar();
+
 // items
 void widget_sidebar_listbox_bind_model(WidgetSidebar *sidebar, GListModel *model);
 

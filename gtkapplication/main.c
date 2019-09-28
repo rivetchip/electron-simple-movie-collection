@@ -2,7 +2,6 @@
 #include "application.h"
 #include <locale.h>
 
-
 int main(int argc, char **argv) {
 
     #if PACKAGE_DEVELOPER_MODE
@@ -10,13 +9,12 @@ int main(int argc, char **argv) {
         // inspector debug
         putenv("GTK_DEBUG=fatal-warnings");
         putenv("GOBJECT_DEBUG=instance-count");
-        putenv("G_ENABLE_DIAGNOSTIC=1");
+        // putenv("G_ENABLE_DIAGNOSTIC=1");
     #endif
 
     int status;
 
-    setlocale(LC_ALL, "");    
-
+    setlocale(LC_ALL, "");
 
     MovieApplication *app = movie_application_new(
         PACKAGE_APPLICATION_ID, PACKAGE_BUILD_VERSION,
@@ -24,7 +22,6 @@ int main(int argc, char **argv) {
     );
 
     status = g_application_run(G_APPLICATION(app), argc, argv);
-
     g_object_unref(app);
 
     return status;

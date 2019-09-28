@@ -10,7 +10,6 @@
 #include "collection.h"
 #include "movietype.h"
 
-
 #include <stddef.h>
 #include <stdbool.h>
 
@@ -19,7 +18,7 @@ struct _MovieWindow {
     GtkApplicationWindow parent_instance;
 
     // main app
-    MovieApplication *movieapp;
+    GKeyFile *settings;
     MoviesList *movies_list;
 
     // window state
@@ -35,20 +34,20 @@ struct _MovieWindow {
     WidgetSidebar *sidebar;
     WidgetStatusbar *statusbar;
 
-    GtkMenuButton  *gear_button;
-
+    // GtkMenuButton  *gear_button;
 };
 
 G_DEFINE_TYPE(MovieWindow, movie_window, GTK_TYPE_APPLICATION_WINDOW);
 
+
 // window
 static bool signal_delete_event(MovieWindow *window, GdkEvent *event);
-static void signal_destroy(MovieWindow *window);
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event);
 static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation);
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
-static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile);
-static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile);
+static void window_set_settings(MovieWindow *window, GKeyFile *settings);
+static void settings_restore_states(MovieWindow *window, GKeyFile *settings);
+static void settings_store_states(MovieWindow *window, GKeyFile *settings);
 // toolbar
 static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window);
 static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window);
@@ -61,52 +60,39 @@ static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, M
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window);
 
 
+//todo: pass settings from application?
+MovieWindow *movie_window_new(GKeyFile *settings) {
+    g_message(__func__);
 
+    MovieWindow *window = g_object_new(movie_window_get_type(),
+        "show-menubar", false,
+    NULL);
 
+    // we must restore the settings after the object has been constructed
+    if((window->settings = settings) != NULL) {
+        window_set_settings(window, settings);
+    }
 
+    // when the widnow becomes visible, it will get mouse and keyboard events
+    gtk_widget_grab_focus(GTK_WIDGET(window));
+    // the main window and all its contents are visible
+    gtk_widget_show_all(GTK_WIDGET(window));
+
+    return window;
+}
 
 static void movie_window_class_init(MovieWindowClass *klass) {
+    g_message(__func__);
+
     // GObjectClass *object_class = G_OBJECT_CLASS(klass);
     // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
 }
 
 static void movie_window_init(MovieWindow *window) {
-    //
-}
-
-MovieWindow *movie_window_new(MovieApplication *application) {
     g_message(__func__);
-
-    g_return_val_if_fail(GTK_IS_APPLICATION(application), NULL);
-
-    return g_object_new(movie_window_get_type(),
-        "application", application,
-        "show-menubar", false,
-        "destroy-with-parent", true,
-    NULL);
-}
-
-
-	// object_class->dispose = gedit_window_dispose;
-	// object_class->finalize = gedit_window_finalize;
-	// object_class->get_property = gedit_window_get_property;
-//todo: pass settings from application?
-
-
-
-
-
-
-
-
-
-MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *screen) {
-
     // initialize GTK+
-    MovieWindow *window = movie_window_new(app);
-    window->movieapp = app;//todo remove
 
-    // Create Movies collection
+    // create Movies collection list
     MoviesList *movies_list = movies_list_new();
     window->movies_list = movies_list;
 
@@ -120,40 +106,17 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
     gtk_window_set_resizable(GTK_WINDOW(window), true);
 
-	if(screen != NULL) {
-		gtk_window_set_screen(GTK_WINDOW(window), screen);
-	}
-
-    // get states
-    GKeyFile *keyfile;
-    if((keyfile = movie_application_get_keyfile(app, "states")) != NULL) {
-        keyfile_restore_state(window, keyfile);
-        g_key_file_free(keyfile);
-    }
-
-    // restore previous state
-    if(window->width > 0 && window->height > 0) {
-        gtk_window_set_default_size(GTK_WINDOW(window), window->width, window->height);
-    }
-    if(window->is_maximized) {
-        gtk_window_maximize(GTK_WINDOW(window));
-    }
-    if(window->is_fullscreen) {
-        gtk_window_fullscreen(GTK_WINDOW(window));
-    }
-
     // window events
     g_signal_connect(window, "window-state-event", G_CALLBACK(signal_state_event), NULL);
     g_signal_connect(window, "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
 
     g_signal_connect(window, "delete-event", G_CALLBACK(signal_delete_event), NULL);
-    g_signal_connect(window, "destroy", G_CALLBACK(signal_destroy), NULL);
 
 
     ////////// WINDOW DESIGN //////////
 
     // hide window decorations of main app and use our own
-    WidgetHeaderbar *headerbar = movie_application_new_headerbar();
+    WidgetHeaderbar *headerbar = widget_headerbar_new();
     gtk_window_set_titlebar(GTK_WINDOW(window), GTK_WIDGET(headerbar));
 
     window->headerbar = headerbar;
@@ -162,7 +125,7 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     GtkWidget *mainbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
     // toolbar with main buttons optons
-    WidgetToolbar *toolbar = movie_application_new_toolbar();
+    WidgetToolbar *toolbar = widget_toolbar_new();
 
     g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
     g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
@@ -170,7 +133,7 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     g_signal_connect(toolbar, "source", G_CALLBACK(signal_toolbar_source), window);
 
     // status bar on the bottom
-    WidgetStatusbar *statusbar = movie_application_new_statusbar();
+    WidgetStatusbar *statusbar = widget_statusbar_new();
     window->statusbar = statusbar;
 
 
@@ -185,7 +148,7 @@ MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *scre
     }
 
     // sidebar with categories list and searchbar
-    WidgetSidebar *sidebar = movie_application_new_sidebar();
+    WidgetSidebar *sidebar = widget_sidebar_new();
     window->sidebar = sidebar;
 
     g_signal_connect(sidebar, "search", G_CALLBACK(signal_sidebar_search), window);
@@ -251,32 +214,41 @@ widget_sidebar_add_item(widget_sidebar, xxx);
     gtk_box_pack_start(GTK_BOX(mainbox), GTK_WIDGET(statusbar), false, false, 0);
 
     gtk_container_add(GTK_CONTAINER(window), mainbox);
-
-    // Make sure that when the widnow becomes visible, it will get mouse and keyboard events
-    gtk_widget_grab_focus(GTK_WIDGET(mainbox));
-
-    // Make sure the main window and all its contents are visible
-    gtk_widget_show_all(GTK_WIDGET(window));
-
-    return window;
 }
+
+static void window_set_settings(MovieWindow *window, GKeyFile *settings) {
+
+    // restore previous state
+    settings_restore_states(window, settings);
+
+    if(window->width > 0 && window->height > 0) {
+        gtk_window_set_default_size(GTK_WINDOW(window), window->width, window->height);
+    }
+    if(window->is_maximized) {
+        gtk_window_maximize(GTK_WINDOW(window));
+    }
+    if(window->is_fullscreen) {
+        gtk_window_fullscreen(GTK_WINDOW(window));
+    }
+}
+
+
+
+
+
+    // g_return_val_if_fail(GTK_IS_APPLICATION(application), NULL);
+
 
 static bool signal_delete_event(MovieWindow *window, GdkEvent *event) {
     g_message(__func__);
 
     // save states
-    GKeyFile *keyfile = g_key_file_new();
-    keyfile_store_sate(window, keyfile);
-    if(movie_application_set_keyfile(window->movieapp, "states", keyfile)) {
-        g_key_file_free(keyfile);
+    GKeyFile *settings;
+    if((settings = window->settings) != NULL) {
+        settings_store_states(window, settings);
     }
 
     return GDK_EVENT_PROPAGATE;
-}
-
-static void signal_destroy(MovieWindow *window) {
-    GtkApplication *gtkapp = gtk_window_get_application(GTK_WINDOW(window));
-    g_application_quit(G_APPLICATION(gtkapp));
 }
 
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event) {
@@ -306,43 +278,43 @@ static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *w
     window->paned_position = gtk_paned_get_position(paned);
 }
 
-static void keyfile_restore_state(MovieWindow *window, GKeyFile *keyfile) {
+static void settings_restore_states(MovieWindow *window, GKeyFile *settings) {
     int state;
 
-    if((state = g_key_file_get_integer(keyfile, "WindowState", "height", NULL))) {
+    if((state = g_key_file_get_integer(settings, "WindowState", "height", NULL))) {
         window->height = state;
     }
-    if((state = g_key_file_get_integer(keyfile, "WindowState", "width", NULL))) {
+    if((state = g_key_file_get_integer(settings, "WindowState", "width", NULL))) {
         window->width = state;
     }
-    if((state = g_key_file_get_integer(keyfile, "WindowState", "maximized", NULL))) {
+    if((state = g_key_file_get_integer(settings, "WindowState", "maximized", NULL))) {
         window->is_maximized = state;
     }
-    if((state = g_key_file_get_integer(keyfile, "WindowState", "fullscreen", NULL))) {
+    if((state = g_key_file_get_integer(settings, "WindowState", "fullscreen", NULL))) {
         window->is_fullscreen = state;
     }
-    if((state = g_key_file_get_integer(keyfile, "WindowState", "paned_position", NULL))) {
+    if((state = g_key_file_get_integer(settings, "WindowState", "paned_position", NULL))) {
         window->paned_position = state;
     }
 }
 
-static void keyfile_store_sate(MovieWindow *window, GKeyFile *keyfile) {
+static void settings_store_states(MovieWindow *window, GKeyFile *settings) {
     int state;
 
     if((state = window->height)) {
-        g_key_file_set_integer(keyfile, "WindowState", "height", state);
+        g_key_file_set_integer(settings, "WindowState", "height", state);
     }
     if((state = window->width)) {
-        g_key_file_set_integer(keyfile, "WindowState", "width", state);
+        g_key_file_set_integer(settings, "WindowState", "width", state);
     }
     if((state = window->is_maximized)) {
-        g_key_file_set_integer(keyfile, "WindowState", "maximized", state);
+        g_key_file_set_integer(settings, "WindowState", "maximized", state);
     }
     if((state = window->is_fullscreen)) {
-        g_key_file_set_integer(keyfile, "WindowState", "fullscreen", state);
+        g_key_file_set_integer(settings, "WindowState", "fullscreen", state);
     }
     if((state = window->paned_position)) {
-        g_key_file_set_integer(keyfile, "WindowState", "paned_position", state);
+        g_key_file_set_integer(settings, "WindowState", "paned_position", state);
     }
 }
 

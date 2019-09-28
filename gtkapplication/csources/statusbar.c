@@ -11,15 +11,6 @@ struct _WidgetStatusbar {
 G_DEFINE_TYPE(WidgetStatusbar, widget_statusbar, GTK_TYPE_BOX);
 
 
-static void widget_statusbar_init(WidgetStatusbar *widget) {
-    //
-}
-
-static void widget_statusbar_class_init(WidgetStatusbarClass *klass) {
-    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
-    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
-}
-
 WidgetStatusbar *widget_statusbar_new() {
     g_message(__func__);
 
@@ -28,9 +19,13 @@ WidgetStatusbar *widget_statusbar_new() {
     NULL);
 }
 
-WidgetStatusbar *movie_application_new_statusbar() {
+static void widget_statusbar_class_init(WidgetStatusbarClass *klass) {
+    // GObjectClass *object_class = G_OBJECT_CLASS(klass);
+    // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
+}
 
-    WidgetStatusbar *widget = widget_statusbar_new();
+static void widget_statusbar_init(WidgetStatusbar *widget) {
+
     widget_add_class(GTK_WIDGET(widget), "statusbar");
 
     GtkWidget *label = gtk_label_new("");
@@ -45,8 +40,6 @@ WidgetStatusbar *movie_application_new_statusbar() {
     gtk_container_add(GTK_CONTAINER(widget), label);
 
     widget->label = label;
-
-    return widget;
 }
 
 void widget_statusbar_set_text(WidgetStatusbar *statusbar, const char *text) {

@@ -24,8 +24,8 @@ static int signals[SIGNAL_LAST];
 
 G_DEFINE_TYPE(WidgetToolbar, widget_toolbar, GTK_TYPE_BOX);
 
-static GtkWidget *create_button(const char *label, const char *iconname, GCallback gcallback, gpointer user_data);
-static GtkWidget *create_source_radio(const char *label, char *source_name, GCallback gcallback, gpointer user_data);
+static GtkWidget *create_button(const char *icon_name, const char *label, GCallback gcallback, gpointer user_data);
+static GtkWidget *create_source_radio(char *source_name, const char *label, GCallback gcallback, gpointer user_data);
 // signals
 static void signal_open(GtkButton *button, WidgetToolbar *toolbar);
 static void signal_save(GtkButton *button, WidgetToolbar *toolbar);
@@ -33,8 +33,12 @@ static void signal_new(GtkButton *button, WidgetToolbar *toolbar);
 static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *toolbar);
 
 
-static void widget_toolbar_init(WidgetToolbar *widget) {
-    //
+WidgetToolbar *widget_toolbar_new() {
+    g_message(__func__);
+
+    return g_object_new(widget_toolbar_get_type(),
+        "spacing", 6,
+    NULL);
 }
 
 static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
@@ -78,36 +82,20 @@ static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
     );
 }
 
-WidgetToolbar *widget_toolbar_new() {
-    g_message(__func__);
+static void widget_toolbar_init(WidgetToolbar *widget) {
 
-    return g_object_new(widget_toolbar_get_type(),
-        "spacing", 6,
-    NULL);
-}
-
-WidgetToolbar *movie_application_new_toolbar() {
-
-    WidgetToolbar *widget = widget_toolbar_new();
     widget_add_class(GTK_WIDGET(widget), "toolbar");
 
     gtk_widget_set_size_request(GTK_WIDGET(widget), -1, 45); // width height
 
     // main buttons
-
-    GtkWidget *button_open = create_button("Ouvrir", "@toolbar-open",
-        G_CALLBACK(signal_open), widget
-    );
+    GtkWidget *button_open = create_button("@toolbar-open", "Ouvrir", G_CALLBACK(signal_open), widget);
     widget->button_open = button_open;
 
-    GtkWidget *button_save = create_button("Enregistrer", "@toolbar-save",
-        G_CALLBACK(signal_save), widget
-    );
+    GtkWidget *button_save = create_button("@toolbar-save", "Enregistrer", G_CALLBACK(signal_save), widget);
     widget->button_save = button_save;
 
-    GtkWidget *button_new = create_button("Enregistrer", "@toolbar-new",
-        G_CALLBACK(signal_new), widget
-    );
+    GtkWidget *button_new = create_button("@toolbar-new", "Enregistrer", G_CALLBACK(signal_new), widget);
     widget->button_new = button_new;
 
     gtk_box_pack_start(GTK_BOX(widget), button_open, false, false, 0);
@@ -118,12 +106,8 @@ WidgetToolbar *movie_application_new_toolbar() {
 
     GtkWidget *sourcesbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
 
-    GtkWidget *tmdben = create_source_radio("TMDb EN", "tmdb-en",
-        G_CALLBACK(signal_source_changed), widget
-    );
-    GtkWidget *tmdbfr = create_source_radio("TMDb FR", "tmdb-fr",
-        G_CALLBACK(signal_source_changed), widget
-    );
+    GtkWidget *tmdben = create_source_radio("tmdb-en", "TMDb EN", G_CALLBACK(signal_source_changed), widget);
+    GtkWidget *tmdbfr = create_source_radio("tmdb-fr", "TMDb FR", G_CALLBACK(signal_source_changed), widget);
 
     gtk_radio_button_join_group(GTK_RADIO_BUTTON(tmdbfr), GTK_RADIO_BUTTON(tmdben)); //radio,source
     gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(tmdbfr), true);
@@ -134,14 +118,14 @@ WidgetToolbar *movie_application_new_toolbar() {
     widget->sourcesbox = sourcesbox;
 
     gtk_box_pack_end(GTK_BOX(widget), sourcesbox, false, false, 0);
-
-    return widget;
 }
 
-static GtkWidget *create_button(const char *label, const char *iconname, GCallback gcallback, gpointer user_data) {
+
+
+static GtkWidget *create_button(const char *icon_name, const char *label, GCallback gcallback, gpointer user_data) {
     
     GtkWidget *button = gtk_button_new_from_icon_name(
-        iconname, GTK_ICON_SIZE_LARGE_TOOLBAR
+        icon_name, GTK_ICON_SIZE_LARGE_TOOLBAR
     );
     gtk_button_set_label(GTK_BUTTON(button), label);
     widget_add_class(button, "toolbar-button");
@@ -152,7 +136,7 @@ static GtkWidget *create_button(const char *label, const char *iconname, GCallba
     return button;
 }
 
-static GtkWidget *create_source_radio(const char *label, char *source_name, GCallback gcallback, gpointer user_data) {
+static GtkWidget *create_source_radio(char *source_name, const char *label, GCallback gcallback, gpointer user_data) {
     
     GtkWidget *button = gtk_radio_button_new_with_label(NULL, label);
     widget_add_class(button, "toolbar-button");
@@ -179,9 +163,8 @@ static void signal_new(GtkButton *button, WidgetToolbar *toolbar) {
 }
 
 static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *toolbar) {
-    bool is_active = gtk_toggle_button_get_active(togglebutton);
-    
-    if(is_active) {
+    bool is_active;
+    if((is_active = gtk_toggle_button_get_active(togglebutton))) {
         const char *source_name = g_object_get_data(G_OBJECT(GTK_WIDGET(togglebutton)), "source");
         g_signal_emit(toolbar, signals[SIGNAL_SOURCE], 0, source_name);
     }

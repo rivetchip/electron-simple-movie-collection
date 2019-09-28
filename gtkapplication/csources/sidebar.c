@@ -36,8 +36,12 @@ static void listbox_model_changed(GListModel *list, unsigned int position, unsig
 static void listbox_model_notify_visibility(Movie *movie, bool is_visible, GtkWidget *listrow);
 
 
-static void widget_sidebar_init(WidgetSidebar *self) {
-    //
+WidgetSidebar *widget_sidebar_new() {
+    g_message(__func__);
+
+    return g_object_new(widget_sidebar_get_type(),
+        "orientation", GTK_ORIENTATION_VERTICAL,
+    NULL);
 }
 
 static void widget_sidebar_class_init(WidgetSidebarClass *klass) {
@@ -65,26 +69,8 @@ static void widget_sidebar_class_init(WidgetSidebarClass *klass) {
     );
 }
 
-static void sidebar_finalize(GObject *obj) {
-    WidgetSidebar *sidebar = WIDGET_SIDEBAR(obj);
+static void widget_sidebar_init(WidgetSidebar *widget) {
 
-    if(sidebar->listmodel) {
-        g_signal_handlers_disconnect_by_func(sidebar->listmodel, listbox_model_changed, obj);
-        g_clear_object(&sidebar->listmodel);
-    }
-}
-
-WidgetSidebar *widget_sidebar_new() {
-    g_message(__func__);
-
-    return g_object_new(widget_sidebar_get_type(),
-        "orientation", GTK_ORIENTATION_VERTICAL,
-    NULL);
-}
-
-WidgetSidebar *movie_application_new_sidebar() {
-
-    WidgetSidebar *widget = widget_sidebar_new();
     widget_add_class(GTK_WIDGET(widget), "sidebar");
 
     // search
@@ -125,9 +111,20 @@ WidgetSidebar *movie_application_new_sidebar() {
     // Add all elements to sidebar
     gtk_box_pack_start(GTK_BOX(widget), searchbox, false, false, 0); // expand, fill, padding
     gtk_box_pack_start(GTK_BOX(widget), scrolledframe, true, true, 0);
-
-    return widget;
 }
+
+static void sidebar_finalize(GObject *obj) {
+    WidgetSidebar *sidebar = WIDGET_SIDEBAR(obj);
+
+    if(sidebar->listmodel) {
+        g_signal_handlers_disconnect_by_func(sidebar->listmodel, listbox_model_changed, obj);
+        g_clear_object(&sidebar->listmodel);
+    }
+}
+
+
+
+
 
 static bool signal_search_keypress(GtkSearchEntry *entry, GdkEventKey *event, WidgetSidebar *sidebar) {
     if(event->keyval == GDK_KEY_Escape) {
@@ -147,10 +144,6 @@ static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow,
     g_return_if_fail(iter != NULL);
 
     g_signal_emit(sidebar, signals[SIGNAL_SELECTED], 0, iter);
-}
-
-void label_bold(GtkWidget *label) {
-
 }
 
 static GtkWidget *listbox_create_placeholder() {

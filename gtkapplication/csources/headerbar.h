@@ -22,7 +22,6 @@ inline WidgetHeaderbar *WIDGET_HEADERBAR(gpointer ptr) {
 
 // public functions
 WidgetHeaderbar *widget_headerbar_new();
-WidgetHeaderbar *movie_application_new_headerbar();
 
 
 

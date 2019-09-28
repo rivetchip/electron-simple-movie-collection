@@ -22,7 +22,6 @@ inline WidgetStatusbar *WIDGET_STATUSBAR(gpointer ptr) {
 
 // public functions
 WidgetStatusbar *widget_statusbar_new();
-WidgetStatusbar *movie_application_new_statusbar();
 
 void widget_statusbar_set_text(WidgetStatusbar *statusbar, const char *text);
 

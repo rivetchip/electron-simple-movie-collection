@@ -3,8 +3,6 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#include "application.h"
-
 #ifdef  __cplusplus
     extern "C" {
 #endif
@@ -22,8 +20,7 @@ inline MovieWindow *MOVIE_WINDOW(gpointer ptr) {
 }
 
 // public functions
-MovieWindow *movie_window_new(MovieApplication *application);
-MovieWindow *movie_application_new_window(MovieApplication *app, GdkScreen *screen);
+MovieWindow *movie_window_new(GKeyFile *settings);
 
 
 

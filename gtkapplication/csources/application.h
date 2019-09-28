@@ -24,9 +24,6 @@ inline MovieApplication *MOVIE_APPLICATION(gpointer ptr) {
 // public functions
 MovieApplication *movie_application_new(const char *application_id, const char *build_version, GApplicationFlags flags);
 
-GKeyFile *movie_application_get_keyfile(MovieApplication *app, const char *keyname);
-bool movie_application_set_keyfile(MovieApplication *app, const char *keyname, GKeyFile *keyfile);
-
 
 
 #ifdef  __cplusplus

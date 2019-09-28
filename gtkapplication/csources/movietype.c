@@ -13,7 +13,13 @@ static int signals[SIGNAL_LAST];
 
 G_DEFINE_TYPE(Movie, movie, G_TYPE_OBJECT);
 
-// internals
+
+Movie *movie_new() {
+    g_message(__func__);
+
+    return g_object_new(movie_get_type(), NULL);
+}
+
 static void movie_class_init(MovieClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
 
@@ -29,10 +35,6 @@ static void movie_class_init(MovieClass *klass) {
 
 static void movie_init(Movie *movie) {
     //
-}
-
-Movie *movie_new() {
-    return g_object_new(movie_get_type(), NULL);
 }
 
 void movie_notify_visible(Movie *movie, bool visible) {
