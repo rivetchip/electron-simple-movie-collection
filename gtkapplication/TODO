@@ -79,59 +79,6 @@ Compile vala programs with gee:
 
 valac --pkg gee-0.8 --pkg gtk+-3.0 test.vala -C
 
-
-
-
-
-=====================
-
-
-/* Read up to (and including) a newline from STREAM into *LINEPTR
-   (and null-terminate it). *LINEPTR is a pointer returned from malloc (or
-   NULL), pointing to *N characters of space.  It is realloc'd as
-   necessary.  Returns the number of characters read (not including the
-   null terminator), or -1 on error or EOF.  */
-
-int getline(char **lineptr, size_t *n, FILE *stream)
-{
-static char line[256];
-char *ptr;
-unsigned int len;
-
-   if (lineptr == NULL || n == NULL)
-   {
-      errno = EINVAL;
-      return -1;
-   }
-
-   if (ferror (stream))
-      return -1;
-
-   if (feof(stream))
-      return -1;
-     
-   fgets(line,256,stream);
-
-   ptr = strchr(line,'\n');   
-   if (ptr)
-      *ptr = '\0';
-
-   len = strlen(line);
-   
-   if ((len+1) < 256)
-   {
-      ptr = realloc(*lineptr, 256);
-      if (ptr == NULL)
-         return(-1);
-      *lineptr = ptr;
-      *n = 256;
-   }
-
-   strcpy(*lineptr,line); 
-   return(len);
-}
-
-
 =====================
 
 loop pointers
@@ -152,10 +99,31 @@ valgrind --tool=memcheck --leak-check=full --leak-resolution=high --num-callers=
 
 
 
+*************************************************************************
+*************************************************************************
+
+Ressources utiles :
+https://github.com/GNOME/gnome-todo/blob/master/src/gtd-task-list.c#L233
+gnome-abrt -> ui -> panels
+gnome-contacts -> panels, recherches
+gnome-recipes -> tags, recherche,s etc
+file-roller - gears + properties dialog
+celluloid-player/celluloid  -> menu
+
+
+
+gtk_list_box_unselect_all => quand on réouvre un fihcier
+
+memory leak =>  à chaque fois qu'on ouvre un fichier, ça ne free pas la list des Movie
+
+g_keyfile_free !> où le mettre ?
 
 
 
 
+
+https://developer.gnome.org/gobject/stable/chapter-gobject.html
+https://developer.gnome.org/gobject/stable/howto-gobject-construction.html
 
 
 gedit
@@ -172,5 +140,61 @@ g_set_prgname
 
 
 G_DEFINE_TYPE (GeditMenuExtension, gedit_menu_extension, G_TYPE_OBJECT)
+
+
+    g_object_set_data(G_OBJECT(widget), "movieId", GINT_TO_POINTER(movieId));
+
+
+gtk_widget_set_events(w, |e|e|e|)
+
+  g_signal_connect (task, "notify", G_CALLBACK (task_changed_cb), self);
+
+g_object_notify_by_pspec
+bind property to class ??
+
+
+
+=============
+
+#include <string.h>
+#include <ctype.h>
+
+// macros
+// static char *stristr(const char *haystack, const char *needle) {
+//     do {
+//         const char* h = haystack;
+//         const char* n = needle;
+//         while(*n && tolower(*h) == tolower(*n)) {
+//             h++;
+//             n++;
+//         }
+//         if(*n == 0) {
+//             return (char *) haystack;
+//         }
+//     } while(*haystack++);
+//     return NULL;
+// }
+
+OU : 
+
+// int isupper(int c) {
+//     return (unsigned)c-'A' < 26;
+// }
+// int tolower(int c) {
+//     if (isupper(c)) return c | 32;
+//     return c;
+// }
+int strncasecmp(const char *_l, const char *_r, size_t n) {
+    const unsigned char *l=(void *)_l, *r=(void *)_r;
+    if (!n--) return 0;
+    for (; *l && *r && n && (*l == *r || tolower(*l) == tolower(*r)); l++, r++, n--);
+    return tolower(*l) - tolower(*r);
+}
+char *strcasestr(const char *h, const char *n) {
+    size_t l = strlen(n);
+    for (; *h; h++) if (!strncasecmp(h, n, l)) return (char *)h;
+    return 0;
+}
+
 
 
