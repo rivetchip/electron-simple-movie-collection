@@ -29,6 +29,7 @@ struct _MovieWindow {
     int paned_position;
 
     // widgets
+    GtkWidget *panedbox;
     WidgetHeaderbar *headerbar;
     WidgetToolbar *toolbar;
     WidgetSidebar *sidebar;
@@ -48,6 +49,14 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
 static void window_set_settings(MovieWindow *window, GKeyFile *settings);
 static void settings_restore_states(MovieWindow *window, GKeyFile *settings);
 static void settings_store_states(MovieWindow *window, GKeyFile *settings);
+// actions
+static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data);
+static void action_open(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
+static void action_save(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
+static void action_save_as(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
+static void action_find(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
+static void action_quit(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
+static void action_fullscreen(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
 // toolbar
 static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window);
 static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window);
@@ -109,8 +118,18 @@ static void movie_window_init(MovieWindow *window) {
     // window events
     g_signal_connect(window, "window-state-event", G_CALLBACK(signal_state_event), NULL);
     g_signal_connect(window, "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
-
     g_signal_connect(window, "delete-event", G_CALLBACK(signal_delete_event), NULL);
+
+    // set actions
+    GtkAccelGroup *accels = gtk_accel_group_new();
+    gtk_window_add_accel_group(GTK_WINDOW(window), accels);
+
+    add_accelerator(accels, GDK_KEY_O, GDK_CONTROL_MASK, G_CALLBACK(action_open), window);
+    add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK, G_CALLBACK(action_save), window);
+    add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK | GDK_SHIFT_MASK, G_CALLBACK(action_save_as), window);
+    add_accelerator(accels, GDK_KEY_F, GDK_CONTROL_MASK, G_CALLBACK(action_find), window);
+    add_accelerator(accels, GDK_KEY_W, GDK_CONTROL_MASK, G_CALLBACK(action_quit), window);
+    add_accelerator(accels, GDK_KEY_F11, 0, G_CALLBACK(action_fullscreen), window);
 
 
     ////////// WINDOW DESIGN //////////
@@ -118,6 +137,7 @@ static void movie_window_init(MovieWindow *window) {
     // hide window decorations of main app and use our own
     WidgetHeaderbar *headerbar = widget_headerbar_new();
     gtk_window_set_titlebar(GTK_WINDOW(window), GTK_WIDGET(headerbar));
+    // todo signals here!
 
     window->headerbar = headerbar;
 
@@ -125,7 +145,7 @@ static void movie_window_init(MovieWindow *window) {
     GtkWidget *mainbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
     // toolbar with main buttons optons
-    WidgetToolbar *toolbar = widget_toolbar_new();
+    WidgetToolbar *toolbar = widget_toolbar_new(accels);
 
     g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
     g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
@@ -139,13 +159,11 @@ static void movie_window_init(MovieWindow *window) {
 
     // panel between sidebar and content
     GtkWidget *panedbox = gtk_paned_new(GTK_ORIENTATION_HORIZONTAL);
-    gtk_paned_set_position(GTK_PANED(panedbox), 300);
+    window->panedbox = panedbox;
 
+    gtk_paned_set_position(GTK_PANED(panedbox), 300);
     g_signal_connect(GTK_PANED(panedbox), "notify::position", G_CALLBACK(signal_paned_move), window);
 
-    if(window->paned_position > 0) {
-        gtk_paned_set_position(GTK_PANED(panedbox), window->paned_position);
-    }
 
     // sidebar with categories list and searchbar
     WidgetSidebar *sidebar = widget_sidebar_new();
@@ -230,13 +248,13 @@ static void window_set_settings(MovieWindow *window, GKeyFile *settings) {
     if(window->is_fullscreen) {
         gtk_window_fullscreen(GTK_WINDOW(window));
     }
+
+    if(window->paned_position > 0) {
+        gtk_paned_set_position(GTK_PANED(window->panedbox), window->paned_position);
+    }
 }
 
 
-
-
-
-    // g_return_val_if_fail(GTK_IS_APPLICATION(application), NULL);
 
 
 static bool signal_delete_event(MovieWindow *window, GdkEvent *event) {
@@ -256,9 +274,9 @@ static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event) 
     window->is_maximized = (event->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) != 0;
     window->is_fullscreen = (event->new_window_state & GDK_WINDOW_STATE_FULLSCREEN) != 0;
 
-	if((event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN) != 0) {
-		update_fullscreen(window, window->is_fullscreen);
-	}
+    if((event->changed_mask & GDK_WINDOW_STATE_FULLSCREEN) != 0) {
+        update_fullscreen(window, window->is_fullscreen);
+    }
 
     return GDK_EVENT_PROPAGATE;
 }
@@ -316,10 +334,54 @@ static void settings_store_states(MovieWindow *window, GKeyFile *settings) {
     if((state = window->paned_position)) {
         g_key_file_set_integer(settings, "WindowState", "paned_position", state);
     }
+    //todo
 }
 
 
+
+
+static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data) {
+    GClosure *closure = g_cclosure_new(gcallback, user_data, NULL);
+    gtk_accel_group_connect(accels, keycode, modifiers, GTK_ACCEL_VISIBLE, closure);
+}
+
+static void action_open(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+    g_message(__func__);
+
+
+}
+
+static void action_save(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+    g_message(__func__);
+}
+static void action_save_as(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+    g_message(__func__);
+}
+static void action_find(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+    g_message(__func__);
+}
+static void action_quit(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+    g_message(__func__);
+
+    gtk_window_close(GTK_WINDOW(window));
+}
+static void action_fullscreen(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+    g_message(__func__);
+
+    window->is_fullscreen ? gtk_window_unfullscreen(GTK_WINDOW(window)) : gtk_window_fullscreen(GTK_WINDOW(window));
+}
+
+
+
+
+
+
+
+
+
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
+    g_message("%s/%d", __func__, is_fullscreen);
+
     // gtk_widget_hide (window->statusbar);
 }
 

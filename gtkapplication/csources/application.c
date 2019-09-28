@@ -42,6 +42,9 @@ static bool application_save_settings_keyfile(MovieApplication *app, GKeyFile *s
 // styling
 static GtkCssProvider *load_styles_resources();
 static void signal_css_parsing_error(GtkCssProvider *provider, GtkCssSection *section, GError *error);
+// actions
+static void add_accelerator(MovieApplication *app, const char *action_name, const char *accel);
+static void action_help(GSimpleAction *action, GVariant *parameter, gpointer user_data);
 
 
 MovieApplication *movie_application_new(const char *application_id, const char *build_version, GApplicationFlags flags) {
@@ -88,6 +91,12 @@ static void movie_application_init(MovieApplication *app) {
         {NULL}
     };
     g_application_add_main_option_entries(G_APPLICATION(app), options);
+
+    // set actions
+    static GActionEntry actions[] = {
+        {"help", action_help}
+    };
+	g_action_map_add_action_entries(G_ACTION_MAP(app), actions, G_N_ELEMENTS(actions), app);
 
     // Add aplication events flow
     g_signal_connect(app, "startup", G_CALLBACK(signal_startup), NULL);
@@ -152,14 +161,9 @@ static void signal_startup(MovieApplication *app) {
         g_signal_connect(css_provider, "parsing-error", G_CALLBACK(signal_css_parsing_error), NULL);
     }
 
-
-    // add_accelerator
-
+    // add accelerators
+    add_accelerator(app, "app.help", "F1");
 }
-
-// static GtkWindow *show_interactive_dialog() {
-//     //todo with open
-// }
 
 static MovieWindow *application_new_window(MovieApplication *app) {
 
@@ -194,7 +198,7 @@ static void signal_shutdown(MovieApplication *app) {
 }
 
 static void signal_open(MovieApplication *app, GFile **files, int n_files, const gchar *hint) {
-    g_message(__func__);
+    g_message("app:%s", __func__);
 
     //todo
     for(int i = 0; i < n_files; i++) {
@@ -230,6 +234,17 @@ static void signal_network_changed(GNetworkMonitor *monitor, bool available, Mov
 
     bool enabled = g_network_monitor_get_network_available(monitor);
 }
+
+static void add_accelerator(MovieApplication *app, const char *action_name, const char *accel) {
+    const char *vaccels[] = {accel, NULL};
+    gtk_application_set_accels_for_action(GTK_APPLICATION(app), action_name, vaccels);
+}
+
+static void action_help(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+    g_message("app:%s", __func__);
+    // MovieApplication *app = MOVIE_APPLICATION(user_data);
+}
+
 
 
 static GtkCssProvider *load_styles_resources() {
@@ -304,8 +319,6 @@ static bool application_save_settings_keyfile(MovieApplication *app, GKeyFile *s
     if(g_mkdir_with_parents(filepath, 0755) != 0) { // error=-1 exist=0
         return false;
     }
-
-    gchar *str;
 
     GError *error = NULL;
     if(!g_key_file_save_to_file(settings, filename, &error)) {
