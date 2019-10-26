@@ -325,16 +325,16 @@ static void settings_store_states(MovieWindow *window, GKeyFile *settings) {
     if((state = window->width)) {
         g_key_file_set_integer(settings, "WindowState", "width", state);
     }
-    if((state = window->is_maximized)) {
-        g_key_file_set_integer(settings, "WindowState", "maximized", state);
-    }
-    if((state = window->is_fullscreen)) {
-        g_key_file_set_integer(settings, "WindowState", "fullscreen", state);
-    }
+    // if((state = window->is_maximized)) {
+    //todo//     g_key_file_set_integer(settings, "WindowState", "maximized", state);
+    // }
+    // if((state = window->is_fullscreen)) {
+    //     g_key_file_set_integer(settings, "WindowState", "fullscreen", state);
+    // }
+
     if((state = window->paned_position)) {
         g_key_file_set_integer(settings, "WindowState", "paned_position", state);
     }
-    //todo
 }
 
 

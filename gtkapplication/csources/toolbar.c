@@ -95,7 +95,7 @@ static void widget_toolbar_init(WidgetToolbar *widget) {
     GtkWidget *button_save = create_button("@toolbar-save", "Enregistrer", G_CALLBACK(signal_save), widget);
     widget->button_save = button_save;
 
-    GtkWidget *button_new = create_button("@toolbar-new", "Enregistrer", G_CALLBACK(signal_new), widget);
+    GtkWidget *button_new = create_button("@toolbar-new", "Nouveau", G_CALLBACK(signal_new), widget);
     widget->button_new = button_new;
 
     gtk_box_pack_start(GTK_BOX(widget), button_open, false, false, 0);

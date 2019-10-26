@@ -15,8 +15,6 @@ G_DEFINE_TYPE(Movie, movie, G_TYPE_OBJECT);
 
 
 Movie *movie_new() {
-    g_message(__func__);
-
     return g_object_new(movie_get_type(), NULL);
 }
 

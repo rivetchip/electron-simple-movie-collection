@@ -118,6 +118,28 @@ memory leak =>  à chaque fois qu'on ouvre un fichier, ça ne free pas la list d
 
 g_keyfile_free !> où le mettre ?
 
+gobject : est-ce que lors du new_object() il initialise les props à NULL/0 par défaut ? On dirait
+
+cc-control -> loader on selected
+
+CtoF(Celsius, &Fahrenheit); => & when modifying argument pointer
+
+
+
+*************************************************************************
+*************************************************************************
+
+Ouvrir une liste, selectionner une caté, ouvrir la même liste :
+
+** Message: 00:35:37.854: signal_toolbar_open
+** Message: 00:35:40.668: signal_movieslist_changed pos:0 del:10 add:0
+(moviecollection:22070): GLib-GObject-CRITICAL **: 00:35:40.668: g_object_get_data: assertion 'G_IS_OBJECT (object)' failed
+
+
+
+
+
+
 
 
 

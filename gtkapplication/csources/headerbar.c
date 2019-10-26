@@ -112,3 +112,4 @@ static void signal_maximize(GtkButton *button) {
         gtk_window_is_maximized(GTK_WINDOW(window)) ? gtk_window_unmaximize(GTK_WINDOW(window)) : gtk_window_maximize(GTK_WINDOW(window));
     }
 }
+// gtk_widget_get_parent_window ?
