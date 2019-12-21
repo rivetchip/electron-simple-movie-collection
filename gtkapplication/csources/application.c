@@ -149,6 +149,7 @@ static void signal_startup(MovieApplication *app) {
     // set window settings
     GtkSettings *gtksettings = gtk_settings_get_default();
     g_object_set(G_OBJECT(gtksettings),
+        "gtk-theme-name", "Adwaita-dark",
         "gtk-application-prefer-dark-theme", true,
         // "gtk-font-name", "Lato 12",
         "gtk-recent-files-enabled", true,
@@ -232,7 +233,7 @@ static int signal_handle_local_options(MovieApplication *app, GVariantDict *opti
 static void signal_network_changed(GNetworkMonitor *monitor, bool available, MovieApplication *app) {
     g_message(__func__);
 
-    bool enabled = g_network_monitor_get_network_available(monitor);
+    bool enabled = g_network_monitor_get_network_available(monitor); // todo
 }
 
 static void add_accelerator(MovieApplication *app, const char *action_name, const char *accel) {

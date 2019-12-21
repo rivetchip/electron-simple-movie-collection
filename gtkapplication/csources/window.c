@@ -46,7 +46,7 @@ static bool signal_delete_event(MovieWindow *window, GdkEvent *event);
 static bool signal_state_event(MovieWindow *window, GdkEventWindowState *event);
 static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation);
 static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
-static void window_set_settings(MovieWindow *window, GKeyFile *settings);
+static void window_apply_settings(MovieWindow *window, GKeyFile *settings);
 static void settings_restore_states(MovieWindow *window, GKeyFile *settings);
 static void settings_store_states(MovieWindow *window, GKeyFile *settings);
 // actions
@@ -69,7 +69,6 @@ static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, M
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window);
 
 
-//todo: pass settings from application?
 MovieWindow *movie_window_new(GKeyFile *settings) {
     g_message(__func__);
 
@@ -79,7 +78,7 @@ MovieWindow *movie_window_new(GKeyFile *settings) {
 
     // we must restore the settings after the object has been constructed
     if((window->settings = settings) != NULL) {
-        window_set_settings(window, settings);
+        window_apply_settings(window, settings);
     }
 
     // when the widnow becomes visible, it will get mouse and keyboard events
@@ -122,14 +121,14 @@ static void movie_window_init(MovieWindow *window) {
 
     // set actions
     GtkAccelGroup *accels = gtk_accel_group_new();
-    gtk_window_add_accel_group(GTK_WINDOW(window), accels);
-
     add_accelerator(accels, GDK_KEY_O, GDK_CONTROL_MASK, G_CALLBACK(action_open), window);
     add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK, G_CALLBACK(action_save), window);
     add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK | GDK_SHIFT_MASK, G_CALLBACK(action_save_as), window);
     add_accelerator(accels, GDK_KEY_F, GDK_CONTROL_MASK, G_CALLBACK(action_find), window);
     add_accelerator(accels, GDK_KEY_W, GDK_CONTROL_MASK, G_CALLBACK(action_quit), window);
     add_accelerator(accels, GDK_KEY_F11, 0, G_CALLBACK(action_fullscreen), window);
+    
+    gtk_window_add_accel_group(GTK_WINDOW(window), accels);
 
 
     ////////// WINDOW DESIGN //////////
@@ -146,7 +145,6 @@ static void movie_window_init(MovieWindow *window) {
 
     // toolbar with main buttons optons
     WidgetToolbar *toolbar = widget_toolbar_new(accels);
-
     g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
     g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
     g_signal_connect(toolbar, "new", G_CALLBACK(signal_toolbar_new), window);
@@ -234,7 +232,7 @@ widget_sidebar_add_item(widget_sidebar, xxx);
     gtk_container_add(GTK_CONTAINER(window), mainbox);
 }
 
-static void window_set_settings(MovieWindow *window, GKeyFile *settings) {
+static void window_apply_settings(MovieWindow *window, GKeyFile *settings) {
 
     // restore previous state
     settings_restore_states(window, settings);
@@ -464,5 +462,8 @@ static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter,
     Movie *movie = g_sequence_get(iter);
 
     g_message("%s", movie->title);
+
+
+
 
 }

@@ -124,6 +124,11 @@ cc-control -> loader on selected
 
 CtoF(Celsius, &Fahrenheit); => & when modifying argument pointer
 
+accels sur les boutons / labels, etc pluoto que les events/callbacks ??
+
+-> important : retrouver la source original de la recherche
+je rcois c'est directemenet dans GTK sur un widget
+
 
 
 *************************************************************************
