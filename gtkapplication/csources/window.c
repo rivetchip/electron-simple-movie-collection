@@ -14,12 +14,20 @@
 #include <stdbool.h>
 
 // type definition
+
+enum window_tab {
+    WINDOW_TAB_WELCOME = 0,
+    WINDOW_TAB_PREVIEW,
+    WINDOW_TAB_EDITION
+};
+
 struct _MovieWindow {
     GtkApplicationWindow parent_instance;
 
     // main app
     GKeyFile *settings;
     MoviesList *movies_list;
+    enum window_tab current_tab;
 
     // window state
     int height;
@@ -50,7 +58,7 @@ static void window_apply_settings(MovieWindow *window, GKeyFile *settings);
 static void settings_restore_states(MovieWindow *window, GKeyFile *settings);
 static void settings_store_states(MovieWindow *window, GKeyFile *settings);
 // actions
-static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data);
+// static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data);
 // window actions
 static void action_close(GSimpleAction *action, GVariant *parameter, gpointer window);
 static void action_minimize(GSimpleAction *action, GVariant *parameter, gpointer window);
@@ -360,10 +368,10 @@ static void settings_store_states(MovieWindow *window, GKeyFile *settings) {
 
 
 
-static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data) {
-    GClosure *closure = g_cclosure_new(gcallback, user_data, NULL);
-    gtk_accel_group_connect(accels, keycode, modifiers, GTK_ACCEL_VISIBLE, closure);
-}
+// static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data) {
+//     GClosure *closure = g_cclosure_new(gcallback, user_data, NULL);
+//     gtk_accel_group_connect(accels, keycode, modifiers, GTK_ACCEL_VISIBLE, closure);
+// }
 
 
 
@@ -506,6 +514,9 @@ static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, M
 
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window) {
     g_message("%s", __func__);
+
+    g_return_if_fail(iter != NULL);
+
 
     Movie *movie = g_sequence_get(iter);
 
