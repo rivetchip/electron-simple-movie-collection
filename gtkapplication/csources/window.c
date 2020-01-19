@@ -57,8 +57,6 @@ static void update_fullscreen(MovieWindow *window, bool is_fullscreen);
 static void window_apply_settings(MovieWindow *window, GKeyFile *settings);
 static void settings_restore_states(MovieWindow *window, GKeyFile *settings);
 static void settings_store_states(MovieWindow *window, GKeyFile *settings);
-// actions
-// static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data);
 // window actions
 static void action_close(GSimpleAction *action, GVariant *parameter, gpointer window);
 static void action_minimize(GSimpleAction *action, GVariant *parameter, gpointer window);
@@ -80,6 +78,23 @@ static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *w
 static void signal_sidebar_search(WidgetSidebar *sidebar, const char *keyword, MovieWindow *window);
 static void signal_sidebar_selected(WidgetSidebar *sidebar, GSequenceIter *iter, MovieWindow *window);
 
+// set actions
+static GActionEntry win_actions[] = {
+    // main actions
+    {"open", action_open},
+    {"save", action_save},
+    {"save-as", action_save_as},
+    {"newitem", action_newitem},
+    // window
+    {"close", action_close},
+    {"minimize", action_minimize},
+    {"maximize", action_maximize},
+    {"fullscreen", action_fullscreen},
+    // menu
+    {"prefs", action_preferences},
+    {"shortcuts", action_shortcuts},
+    {"about", action_about},
+};
 
 MovieWindow *movie_window_new(GKeyFile *settings) {
     g_message(__func__);
@@ -131,35 +146,8 @@ static void movie_window_init(MovieWindow *window) {
     g_signal_connect(window, "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
     g_signal_connect(window, "delete-event", G_CALLBACK(signal_delete_event), NULL);
 
-    // set shortcuts accelerators
-    // GtkAccelGroup *accels = gtk_accel_group_new();
-    // add_accelerator(accels, GDK_KEY_O, GDK_CONTROL_MASK, G_CALLBACK(action_open), window);
-    // add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK, G_CALLBACK(action_save), window);
-    // add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK | GDK_SHIFT_MASK, G_CALLBACK(action_save_as), window);
-    // add_accelerator(accels, GDK_KEY_F, GDK_CONTROL_MASK, G_CALLBACK(action_find), window);
-    // add_accelerator(accels, GDK_KEY_W, GDK_CONTROL_MASK, G_CALLBACK(action_quit), window);
-    // add_accelerator(accels, GDK_KEY_F11, 0, G_CALLBACK(action_fullscreen), window);
-    
-    // gtk_window_add_accel_group(GTK_WINDOW(window), accels);
-
     // set actions
-    static GActionEntry actions[] = {
-        // main actions
-        {"open", action_open},
-        {"save", action_save},
-        {"save-as", action_save_as},
-        {"newitem", action_newitem},
-        // window
-        {"close", action_close},
-        {"minimize", action_minimize},
-        {"maximize", action_maximize},
-        {"fullscreen", action_fullscreen},
-        // menu
-        {"prefs", action_preferences},
-        {"shortcuts", action_shortcuts},
-        {"about", action_about},
-    };
-    g_action_map_add_action_entries(G_ACTION_MAP(window), actions, G_N_ELEMENTS(actions), window);
+    g_action_map_add_action_entries(G_ACTION_MAP(window), win_actions, G_N_ELEMENTS(win_actions), window);
 
 
     ////////// WINDOW DESIGN //////////
@@ -364,16 +352,6 @@ static void settings_store_states(MovieWindow *window, GKeyFile *settings) {
         g_key_file_set_integer(settings, "WindowState", "paned_position", state);
     }
 }
-
-
-
-
-// static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data) {
-//     GClosure *closure = g_cclosure_new(gcallback, user_data, NULL);
-//     gtk_accel_group_connect(accels, keycode, modifiers, GTK_ACCEL_VISIBLE, closure);
-// }
-
-
 
 
 // window actions

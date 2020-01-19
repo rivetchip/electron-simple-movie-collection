@@ -165,6 +165,15 @@ static void signal_startup(MovieApplication *app) {
 
     // add accelerators
     add_accelerator(app, "app.help", "F1");
+    add_accelerator(app, "win.open", "<Primary>O");
+    add_accelerator(app, "win.save", "<Primary>S");
+    add_accelerator(app, "win.save-as", "<Primary><Shift>S");
+    add_accelerator(app, "win.newitem", "<Primary>N");
+    // window
+    add_accelerator(app, "win.close", "<Primary>W");
+    add_accelerator(app, "win.fullscreen", "F11");
+    // menu
+    add_accelerator(app, "win.prefs", "<Primary>P");
 }
 
 static MovieWindow *application_new_window(MovieApplication *app) {
