@@ -14,9 +14,6 @@ struct _WidgetToolbar {
 };
 
 enum {
-    SIGNAL_OPEN,
-    SIGNAL_SAVE,
-    SIGNAL_NEW,
     SIGNAL_SOURCE,
 	SIGNAL_LAST
 };
@@ -24,12 +21,9 @@ static int signals[SIGNAL_LAST];
 
 G_DEFINE_TYPE(WidgetToolbar, widget_toolbar, GTK_TYPE_BOX);
 
-static GtkWidget *create_button(const char *icon_name, const char *label, GCallback gcallback, gpointer user_data);
+static GtkWidget *create_button(const char *icon_name, const char *label, const char *action_name);
 static GtkWidget *create_source_radio(char *source_name, const char *label, GCallback gcallback, gpointer user_data);
 // signals
-static void signal_open(GtkButton *button, WidgetToolbar *toolbar);
-static void signal_save(GtkButton *button, WidgetToolbar *toolbar);
-static void signal_new(GtkButton *button, WidgetToolbar *toolbar);
 static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *toolbar);
 
 
@@ -44,33 +38,6 @@ WidgetToolbar *widget_toolbar_new() {
 static void widget_toolbar_class_init(WidgetToolbarClass *klass) {
     GObjectClass *object_class = G_OBJECT_CLASS(klass);
     // GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(klass);
-
-    signals[SIGNAL_OPEN] = g_signal_new("open",
-        G_OBJECT_CLASS_TYPE(object_class),
-        G_SIGNAL_RUN_FIRST,
-        0, // offset
-        NULL, NULL, NULL, //accumulator, accu_data, c_marshaller
-        G_TYPE_NONE, // return
-        0 // params
-    );
-
-    signals[SIGNAL_SAVE] = g_signal_new("save",
-        G_OBJECT_CLASS_TYPE(object_class),
-        G_SIGNAL_RUN_FIRST,
-        0, // offset
-        NULL, NULL, NULL, //accumulator, accu_data, c_marshaller
-        G_TYPE_NONE, // return
-        0 // params
-    );
-
-    signals[SIGNAL_NEW] = g_signal_new("new",
-        G_OBJECT_CLASS_TYPE(object_class),
-        G_SIGNAL_RUN_FIRST,
-        0, // offset
-        NULL, NULL, NULL, //accumulator, accu_data, c_marshaller
-        G_TYPE_NONE, // return
-        0 // params
-    );
 
     signals[SIGNAL_SOURCE] = g_signal_new("source",
         G_OBJECT_CLASS_TYPE(object_class),
@@ -89,18 +56,17 @@ static void widget_toolbar_init(WidgetToolbar *widget) {
     gtk_widget_set_size_request(GTK_WIDGET(widget), -1, 45); // width height
 
     // main buttons
-    GtkWidget *button_open = create_button("@toolbar-open", "Ouvrir", G_CALLBACK(signal_open), widget);
+    GtkWidget *button_open = create_button("@toolbar-open", "Ouvrir", "win.open");
+    gtk_box_pack_start(GTK_BOX(widget), button_open, false, false, 0);
     widget->button_open = button_open;
 
-    GtkWidget *button_save = create_button("@toolbar-save", "Enregistrer", G_CALLBACK(signal_save), widget);
+    GtkWidget *button_save = create_button("@toolbar-save", "Enregistrer", "win.save");
+    gtk_box_pack_start(GTK_BOX(widget), button_save, false, false, 0);
     widget->button_save = button_save;
 
-    GtkWidget *button_new = create_button("@toolbar-new", "Nouveau", G_CALLBACK(signal_new), widget);
-    widget->button_new = button_new;
-
-    gtk_box_pack_start(GTK_BOX(widget), button_open, false, false, 0);
-    gtk_box_pack_start(GTK_BOX(widget), button_save, false, false, 0);
+    GtkWidget *button_new = create_button("@toolbar-newitem", "Nouveau", "win.newitem");
     gtk_box_pack_start(GTK_BOX(widget), button_new, false, false, 0);
+    widget->button_new = button_new;
 
     // add movie sources selection
 
@@ -122,7 +88,7 @@ static void widget_toolbar_init(WidgetToolbar *widget) {
 
 
 
-static GtkWidget *create_button(const char *icon_name, const char *label, GCallback gcallback, gpointer user_data) {
+static GtkWidget *create_button(const char *icon_name, const char *label, const char *action_name) {
     
     GtkWidget *button = gtk_button_new_from_icon_name(
         icon_name, GTK_ICON_SIZE_LARGE_TOOLBAR
@@ -131,7 +97,8 @@ static GtkWidget *create_button(const char *icon_name, const char *label, GCallb
     widget_add_class(button, "toolbar-button");
     gtk_button_set_always_show_image(GTK_BUTTON(button), true);
 
-    g_signal_connect(button, "clicked", gcallback, user_data);
+    // g_signal_connect(button, "clicked", gcallback, user_data);
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(button), action_name);
 
     return button;
 }
@@ -148,18 +115,6 @@ static GtkWidget *create_source_radio(char *source_name, const char *label, GCal
     g_signal_connect(button, "toggled", gcallback, user_data);
 
     return button;
-}
-
-static void signal_open(GtkButton *button, WidgetToolbar *toolbar) {
-    g_signal_emit(toolbar, signals[SIGNAL_OPEN], 0);
-}
-
-static void signal_save(GtkButton *button, WidgetToolbar *toolbar) {
-    g_signal_emit(toolbar, signals[SIGNAL_SAVE], 0);
-}
-
-static void signal_new(GtkButton *button, WidgetToolbar *toolbar) {
-    g_signal_emit(toolbar, signals[SIGNAL_NEW], 0);
 }
 
 static void signal_source_changed(GtkToggleButton *togglebutton, WidgetToolbar *toolbar) {

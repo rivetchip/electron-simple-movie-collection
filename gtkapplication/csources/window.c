@@ -51,17 +51,21 @@ static void settings_restore_states(MovieWindow *window, GKeyFile *settings);
 static void settings_store_states(MovieWindow *window, GKeyFile *settings);
 // actions
 static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data);
-static void action_open(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
-static void action_save(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
-static void action_save_as(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
-static void action_find(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
-static void action_quit(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
-static void action_fullscreen(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window);
-// toolbar
-static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window);
-static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window);
-static void signal_toolbar_new(WidgetToolbar *toolbar, MovieWindow *window);
-static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window);
+// window actions
+static void action_close(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_minimize(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_maximize(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_fullscreen(GSimpleAction *action, GVariant *parameter, gpointer window);
+// main actions
+static void action_open(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_save(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_save_as(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_newitem(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_source_changed(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window);
+// others actions
+static void action_preferences(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_shortcuts(GSimpleAction *action, GVariant *parameter, gpointer window);
+static void action_about(GSimpleAction *action, GVariant *parameter, gpointer window);
 // sidebar
 static void signal_movieslist_changed(GListModel *list, unsigned int position, unsigned int removed, unsigned int added, MovieWindow *window);
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window);
@@ -119,16 +123,36 @@ static void movie_window_init(MovieWindow *window) {
     g_signal_connect(window, "size-allocate", G_CALLBACK(signal_size_allocate), NULL);
     g_signal_connect(window, "delete-event", G_CALLBACK(signal_delete_event), NULL);
 
-    // set actions
-    GtkAccelGroup *accels = gtk_accel_group_new();
-    add_accelerator(accels, GDK_KEY_O, GDK_CONTROL_MASK, G_CALLBACK(action_open), window);
-    add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK, G_CALLBACK(action_save), window);
-    add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK | GDK_SHIFT_MASK, G_CALLBACK(action_save_as), window);
-    add_accelerator(accels, GDK_KEY_F, GDK_CONTROL_MASK, G_CALLBACK(action_find), window);
-    add_accelerator(accels, GDK_KEY_W, GDK_CONTROL_MASK, G_CALLBACK(action_quit), window);
-    add_accelerator(accels, GDK_KEY_F11, 0, G_CALLBACK(action_fullscreen), window);
+    // set shortcuts accelerators
+    // GtkAccelGroup *accels = gtk_accel_group_new();
+    // add_accelerator(accels, GDK_KEY_O, GDK_CONTROL_MASK, G_CALLBACK(action_open), window);
+    // add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK, G_CALLBACK(action_save), window);
+    // add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK | GDK_SHIFT_MASK, G_CALLBACK(action_save_as), window);
+    // add_accelerator(accels, GDK_KEY_F, GDK_CONTROL_MASK, G_CALLBACK(action_find), window);
+    // add_accelerator(accels, GDK_KEY_W, GDK_CONTROL_MASK, G_CALLBACK(action_quit), window);
+    // add_accelerator(accels, GDK_KEY_F11, 0, G_CALLBACK(action_fullscreen), window);
     
-    gtk_window_add_accel_group(GTK_WINDOW(window), accels);
+    // gtk_window_add_accel_group(GTK_WINDOW(window), accels);
+
+    // set actions
+    static GActionEntry actions[] = {
+        // main actions
+        {"open", action_open},
+        {"save", action_save},
+        {"save-as", action_save_as},
+        {"newitem", action_newitem},
+        // window
+        {"close", action_close},
+        {"minimize", action_minimize},
+        {"maximize", action_maximize},
+        {"fullscreen", action_fullscreen},
+        // menu
+        {"prefs", action_preferences},
+        {"shortcuts", action_shortcuts},
+        {"about", action_about},
+    };
+    // https://developer.gnome.org/gio/stable/GActionMap.html#g-action-map-add-action
+    g_action_map_add_action_entries(G_ACTION_MAP(window), actions, G_N_ELEMENTS(actions), window);
 
 
     ////////// WINDOW DESIGN //////////
@@ -144,11 +168,8 @@ static void movie_window_init(MovieWindow *window) {
     GtkWidget *mainbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
     // toolbar with main buttons optons
-    WidgetToolbar *toolbar = widget_toolbar_new(accels);
-    g_signal_connect(toolbar, "open", G_CALLBACK(signal_toolbar_open), window);
-    g_signal_connect(toolbar, "save", G_CALLBACK(signal_toolbar_save), window);
-    g_signal_connect(toolbar, "new", G_CALLBACK(signal_toolbar_new), window);
-    g_signal_connect(toolbar, "source", G_CALLBACK(signal_toolbar_source), window);
+    WidgetToolbar *toolbar = widget_toolbar_new();
+    g_signal_connect(toolbar, "source", G_CALLBACK(action_source_changed), window);
 
     // status bar on the bottom
     WidgetStatusbar *statusbar = widget_statusbar_new();
@@ -290,6 +311,12 @@ static void signal_size_allocate(MovieWindow *window, GdkRectangle *allocation) 
     }
 }
 
+static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
+    g_message("%s/%d", __func__, is_fullscreen);
+
+    // gtk_widget_hide(window->statusbar);
+}
+
 static void signal_paned_move(GtkPaned *paned, GParamSpec *pspec, MovieWindow *window) {
     window->paned_position = gtk_paned_get_position(paned);
 }
@@ -343,30 +370,74 @@ static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierTyp
     gtk_accel_group_connect(accels, keycode, modifiers, GTK_ACCEL_VISIBLE, closure);
 }
 
-static void action_open(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
-    g_message(__func__);
 
 
-}
 
-static void action_save(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
-    g_message(__func__);
-}
-static void action_save_as(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
-    g_message(__func__);
-}
-static void action_find(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
-    g_message(__func__);
-}
-static void action_quit(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
-    g_message(__func__);
+// window actions
 
+static void action_close(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
     gtk_window_close(GTK_WINDOW(window));
 }
-static void action_fullscreen(GtkAccelGroup *accels, GObject *acceleratable, guint keyval, GdkModifierType modifier, MovieWindow *window) {
+
+static void action_minimize(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+    gtk_window_iconify(GTK_WINDOW(window));
+    
+}
+
+static void action_maximize(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+    gtk_window_is_maximized(GTK_WINDOW(window)) ? gtk_window_unmaximize(GTK_WINDOW(window)) : gtk_window_maximize(GTK_WINDOW(window));
+}
+
+static void action_fullscreen(GSimpleAction *action, GVariant *parameter, gpointer window) {
     g_message(__func__);
 
-    window->is_fullscreen ? gtk_window_unfullscreen(GTK_WINDOW(window)) : gtk_window_fullscreen(GTK_WINDOW(window));
+    MovieWindow *mwindow = MOVIE_WINDOW(window);
+    mwindow->is_fullscreen ? gtk_window_unfullscreen(GTK_WINDOW(window)) : gtk_window_fullscreen(GTK_WINDOW(window));
+}
+
+// toolbar actions
+
+static void action_open(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+    
+}
+
+static void action_save(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+    
+}
+
+static void action_save_as(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+    
+}
+
+static void action_newitem(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+    
+}
+
+static void action_source_changed(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window) {
+    g_message(__func__);
+    
+    g_message("%s %s", __func__, source_name);
+}
+
+// others actions
+
+static void action_preferences(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+}
+
+static void action_shortcuts(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
+}
+
+static void action_about(GSimpleAction *action, GVariant *parameter, gpointer window) {
+    g_message(__func__);
 }
 
 
@@ -377,11 +448,10 @@ static void action_fullscreen(GtkAccelGroup *accels, GObject *acceleratable, gui
 
 
 
-static void update_fullscreen(MovieWindow *window, bool is_fullscreen) {
-    g_message("%s/%d", __func__, is_fullscreen);
 
-    // gtk_widget_hide (window->statusbar);
-}
+
+
+/*
 
 static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     g_message(__func__);
@@ -416,24 +486,7 @@ static void signal_toolbar_open(WidgetToolbar *toolbar, MovieWindow *window) {
     g_free((char*) filename);
 }
 
-static void signal_toolbar_save(WidgetToolbar *toolbar, MovieWindow *window) {
-    g_message(__func__);
-
-    
-}
-
-static void signal_toolbar_new(WidgetToolbar *toolbar, MovieWindow *window) {
-    g_message(__func__);
-
-    
-}
-
-static void signal_toolbar_source(WidgetToolbar *toolbar, const char *source_name, MovieWindow *window) {
-    g_message("%s %s", __func__, source_name);
-
-    
-}
-
+*/
 
 
 

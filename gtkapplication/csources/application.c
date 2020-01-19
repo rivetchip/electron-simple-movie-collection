@@ -96,6 +96,7 @@ static void movie_application_init(MovieApplication *app) {
     static GActionEntry actions[] = {
         {"help", action_help}
     };
+    // https://developer.gnome.org/gio/stable/GActionMap.html#g-action-map-add-action
 	g_action_map_add_action_entries(G_ACTION_MAP(app), actions, G_N_ELEMENTS(actions), app);
 
     // Add aplication events flow
@@ -242,6 +243,8 @@ static void add_accelerator(MovieApplication *app, const char *action_name, cons
 }
 
 static void action_help(GSimpleAction *action, GVariant *parameter, gpointer user_data) {
+
+    
     g_message("app:%s", __func__);
     // MovieApplication *app = MOVIE_APPLICATION(user_data);
 }

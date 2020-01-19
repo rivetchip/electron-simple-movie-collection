@@ -13,9 +13,8 @@ struct _WidgetHeaderbar {
 
 G_DEFINE_TYPE(WidgetHeaderbar, widget_headerbar, GTK_TYPE_HEADER_BAR);
 
-static void signal_close(GtkButton *button);
-static void signal_minimize(GtkButton *button);
-static void signal_maximize(GtkButton *button);
+// menu button
+static GtkWidget *widget_gearbutton_new(WidgetHeaderbar *widget);
 
 
 WidgetHeaderbar *widget_headerbar_new() {
@@ -46,70 +45,48 @@ static void widget_headerbar_init(WidgetHeaderbar *widget) {
 
     GtkWidget *button_close = gtk_button_new_from_icon_name("@window-close", GTK_ICON_SIZE_BUTTON);
     widget_add_class(button_close, "headerbutton");
-    g_signal_connect(button_close, "clicked", G_CALLBACK(signal_close), NULL);
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(button_close), "win.close");
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(widget), button_close);
 
     widget->button_close = button_close;
 
     GtkWidget *button_minimize = gtk_button_new_from_icon_name("@window-minimize", GTK_ICON_SIZE_BUTTON);
     widget_add_class(button_minimize, "headerbutton");
-    g_signal_connect(button_minimize, "clicked", G_CALLBACK(signal_minimize), NULL);
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(button_minimize), "win.minimize");
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(widget), button_minimize);
 
     widget->button_minimize = button_minimize;
 
     GtkWidget *button_maximize = gtk_button_new_from_icon_name("@window-maximize", GTK_ICON_SIZE_BUTTON);
     widget_add_class(button_maximize, "headerbutton");
-    g_signal_connect(button_maximize, "clicked", G_CALLBACK(signal_maximize), NULL);
+    gtk_actionable_set_action_name(GTK_ACTIONABLE(button_maximize), "win.maximize");
+    gtk_header_bar_pack_start(GTK_HEADER_BAR(widget), button_maximize);
 
     widget->button_maximize = button_maximize;
 
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(widget), button_close);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(widget), button_minimize);
-    gtk_header_bar_pack_start(GTK_HEADER_BAR(widget), button_maximize);
-
     // options gear button
-    GtkWidget *button_menu = gtk_menu_button_new();
-    widget_add_class(button_menu, "headerbutton");
+    GtkWidget *button_gear = widget_gearbutton_new(widget);
+    gtk_header_bar_pack_end(GTK_HEADER_BAR(widget), button_gear);
 
-    GtkWidget *popover = gtk_popover_new(button_menu);
-    gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_menu), popover);
-
-
-    GtkWidget *bb = gtk_menu_button_new();
-    gtk_button_set_label(GTK_BUTTON(bb), "ssss");
-
-    gtk_container_add(GTK_CONTAINER(popover), bb);
-
-
-
-
-    gtk_header_bar_pack_end(GTK_HEADER_BAR(widget), button_menu);
-
-
-    gtk_widget_show_all(bb);
-
+    // show everything
+    
 }
 
-static void signal_close(GtkButton *button) {
-    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(button));
+static GtkWidget *widget_gearbutton_new(WidgetHeaderbar *widget) {
 
-    if(GTK_IS_WINDOW(window)) {
-        gtk_window_close(GTK_WINDOW(window));
-    }
+    GtkWidget *button_gear = gtk_menu_button_new();
+    widget_add_class(button_gear, "headerbutton");
+    gtk_widget_set_tooltip_text(button_gear, "Menu");
+
+    // GtkWidget *popover_menu = gtk_popover_new(button_gear);
+    // gtk_menu_button_set_popover(GTK_MENU_BUTTON(button_gear), popover_menu);
+
+    GMenu *menu = g_menu_new();
+    g_menu_append(menu, "Préférences", "win.prefs");
+    g_menu_append(menu, "Raccourcis clavier", "win.shortcuts");
+    g_menu_append(menu, "À propos", "win.about");
+
+    gtk_menu_button_set_menu_model(GTK_MENU_BUTTON(button_gear), G_MENU_MODEL(menu));
+
+    return button_gear;
 }
-
-static void signal_minimize(GtkButton *button) {
-    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(button));
-
-    if(GTK_IS_WINDOW(window)) {
-        gtk_window_iconify(GTK_WINDOW(window));
-    }
-}
-
-static void signal_maximize(GtkButton *button) {
-    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(button));
-
-    if(GTK_IS_WINDOW(window)) {
-        gtk_window_is_maximized(GTK_WINDOW(window)) ? gtk_window_unmaximize(GTK_WINDOW(window)) : gtk_window_maximize(GTK_WINDOW(window));
-    }
-}
-// gtk_widget_get_parent_window ?
