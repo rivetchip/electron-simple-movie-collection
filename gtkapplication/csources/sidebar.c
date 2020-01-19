@@ -140,6 +140,8 @@ static void signal_search_changed(GtkSearchEntry *entry, WidgetSidebar *sidebar)
 }
 
 static void signal_listbox_selected(GtkListBox *listbox, GtkListBoxRow *listrow, WidgetSidebar *sidebar) {
+    g_return_if_fail(G_IS_OBJECT(listrow));
+
     gpointer iter = g_object_get_data(G_OBJECT(listrow), "iter");
     g_return_if_fail(iter != NULL);
 
