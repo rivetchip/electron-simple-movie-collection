@@ -12,7 +12,7 @@
         <file alias="@window-restore.svg">ressources/window-restore.svg</file>
         <file alias="@window-maximize.svg">ressources/window-maximize.svg</file>
 
-        <file alias="@toolbar-new.svg">ressources/toolbar-new.svg</file>
+        <file alias="@toolbar-newitem.svg">ressources/toolbar-newitem.svg</file>
         <file alias="@toolbar-open.svg">ressources/toolbar-open.svg</file>
         <file alias="@toolbar-save.svg">ressources/toolbar-save.svg</file>
 
