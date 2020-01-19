@@ -67,9 +67,6 @@ static void widget_headerbar_init(WidgetHeaderbar *widget) {
     // options gear button
     GtkWidget *button_gear = widget_gearbutton_new(widget);
     gtk_header_bar_pack_end(GTK_HEADER_BAR(widget), button_gear);
-
-    // show everything
-    
 }
 
 static GtkWidget *widget_gearbutton_new(WidgetHeaderbar *widget) {
@@ -90,3 +87,4 @@ static GtkWidget *widget_gearbutton_new(WidgetHeaderbar *widget) {
 
     return button_gear;
 }
+

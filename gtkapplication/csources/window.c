@@ -151,7 +151,6 @@ static void movie_window_init(MovieWindow *window) {
         {"shortcuts", action_shortcuts},
         {"about", action_about},
     };
-    // https://developer.gnome.org/gio/stable/GActionMap.html#g-action-map-add-action
     g_action_map_add_action_entries(G_ACTION_MAP(window), actions, G_N_ELEMENTS(actions), window);
 
 
@@ -350,12 +349,8 @@ static void settings_store_states(MovieWindow *window, GKeyFile *settings) {
     if((state = window->width)) {
         g_key_file_set_integer(settings, "WindowState", "width", state);
     }
-    // if((state = window->is_maximized)) {
-    //todo//     g_key_file_set_integer(settings, "WindowState", "maximized", state);
-    // }
-    // if((state = window->is_fullscreen)) {
-    //     g_key_file_set_integer(settings, "WindowState", "fullscreen", state);
-    // }
+    g_key_file_set_integer(settings, "WindowState", "maximized", window->is_maximized);
+    g_key_file_set_integer(settings, "WindowState", "fullscreen", window->is_fullscreen);
 
     if((state = window->paned_position)) {
         g_key_file_set_integer(settings, "WindowState", "paned_position", state);
