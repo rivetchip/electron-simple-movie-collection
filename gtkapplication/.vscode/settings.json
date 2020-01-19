@@ -4,4 +4,9 @@
         "**/devbuild": true,
         "**/releasebuild": true
     },
+    "files.watcherExclude": {
+        "**/node_modules": true,
+        "**/devbuild": true,
+        "**/releasebuild": true
+    }
 }

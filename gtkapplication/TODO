@@ -225,3 +225,13 @@ char *strcasestr(const char *h, const char *n) {
 
 
 
+
+
+    GtkWidget *window = gtk_widget_get_toplevel(GTK_WIDGET(button));
+
+    if(GTK_IS_WINDOW(window)) {
+        
+    }
+
+
+    
