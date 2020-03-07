@@ -6,8 +6,8 @@
     "author": "rivetchip",
     "license": "MIT",
     "scripts": {
-        "serve": "parcel serve webapplication/index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
-        "bundle": "NODE_ENV=production parcel build webapplication/index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --no-source-maps",
+        "serve": "parcel serve index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
+        "bundle": "NODE_ENV=production parcel build index.html --out-file index --out-dir bundle/ --public-url ./ --target browser --no-source-maps",
         "bundle-clean": "rm -rf ./bundle/*"
     },
     "devDependencies": {
