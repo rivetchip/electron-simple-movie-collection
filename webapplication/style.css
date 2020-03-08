@@ -195,13 +195,13 @@ app-titlebar button:active {
 }
 
 app-titlebar button.minimize {
-    background-image: url(imgs/window-minimize.svg);
+    background-image: url(ressources/window-minimize.svg);
 }
 app-titlebar button.maximize {
-    background-image: url(imgs/window-maximize.svg);
+    background-image: url(ressources/window-maximize.svg);
 }
 app-titlebar button.close {
-    background-image: url(imgs/window-close.svg);
+    background-image: url(ressources/window-close.svg);
 }
 
 
@@ -243,16 +243,16 @@ app-toolbar button:last-of-type {
 
 app-toolbar button.hamburger {
     display: none;/*responsive*/
-    background-image: url(imgs/emblem-grid.svg);
+    background-image: url(ressources/emblem-grid.svg);
 }
 app-toolbar button.open {
-    background-image: url(imgs/icon-open.svg);
+    background-image: url(ressources/icon-open.svg);
 }
 app-toolbar button.save {
-    background-image: url(imgs/icon-save.svg);
+    background-image: url(ressources/icon-save.svg);
 }
 app-toolbar button.new {
-    background-image: url(imgs/icon-new-product.svg);
+    background-image: url(ressources/icon-new-product.svg);
 }
 
 app-toolbar button:hover {
@@ -349,7 +349,7 @@ search-toolbar .search-input {
     border: 1px solid transparent;
     border-radius: 50px;
     transition: border 200ms ease;
-    background: #2c3133 url(imgs/icon-search.svg) no-repeat 12px center;
+    background: #2c3133 url(ressources/icon-search.svg) no-repeat 12px center;
     background-size: 16px;
 }
 search-toolbar .search-input:focus {
@@ -435,7 +435,7 @@ product-item.is-selected:active {
 product-item .favorite {
     display: block;
 
-    background: url(imgs/emblem-favorite.svg) transparent no-repeat center;
+    background: url(ressources/emblem-favorite.svg) transparent no-repeat center;
     background-size: 20px;
 
     padding: 10px;
@@ -669,20 +669,20 @@ product-publication .video-choose-poster:hover {
     background-size: 24px;
 }
 .stars-rating-none {
-    background-image: url(imgs/icon-nostar-off.svg);
+    background-image: url(ressources/icon-nostar-off.svg);
 }
 
 .stars-rating-check:checked ~ .stars-rating-check + .stars-rating-star { /* non-checked stars*/
-    background-image: url(imgs/icon-star-off.svg);
+    background-image: url(ressources/icon-star-off.svg);
     background-color: transparent;
 }
 .stars-rating-check:checked + .stars-rating-none { /* "none" checked star*/
-    background-image: url(imgs/icon-nostar-on.svg);
+    background-image: url(ressources/icon-nostar-on.svg);
     background-color: transparent;
 }
 
 .stars-rating-check + .stars-rating-star { /* checked star ; exclude "none" icon */
-    background-image: url(imgs/icon-star-on.svg);
+    background-image: url(ressources/icon-star-on.svg);
     /* background-color: orange; */
 }
 
