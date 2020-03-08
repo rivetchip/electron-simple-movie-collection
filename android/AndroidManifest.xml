@@ -3,6 +3,7 @@
     package="fr.spidery.moviecollection">
 
     <uses-sdk android:minSdkVersion="23" />
+    <!-- Android 6 Marshmallow -->
 
     <application
         android:allowBackup="true"

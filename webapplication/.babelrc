@@ -1,0 +1,28 @@
+{
+    "presets": [
+        ["@babel/preset-env", {
+            "targets": {
+                "browsers": [
+                    "Chrome 55", "Firefox 52"
+                ]
+            },
+            "modules": "commonjs",
+            // "useBuiltIns": "usage",
+            // "corejs": 3,
+            "exclude": [ // use natives as targets.browsers
+                "@babel/plugin-transform-async-to-generator",
+                "@babel/plugin-transform-regenerator"
+            ]
+        }]
+    ],
+    "plugins": [
+        ["@babel/plugin-transform-modules-commonjs"],
+        ["@babel/plugin-transform-react-jsx", {
+            "pragma": "h",
+            "pragmaFrag": "Fragment"
+        }]
+    ],
+    "ignore": [
+        "preload.js"
+    ]
+}
