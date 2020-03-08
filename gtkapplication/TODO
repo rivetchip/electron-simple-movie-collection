@@ -234,4 +234,26 @@ char *strcasestr(const char *h, const char *n) {
     }
 
 
+    g_info()
+
+
+
+// static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data);
+
+// static void add_accelerator(GtkAccelGroup *accels, guint keycode, GdkModifierType modifiers, GCallback gcallback, gpointer user_data) {
+//     GClosure *closure = g_cclosure_new(gcallback, user_data, NULL);
+//     gtk_accel_group_connect(accels, keycode, modifiers, GTK_ACCEL_VISIBLE, closure);
+// }
+
+    // set shortcuts accelerators
+    // GtkAccelGroup *accels = gtk_accel_group_new();
+    // add_accelerator(accels, GDK_KEY_O, GDK_CONTROL_MASK, G_CALLBACK(action_open), window);
+    // add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK, G_CALLBACK(action_save), window);
+    // add_accelerator(accels, GDK_KEY_S, GDK_CONTROL_MASK | GDK_SHIFT_MASK, G_CALLBACK(action_save_as), window);
+    // add_accelerator(accels, GDK_KEY_F, GDK_CONTROL_MASK, G_CALLBACK(action_find), window);
+    // add_accelerator(accels, GDK_KEY_W, GDK_CONTROL_MASK, G_CALLBACK(action_quit), window);
+    // add_accelerator(accels, GDK_KEY_F11, 0, G_CALLBACK(action_fullscreen), window);
     
+    // gtk_window_add_accel_group(GTK_WINDOW(window), accels);
+
+

@@ -1,0 +1,2 @@
+"__serve": "parcel serve index.html --out-file index --out-dir devbuild/ --public-url ./ --target browser --hmr-hostname localhost --hmr-port 6789 --port 8080",
+"__bundle": "NODE_ENV=production parcel build index.html --out-file index --out-dir releasebuild/ --public-url ./ --target browser --no-source-maps",
