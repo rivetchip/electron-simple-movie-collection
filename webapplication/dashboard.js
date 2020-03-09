@@ -72,15 +72,16 @@ function View(state, actions) {
 }
 
 
-const App1 = connect('count', actions)(({ count, increment, incrementBy }) => (
-      <div>
-        <p>Count: {count}</p>
-        <button onClick={increment}>Increment</button>
-        <button onClick={() => incrementBy(10)}>Increment by 10</button>
-      </div>
-    )
-  )
+const App1 = connect(null, actions)((options) => {
 
+    console.log('>>options',options)
+
+    return <div>
+    <p>Count: {options.count}</p>
+    <button onClick={options.increment}>Increment</button>
+    <button onClick={() => options.incrementBy(10)}>Increment by 10</button>
+  </div>
+})
 
 // const node = document.getElementById('app');
 // render(View(state, actions), node, node.firstElementChild);
