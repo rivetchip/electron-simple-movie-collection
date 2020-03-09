@@ -21,12 +21,10 @@ const state = { // initial state
     isLoading: false,
     isMenuOpen: false,
 
-    count: 0, stuff: []
+    count: 0, stuff: [],
+    xx:1
 
 };
-
-const store = createStore(state);
-
 
 const actions = store => ({
     actionOpenMenu: function(event1,event2) {
@@ -52,6 +50,9 @@ const actions = store => ({
 
 });
 
+const store = createStore(state);
+
+
 function View(state, actions) {
     return <app className={[
         'viewport',
@@ -72,29 +73,25 @@ function View(state, actions) {
 }
 
 
-const App1 = connect(null, actions)((options) => {
-
-    console.log('>>options',options)
-
-    return <div>
-    <p>Count: {options.count}</p>
-    <button onClick={options.increment}>Increment</button>
-    <button onClick={() => options.incrementBy(10)}>Increment by 10</button>
-  </div>
-})
-
-// const node = document.getElementById('app');
-// render(View(state, actions), node, node.firstElementChild);
 
 
-export const getApp1 = () => (
-    <Provider store={store}>
-      <App1 />
-    </Provider>
-  )
+
+const App = connect(actions, function(state, actions, props) {
+    return <div xx="xx">
+    <p>Count: {JSON.stringify(state)}</p>
+    <button onClick={actions.increment}>Increment</button>
+    <button onClick={() => actions.incrementBy(10)}>Increment by 10</button>
+    </div>;
+});
+
+function getApp() {
+    return <Provider store={store}>
+        <App />
+    </Provider>;
+}
 
 const node = document.getElementById('app');
-render(getApp1(), node, node.firstElementChild);
+render(getApp(), node, node.firstElementChild);
 
 
 

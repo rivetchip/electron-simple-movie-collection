@@ -1,7 +1,6 @@
 'use strict';
 
-import { h, Component } from 'preact';
-
+import {Component} from 'preact';
 
 // Bind an object/factory of actions to the store and wrap them.
 export function mapActions(actions, store) {
@@ -13,27 +12,11 @@ export function mapActions(actions, store) {
     return mapped;
 }
 
-
-// select('foo,bar') creates a function of the form: ({ foo, bar }) => ({ foo, bar })
-export function select(properties) {
-    if (typeof properties==='string') properties = properties.split(/\s*,\s*/);
-    return state => {
-        let selected = {};
-        for (let i=0; i<properties.length; i++) {
-            selected[properties[i]] = state[properties[i]];
-        }
-        return selected;
-    };
-}
-
-
 // Lighter Object.assign stand-in
 export function assign(obj, props) {
     for (let i in props) obj[i] = props[i];
     return obj;
 }
-
-
 
 /**
  * Creates a new store, which is a tiny evented state container.
@@ -48,7 +31,6 @@ export function assign(obj, props) {
  */
 export function createStore(state) {
     let listeners = [];
-    state = state || {};
 
     function unsubscribe(listener) {
         let out = [];
@@ -139,54 +121,36 @@ export function createStore(state) {
 
 
 
+
+
 /**
  * Wire a component up to the store. Passes state as props, re-renders on change.
- * @param {Function|Array|String} mapStateToProps  A function mapping of store state to prop values, or an array/CSV of properties to map.
- * @param {Function|Object} [actions] 				Action functions (pure state mappings), or a factory returning them. Every action function gets current state as the first parameter and any other params next
- * @returns {Component} ConnectedComponent
- * @example
- * const Foo = connect('foo,bar')( ({ foo, bar }) => <div /> )
- * @example
- * const actions = { someAction }
- * const Foo = connect('foo,bar', actions)( ({ foo, bar, someAction }) => <div /> )
- * @example
- * @connect( state => ({ foo: state.foo, bar: state.bar }) )
- * export class Foo { render({ foo, bar }) { } }
  */
-export function connect(mapStateToProps, actions) {
-    if (typeof mapStateToProps!='function') {
-        mapStateToProps = select(mapStateToProps || {});
-    }
-    return Child => {
-        function Wrapper(props, context) {
-            const store = context.store;
-            let state = mapStateToProps(store ? store.getState() : {}, props);
-            const boundActions = actions ? mapActions(actions, store) : { store };
-            let update = () => {
-                let mapped = mapStateToProps(store ? store.getState() : {}, props);
-                for (let i in mapped) if (mapped[i]!==state[i]) {
-                    state = mapped;
-                    return this.setState({});
-                }
-                for (let i in state) if (!(i in mapped)) {
-                    state = mapped;
-                    return this.setState({});
-                }
-            };
-            this.componentWillReceiveProps = p => {
-                props = p;
-                update();
-            };
-            this.componentDidMount = () => {
-                store.subscribe(update);
-            };
-            this.componentWillUnmount = () => {
-                store.unsubscribe(update);
-            };
-            this.render = props => h(Child, assign(assign(assign({}, boundActions), props), state));
+export function connect(actions, ChildCallback) {
+    function Wrapper(props, context) {
+        const self = this;
+        const store = context.store;
+
+        const attributes = {
+            props,
+            state: (store && store.getState()) || {},
+            actions: (actions && mapActions(actions, store)) || {}
+        };
+        function update(state, action) {
+            attributes.state = state;
+            return self.setState({}); // trigger component
         }
-        return (Wrapper.prototype = new Component()).constructor = Wrapper;
-    };
+        this.componentDidMount = function() {
+            store.subscribe(update);
+        };
+        this.componentWillUnmount = function() {
+            store.unsubscribe(update);
+        };
+        this.render = function(props) {
+            return ChildCallback(attributes.state, attributes.actions, attributes.props);
+        };
+    }
+    return (Wrapper.prototype = new Component()).constructor = Wrapper;
 }
 
 
@@ -200,6 +164,10 @@ export function connect(mapStateToProps, actions) {
  * @param {Store} props.store	A {Store} instance to expose via context.
  */
 export function Provider(props) {
-    this.getChildContext = () => ({ store: props.store });
+    this.getChildContext = function() {
+        return { store: props.store };
+    };
 }
-Provider.prototype.render = props => props.children && props.children[0] || props.children;
+Provider.prototype.render = function(props) {
+    return props.children && props.children[0] || props.children;;
+};

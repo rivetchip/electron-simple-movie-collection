@@ -1,6 +1,6 @@
 'use strict';
 
-import {h, render} from 'preact';
+import {h} from 'preact';
 
 
 export function Header(props, childrens) {
